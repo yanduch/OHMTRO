@@ -530,7 +530,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <label>Charger une équipe sauvegardée :</label>
       <select id="presetSelect"><option value="">-- Sélectionner une équipe --</option></select>
       <div class="color-picker-row" style="margin-top:.6rem;">
-        <label style="font-size:.85rem;font-weight:600;">Couleur par défaut :</label>
+        <label style="font-size:.85rem;font-weight:600;">Couleur de l'équipe :</label>
         <input type="color" id="presetTeamColor" value="#6FA2EE">
       </div>
       <button type="button" class="act-2" id="savePresetBtn" style="width:100%;min-height:2.2rem;font-size:.85rem;margin-top:.6rem;">Enregistrer dans la banque d'équipes</button>
@@ -1245,6 +1245,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       buildRosterForm(state.rosters[currentRosterTeam] || []);
       rosterSheet.showModal();
     });
+  });
+
+  $("presetSelect").addEventListener("change", function(){
+    var pKey = $("presetSelect").value;
+    if(pKey && presets[pKey]){
+      var p = presets[pKey];
+      if(p.logo) $("teamLogoInput").value = p.logo;
+      if(p.color) $("presetTeamColor").value = p.color;
+      if(p.roster) buildRosterForm(p.roster);
+    }
   });
 
   function updatePresetDropdowns(){
