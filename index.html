@@ -101,7 +101,7 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 .hint{font-size:.8125rem;color:var(--muted);margin:.5rem 0 0;text-align:center}
 
-/* Sections & Alignements */
+/* Alignements */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
 .toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
 .toggle-title::after{content:"▼";font-size:.8rem;color:var(--muted);transition:transform .2s}
@@ -152,15 +152,16 @@ dialog::backdrop{background:rgba(6,16,26,.6)}
 dialog h2{margin:0;font-size:1.5rem}
 dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
-/* Saisie tactile des joueurs */
-.player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:35vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
-.btn-player{display:flex;align-items:center;justify-content:space-between;padding:.5rem .7rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left}
-.btn-player.buteur{border-color:var(--ok);background:#eafaf1;font-weight:bold}
-.btn-player.buteur::after{content:"🟢 Buteur";font-size:.7rem;color:var(--ok)}
-.btn-player.passe1{border-color:var(--blue);background:#ebf3ff;font-weight:bold}
-.btn-player.passe1::after{content:"🔵 Passe 1";font-size:.7rem;color:var(--blue)}
-.btn-player.passe2{border-color:#8e44ad;background:#f5eeed;font-weight:bold}
-.btn-player.passe2::after{content:"🟣 Passe 2";font-size:.7rem;color:#8e44ad}
+/* Style de sélection tactile des joueurs pour les buts */
+.player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:40vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
+.btn-player{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left}
+.btn-player .role-tag{font-size:.75rem;font-weight:bold;padding:.1rem .3rem;border-radius:4px}
+.btn-player.buteur{border-color:var(--ok);background:#eafaf1}
+.btn-player.buteur .role-tag{color:var(--ok);background:#c8f2d9}
+.btn-player.passe1{border-color:var(--blue);background:#ebf3ff}
+.btn-player.passe1 .role-tag{color:var(--blue);background:#cbe0ff}
+.btn-player.passe2{border-color:#8e44ad;background:#f5eeed}
+.btn-player.passe2 .role-tag{color:#8e44ad;background:#e8d7f5}
 
 .actions{display:grid;grid-template-columns:1fr 1.4fr;gap:.5rem;margin-top:.8rem}
 .actions button{min-height:3.4rem;border-radius:12px;font-weight:600;font-size:1.05rem}
@@ -168,7 +169,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 .act-1{border:0;background:var(--ink);color:var(--surface)}
 .danger{margin-top:.7rem;width:100%;min-height:2.75rem;border:0;background:transparent;color:var(--red);font-weight:600}
 
-/* Formulaires Roster & New Game */
 .preset-box{background:var(--ice);padding:.6rem;border-radius:10px;margin-bottom:.8rem;border:1px solid var(--line)}
 .preset-box label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.3rem}
 .preset-box select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);margin-bottom:.4rem;background:var(--surface)}
@@ -283,7 +283,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modal Gestion Mots de Passe (Admin) -->
+<!-- Modal Gestion Mots de Passe -->
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
@@ -328,7 +328,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modal Alignement & Gestion Équipes -->
+<!-- Modal Alignement -->
 <dialog id="rosterSheet">
   <div class="sheet-in">
     <h2 id="rsTitle">Alignement</h2>
@@ -353,13 +353,13 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modal But avec sélection tactile -->
+<!-- Modal But avec sélection tactile des joueurs -->
 <dialog id="goalSheet">
   <div class="sheet-in">
     <h2 id="gsTitle">But</h2>
     <p class="ctx" id="gsCtx"></p>
     
-    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur : 🟢 Buteur | 🔵 Passe 1 | 🟣 Passe 2</div>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur pour lui attribuer un rôle :</div>
     <div class="player-pick-grid" id="playerPickGrid"></div>
 
     <div style="background:var(--ice);padding:.5rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
@@ -385,7 +385,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   var $ = function(id){ return document.getElementById(id); };
 
-  // Configuration Firebase
+  // Firebase
   var firebaseConfig = {
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
@@ -400,7 +400,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   var dbPresets = firebase.database().ref("teams_presets");
   var dbPasswords = firebase.database().ref("passwords");
 
-  // Rôles : "admin", "marqueur", "invite", "viewer"
   var urlParams = new URLSearchParams(window.location.search);
   var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
   var currentRole = sessionStorage.getItem("ohmtro_role") || defaultRole;
@@ -424,7 +423,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   }
   updateRoleUI();
 
-  // Gestion Connexion
   $("btnLogin").addEventListener("click", function(){
     if(currentRole !== "viewer"){
       currentRole = "viewer";
@@ -456,7 +454,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     alert("Connexion réussie ! Rôle : " + currentRole.toUpperCase());
   });
 
-  // Gestion des mots de passe (Admin)
   $("btnManagePasswords").addEventListener("click", function(){
     $("pwdAdminInput").value = passwords.admin || "hockey";
     $("pwdMarqueurInput").value = passwords.marqueur || "buts";
@@ -471,7 +468,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       invite: $("pwdInviteInput").value.trim() || "visiteur"
     };
     dbPasswords.set(newP);
-    alert("Les mots de passe ont été mis à jour avec succès !");
+    alert("Mots de passe mis à jour !");
     $("passwordsSheet").close();
   });
 
@@ -677,7 +674,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     $("newGameWizard").close();
   });
 
-  // Alignements & Banque d'Équipes
+  // Alignements
   var rosterSheet = $("rosterSheet"), currentRosterTeam = "a";
   document.querySelectorAll(".btn-roster-open").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -776,7 +773,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     rosterSheet.close();
   });
 
-  // Modal But & Sélection Tactile
+  // Dialogue de But & Sélection tactile corrigée
   var sheetGoal = $("goalSheet"), curGoal = null;
   function openGoal(id, isNew){
     var g = state.goals.filter(function(x){ return x.id === id; })[0]; if(!g) return;
@@ -810,18 +807,31 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       var b = document.createElement("button");
       b.type = "button"; b.className = "btn-player";
       
-      if(curGoal.scorer === p.no) b.classList.add("buteur");
-      else if(curGoal.a1 === p.no) b.classList.add("passe1");
-      else if(curGoal.a2 === p.no) b.classList.add("passe2");
+      var roleTag = "";
+      if(curGoal.scorer === p.no){
+        b.classList.add("buteur");
+        roleTag = "<span class='role-tag'>🟢 Buteur</span>";
+      } else if(curGoal.a1 === p.no){
+        b.classList.add("passe1");
+        roleTag = "<span class='role-tag'>🔵 Passe 1</span>";
+      } else if(curGoal.a2 === p.no){
+        b.classList.add("passe2");
+        roleTag = "<span class='role-tag'>🟣 Passe 2</span>";
+      } else {
+        roleTag = "<span class='role-tag' style='color:var(--muted);'>⚪ Aucun</span>";
+      }
 
-      b.innerHTML = "<span><b>#" + p.no + "</b> " + p.name + "</span>";
+      b.innerHTML = "<span><b>#" + p.no + "</b> " + p.name + "</span>" + roleTag;
       
       b.addEventListener("click", function(){
         var num = p.no;
-        if(curGoal.scorer === num){ curGoal.scorer = ""; curGoal.a1 = num; }
-        else if(curGoal.a1 === num){ curGoal.a1 = ""; curGoal.a2 = num; }
-        else if(curGoal.a2 === num){ curGoal.a2 = ""; }
-        else {
+        if(curGoal.scorer === num){
+          curGoal.scorer = "";
+        } else if(curGoal.a1 === num){
+          curGoal.a1 = "";
+        } else if(curGoal.a2 === num){
+          curGoal.a2 = "";
+        } else {
           if(!curGoal.scorer) curGoal.scorer = num;
           else if(!curGoal.a1) curGoal.a1 = num;
           else if(!curGoal.a2) curGoal.a2 = num;
@@ -859,7 +869,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   $("gsSkip").addEventListener("click", function(){ sheetGoal.close(); });
   $("gsDelete").addEventListener("click", function(){
     if(!curGoal || currentRole === "viewer") return;
-    var g = state.goals.filter(function(x){ return x.id !== curGoal.id; });
+    var g = state.goals.filter(function(x){ return x.id === curGoal.id; })[0];
     if(g){
       state.goals = state.goals.filter(function(x){ return x.id !== curGoal.id; });
       if(state.shots[g.team][g.period] > 0) state.shots[g.team][g.period]--;
