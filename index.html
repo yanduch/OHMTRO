@@ -51,13 +51,14 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
 
-/* Tableau de pointage & Logos */
+/* Tableau de pointage & Nom + Logo côte à côte */
 .board{display:grid;grid-template-columns:1fr 3.25rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .5rem 1rem}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center}
-.team-logo{width:3.2rem;height:3.2rem;object-fit:contain;margin-bottom:.3rem;border-radius:6px}
+.team-header{display:flex;align-items:center;justify-content:center;gap:.3rem;width:100%}
+.team-logo{width:2rem;height:2rem;object-fit:contain;border-radius:4px;flex-shrink:0}
 .team-logo[src=""]{display:none}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
-  font-family:var(--display);font-weight:600;font-size:1.4rem;line-height:1.15;padding:.1rem .2rem;border-radius:0}
+  font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.15;padding:.1rem .2rem;border-radius:0}
 .side.a .name{color:var(--blue)} .side.b .name{color:var(--red)}
 body:not(.viewer) .name{border-bottom-color:var(--line)}
 body.viewer .name{pointer-events:none;border-bottom-color:transparent}
@@ -98,9 +99,15 @@ body.viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:no
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 .hint{font-size:.8125rem;color:var(--muted);margin:.5rem 0 0;text-align:center}
 
-/* Alignement & Sections */
+/* Sections & Alignements Rétractables */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
-.roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.toggle-title::after{content:"▼";font-size:.8rem;color:var(--muted);transition:transform .2s}
+.toggle-title.collapsed::after{transform:rotate(-90deg)}
+
+.roster-container{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;transition:all .2s;overflow:hidden}
+.roster-container.hidden{display:none}
+.roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:.4rem}
 .roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
 .roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
 
@@ -134,7 +141,7 @@ body.viewer .goal-row{pointer-events:none}
 
 .quiet{margin-top:1.75rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 
-/* Feuilles / Dialogues */
+/* Dialogues */
 dialog{border:0;padding:0;color:var(--ink);background:var(--surface);width:100%;max-width:30rem;margin:auto auto 0;
   border-radius:18px 18px 0 0}
 dialog::backdrop{background:rgba(6,16,26,.6)}
@@ -157,8 +164,11 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 .danger{margin-top:.7rem;width:100%;min-height:2.75rem;border:0;background:transparent;color:var(--red);font-weight:600}
 .danger[hidden]{display:none}
 
-/* Formulaire d'alignement */
-.roster-grid{display:grid;gap:.5rem;max-height:50vh;overflow-y:auto;margin-bottom:.8rem}
+/* Formulaire Roster */
+.preset-box{background:var(--ice);padding:.6rem;border-radius:10px;margin-bottom:.8rem;border:1px solid var(--line)}
+.preset-box label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.3rem}
+.preset-box select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);margin-bottom:.4rem;background:var(--surface)}
+.roster-grid{display:grid;gap:.5rem;max-height:40vh;overflow-y:auto;margin-bottom:.8rem}
 .roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
 .roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice)}
 </style>
@@ -175,16 +185,20 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   <section class="board" aria-label="Pointage">
     <div class="side a">
-      <img src="" alt="" class="team-logo" id="logoA">
-      <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+      <div class="team-header">
+        <img src="" alt="" class="team-logo" id="logoA">
+        <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+      </div>
       <button type="button" class="btn-roster-open" data-team="a">Alignement</button>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b>lancers</p>
     </div>
     <div class="center"><span class="circle" id="periodMark" aria-label="Période en cours">P1</span></div>
     <div class="side b">
-      <img src="" alt="" class="team-logo" id="logoB">
-      <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+      <div class="team-header">
+        <img src="" alt="" class="team-logo" id="logoB">
+        <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+      </div>
       <button type="button" class="btn-roster-open" data-team="b">Alignement</button>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b>lancers</p>
@@ -215,15 +229,15 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </section>
   <p class="hint">Un but compte déjà comme un lancer. Touchez le nom d'une équipe pour le modifier.</p>
 
-  <h2>Alignements</h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+  <h2 class="toggle-title collapsed" id="toggleRosterBtn">Alignements</h2>
+  <div class="roster-container hidden" id="rosterBlock">
     <div>
       <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
-      <ul class="roster-list" id="rosterA" style="grid-template-columns:1fr;"></ul>
+      <ul class="roster-list" id="rosterA"></ul>
     </div>
     <div>
       <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
-      <ul class="roster-list" id="rosterB" style="grid-template-columns:1fr;"></ul>
+      <ul class="roster-list" id="rosterB"></ul>
     </div>
   </div>
 
@@ -247,21 +261,27 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
 </div>
 
-<!-- Modal Alignement & Logo -->
+<!-- Modal Alignement & Gestion Équipes -->
 <dialog id="rosterSheet">
   <div class="sheet-in">
     <h2 id="rsTitle">Alignement</h2>
-    <p class="ctx">Ajoutez les joueurs et l'URL du logo de l'équipe.</p>
     
-    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;">URL du logo d'équipe :</label>
+    <div class="preset-box" id="presetBox">
+      <label>Charger une équipe sauvegardée :</label>
+      <select id="presetSelect"><option value="">-- Sélectionner une équipe --</option></select>
+      <button type="button" class="act-2" id="savePresetBtn" style="width:100%;min-height:2.2rem;font-size:.85rem;">Enregistrer cette équipe dans la banque</button>
+    </div>
+
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">URL du logo d'équipe :</label>
     <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
 
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation :</label>
     <div class="roster-grid" id="rosterForm"></div>
     <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.5rem;margin-bottom:.8rem;">+ Ajouter un joueur</button>
 
     <div class="actions">
       <button type="button" class="act-2" id="rsCancel">Annuler</button>
-      <button type="button" class="act-1" id="rsSave">Enregistrer</button>
+      <button type="button" class="act-1" id="rsSave">Appliquer au match</button>
     </div>
   </div>
 </dialog>
@@ -316,6 +336,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   };
   firebase.initializeApp(firebaseConfig);
   var db = firebase.database().ref("match");
+  var dbPresets = firebase.database().ref("teams_presets");
 
   var urlParams = new URLSearchParams(window.location.search);
   var isAdmin = urlParams.get("mode") === "admin";
@@ -360,6 +381,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   }
 
   var state = blank();
+  var presets = {};
 
   db.on("value", function(snapshot){
     var raw = snapshot.val();
@@ -367,6 +389,11 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var st = $("status");
     st.textContent = isAdmin ? "En direct (Admin)" : "En direct";
     st.dataset.s = "live";
+  });
+
+  dbPresets.on("value", function(snapshot){
+    presets = snapshot.val() || {};
+    updatePresetDropdown();
   });
 
   function commit(){
@@ -393,7 +420,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     if(document.activeElement !== $("nameA")) $("nameA").value = n.a;
     if(document.activeElement !== $("nameB")) $("nameB").value = n.b;
     
-    // Logos d'équipes
     $("logoA").src = state.logos.a || "";
     $("logoB").src = state.logos.b || "";
 
@@ -417,7 +443,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     $("gNameB").textContent = "Gardien, " + n.b;
     goalie("A", sB, gB); goalie("B", sA, gA);
 
-    // Affichage des Alignements
     $("rosterTitleA").textContent = n.a;
     $("rosterTitleB").textContent = n.b;
     renderRosterList("rosterA", state.rosters.a);
@@ -473,7 +498,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var ul = $(id); ul.textContent = "";
     if(!list || !list.length){
       var empty = document.createElement("li"); empty.style.fontSize=".8rem"; empty.style.color="var(--muted)";
-      empty.textContent = "Aucun joueur inscrit"; ul.appendChild(empty); return;
+      empty.textContent = "Aucun joueur"; ul.appendChild(empty); return;
     }
     list.forEach(function(p){
       var li = document.createElement("li"); li.className = "roster-item";
@@ -489,7 +514,16 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     setText("svSub"+side, saves + (saves > 1 ? " arrêts" : " arrêt") + " sur " + shotsAgainst + (shotsAgainst > 1 ? " lancers" : " lancer"));
   }
 
-  // Modale Alignements
+  // Cacher / Afficher la section Alignements
+  function toggleRoster(){
+    var container = $("rosterBlock");
+    var title = $("toggleRosterBtn");
+    container.classList.toggle("hidden");
+    title.classList.toggle("collapsed");
+  }
+  $("toggleRosterBtn").addEventListener("click", toggleRoster);
+
+  // Modale Alignements & Banque Équipes
   var rosterSheet = $("rosterSheet"), currentRosterTeam = "a";
   document.querySelectorAll(".btn-roster-open").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -497,8 +531,53 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       $("rsTitle").textContent = "Alignement - " + state.names[currentRosterTeam];
       $("teamLogoInput").value = state.logos[currentRosterTeam] || "";
       buildRosterForm(state.rosters[currentRosterTeam] || []);
+      
+      // Ouvrir aussi la section rétractable si elle était fermée
+      $("rosterBlock").classList.remove("hidden");
+      $("toggleRosterBtn").classList.remove("collapsed");
+
+      if (!isAdmin) {
+        $("presetBox").style.display = "none";
+        $("addPlayerBtn").style.display = "none";
+        $("rsSave").style.display = "none";
+      } else {
+        $("presetBox").style.display = "block";
+        $("addPlayerBtn").style.display = "block";
+        $("rsSave").style.display = "block";
+      }
+
       rosterSheet.showModal();
     });
+  });
+
+  function updatePresetDropdown(){
+    var sel = $("presetSelect"); sel.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
+    Object.keys(presets).forEach(function(key){
+      var opt = document.createElement("option");
+      opt.value = key; opt.textContent = presets[key].name;
+      sel.appendChild(opt);
+    });
+  }
+
+  $("presetSelect").addEventListener("change", function(){
+    var key = this.value;
+    if(key && presets[key]){
+      var p = presets[key];
+      state.names[currentRosterTeam] = p.name;
+      $("teamLogoInput").value = p.logo || "";
+      buildRosterForm(p.roster || []);
+    }
+  });
+
+  $("savePresetBtn").addEventListener("click", function(){
+    var teamName = state.names[currentRosterTeam];
+    if(!teamName){ alert("Veuillez saisir un nom d'équipe d'abord."); return; }
+    var logo = $("teamLogoInput").value.trim();
+    var roster = getFormRoster();
+    var key = teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    
+    dbPresets.child(key).set({ name: teamName, logo: logo, roster: roster });
+    alert("Équipe '" + teamName + "' enregistrée dans la banque !");
   });
 
   function buildRosterForm(list){
@@ -518,18 +597,22 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     $("rosterForm").appendChild(div);
   }
 
-  $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
-  $("rsCancel").addEventListener("click", function(){ rosterSheet.close(); });
-  $("rsSave").addEventListener("click", function(){
+  function getFormRoster(){
     var rows = $("rosterForm").querySelectorAll(".roster-row");
-    var newList = [];
+    var list = [];
     rows.forEach(function(r){
       var num = no(r.querySelector(".r-no").value);
       var nm = r.querySelector(".r-name").value.trim();
       var ps = r.querySelector(".r-pos").value;
-      if(num || nm){ newList.push({no:num, name:nm, pos:ps}); }
+      if(num || nm){ list.push({no:num, name:nm, pos:ps}); }
     });
-    state.rosters[currentRosterTeam] = newList;
+    return list;
+  }
+
+  $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
+  $("rsCancel").addEventListener("click", function(){ rosterSheet.close(); });
+  $("rsSave").addEventListener("click", function(){
+    state.rosters[currentRosterTeam] = getFormRoster();
     state.logos[currentRosterTeam] = $("teamLogoInput").value.trim();
     commit();
     rosterSheet.close();
