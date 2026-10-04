@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Scripts Firebase (Compatibilité Web) -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -35,30 +35,35 @@
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--ice);color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.4}
-button,input{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 button:disabled{cursor:not-allowed;opacity:.4}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
-/* En-tête */
+/* En-tête avec Logo OHMTRO */
 .top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.6rem}
-.top h1{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:0;letter-spacing:.01em}
+.brand{display:flex;align-items:center;gap:.6rem}
+.brand img{height:2.2rem;width:auto;object-fit:contain}
+.top h1{font-family:var(--display);font-weight:600;font-size:1.2rem;margin:0;letter-spacing:.01em}
 .status{font-size:.8125rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;text-align:right}
 .status::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
 
-/* Tableau de pointage */
+/* Tableau de pointage & Logos */
 .board{display:grid;grid-template-columns:1fr 3.25rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .5rem 1rem}
-.side{min-width:0;text-align:center}
+.side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center}
+.team-logo{width:3.2rem;height:3.2rem;object-fit:contain;margin-bottom:.3rem;border-radius:6px}
+.team-logo[src=""]{display:none}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
-  font-family:var(--display);font-weight:600;font-size:1.5rem;line-height:1.15;padding:.1rem .2rem;border-radius:0}
+  font-family:var(--display);font-weight:600;font-size:1.4rem;line-height:1.15;padding:.1rem .2rem;border-radius:0}
 .side.a .name{color:var(--blue)} .side.b .name{color:var(--red)}
 body:not(.viewer) .name{border-bottom-color:var(--line)}
 body.viewer .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
-.name:disabled{opacity:1;-webkit-text-fill-color:currentColor}
+.btn-roster-open{font-size:.75rem;padding:.2rem .5rem;margin-top:.3rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--muted)}
+
 .score{display:block;font-family:var(--display);font-weight:700;font-size:clamp(4.5rem,24vw,7rem);line-height:.95;
   font-variant-numeric:tabular-nums;margin-top:.15rem}
 .shots{margin:.1rem 0 0;font-size:.95rem;color:var(--muted)}
@@ -78,7 +83,7 @@ body.viewer .name{pointer-events:none;border-bottom-color:transparent}
 .seg button{border:0;background:transparent;border-radius:8px;min-height:2.6rem;font-family:var(--display);font-weight:600;font-size:1.15rem}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 
-/* Masquage automatique pour les spectateurs */
+/* Masquage automatique spectateur */
 body.viewer .pad, body.viewer .hint, body.viewer #newGame{display:none !important}
 body.viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
@@ -93,8 +98,12 @@ body.viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:no
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 .hint{font-size:.8125rem;color:var(--muted);margin:.5rem 0 0;text-align:center}
 
-/* Sections */
+/* Alignement & Sections */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
+.roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
+.roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
+
 .goalies{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .g{background:var(--crease);border-radius:12px;padding:.7rem .75rem}
 .g h3{margin:0;font-size:.9rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -125,7 +134,7 @@ body.viewer .goal-row{pointer-events:none}
 
 .quiet{margin-top:1.75rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 
-/* Feuilles */
+/* Feuilles / Dialogues */
 dialog{border:0;padding:0;color:var(--ink);background:var(--surface);width:100%;max-width:30rem;margin:auto auto 0;
   border-radius:18px 18px 0 0}
 dialog::backdrop{background:rgba(6,16,26,.6)}
@@ -147,25 +156,36 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 .act-1{border:0;background:var(--ink);color:var(--surface)}
 .danger{margin-top:.7rem;width:100%;min-height:2.75rem;border:0;background:transparent;color:var(--red);font-weight:600}
 .danger[hidden]{display:none}
-.confirm p{margin:.4rem 0 0;color:var(--muted)}
+
+/* Formulaire d'alignement */
+.roster-grid{display:grid;gap:.5rem;max-height:50vh;overflow-y:auto;margin-bottom:.8rem}
+.roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
+.roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>Feuille de match M15</h1>
+    <div class="brand">
+      <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo OHMTRO" id="ohmtroLogo" onerror="this.style.display='none'">
+      <h1>Feuille M15</h1>
+    </div>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
   </header>
 
   <section class="board" aria-label="Pointage">
     <div class="side a">
+      <img src="" alt="" class="team-logo" id="logoA">
       <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+      <button type="button" class="btn-roster-open" data-team="a">Alignement</button>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b>lancers</p>
     </div>
     <div class="center"><span class="circle" id="periodMark" aria-label="Période en cours">P1</span></div>
     <div class="side b">
+      <img src="" alt="" class="team-logo" id="logoB">
       <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+      <button type="button" class="btn-roster-open" data-team="b">Alignement</button>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b>lancers</p>
     </div>
@@ -195,6 +215,18 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </section>
   <p class="hint">Un but compte déjà comme un lancer. Touchez le nom d'une équipe pour le modifier.</p>
 
+  <h2>Alignements</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+    <div>
+      <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
+      <ul class="roster-list" id="rosterA" style="grid-template-columns:1fr;"></ul>
+    </div>
+    <div>
+      <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
+      <ul class="roster-list" id="rosterB" style="grid-template-columns:1fr;"></ul>
+    </div>
+  </div>
+
   <h2>Arrêts des gardiens</h2>
   <section class="goalies">
     <div class="g"><h3 id="gNameA"></h3><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p></div>
@@ -215,6 +247,26 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
 </div>
 
+<!-- Modal Alignement & Logo -->
+<dialog id="rosterSheet">
+  <div class="sheet-in">
+    <h2 id="rsTitle">Alignement</h2>
+    <p class="ctx">Ajoutez les joueurs et l'URL du logo de l'équipe.</p>
+    
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;">URL du logo d'équipe :</label>
+    <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+
+    <div class="roster-grid" id="rosterForm"></div>
+    <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.5rem;margin-bottom:.8rem;">+ Ajouter un joueur</button>
+
+    <div class="actions">
+      <button type="button" class="act-2" id="rsCancel">Annuler</button>
+      <button type="button" class="act-1" id="rsSave">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modal But -->
 <dialog id="goalSheet" aria-labelledby="gsTitle">
   <div class="sheet-in">
     <h2 id="gsTitle">But</h2>
@@ -241,7 +293,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 <dialog id="newSheet" class="confirm" aria-labelledby="nsTitle">
   <div class="sheet-in">
     <h2 id="nsTitle">Commencer une nouvelle partie ?</h2>
-    <p>Les lancers et les buts sont remis à zéro pour tout le monde. Les noms des équipes sont conservés.</p>
+    <p>Les lancers et les buts sont remis à zéro. Les noms d'équipes et alignements sont conservés.</p>
     <div class="actions">
       <button type="button" class="act-2" id="nsCancel">Annuler</button>
       <button type="button" class="act-1" id="nsOk">Remettre à zéro</button>
@@ -253,7 +305,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 (function(){
   "use strict";
 
-  // Initialisation Firebase
   var firebaseConfig = {
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
@@ -266,12 +317,9 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   firebase.initializeApp(firebaseConfig);
   var db = firebase.database().ref("match");
 
-  // Détection du mode (Admin vs Spectateur)
   var urlParams = new URLSearchParams(window.location.search);
   var isAdmin = urlParams.get("mode") === "admin";
-  if (!isAdmin) {
-    document.body.classList.add("viewer");
-  }
+  if (!isAdmin) { document.body.classList.add("viewer"); }
 
   var PLABEL = ["P1","P2","P3","Prol."];
   var PLONG = ["1re période","2e période","3e période","Prolongation"];
@@ -279,6 +327,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   function blank(names){
     return { v:1, names: names || {a:"Local", b:"Visiteur"}, period:0,
+             logos:{a:"", b:""}, rosters:{a:[], b:[]},
              shots:{a:[0,0,0,0], b:[0,0,0,0]}, goals:[], updatedAt:0 };
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -290,6 +339,11 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var s = blank();
     if(!d || typeof d !== "object") return s;
     if(d.names && typeof d.names === "object"){ s.names.a = str(d.names.a,"Local"); s.names.b = str(d.names.b,"Visiteur"); }
+    if(d.logos && typeof d.logos === "object"){ s.logos.a = d.logos.a || ""; s.logos.b = d.logos.b || ""; }
+    if(d.rosters && typeof d.rosters === "object"){
+      s.rosters.a = Array.isArray(d.rosters.a) ? d.rosters.a : [];
+      s.rosters.b = Array.isArray(d.rosters.b) ? d.rosters.b : [];
+    }
     s.period = int(d.period,0,3);
     ["a","b"].forEach(function(t){
       for(var i=0;i<4;i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999);
@@ -307,13 +361,9 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   var state = blank();
 
-  // Écouter les données Firebase en direct
   db.on("value", function(snapshot){
     var raw = snapshot.val();
-    if(raw) {
-      state = sanitize(raw);
-      render();
-    }
+    if(raw) { state = sanitize(raw); render(); }
     var st = $("status");
     st.textContent = isAdmin ? "En direct (Admin)" : "En direct";
     st.dataset.s = "live";
@@ -342,6 +392,11 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var n = state.names;
     if(document.activeElement !== $("nameA")) $("nameA").value = n.a;
     if(document.activeElement !== $("nameB")) $("nameB").value = n.b;
+    
+    // Logos d'équipes
+    $("logoA").src = state.logos.a || "";
+    $("logoB").src = state.logos.b || "";
+
     var gA = goalsOf("a"), gB = goalsOf("b"), sA = sum(state.shots.a), sB = sum(state.shots.b);
     
     var isTied = (gA === gB);
@@ -349,9 +404,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     if(!isTied){
       otBtn.disabled = true;
       if(state.period === 3){ state.period = 2; }
-    }else{
-      otBtn.disabled = false;
-    }
+    }else{ otBtn.disabled = false; }
 
     setText("scoreA", gA, true); setText("scoreB", gB, true);
     setText("shotsA", sA, true); setText("shotsB", sB, true);
@@ -363,6 +416,12 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     $("gNameA").textContent = "Gardien, " + n.a;
     $("gNameB").textContent = "Gardien, " + n.b;
     goalie("A", sB, gB); goalie("B", sA, gA);
+
+    // Affichage des Alignements
+    $("rosterTitleA").textContent = n.a;
+    $("rosterTitleB").textContent = n.b;
+    renderRosterList("rosterA", state.rosters.a);
+    renderRosterList("rosterB", state.rosters.b);
 
     var body = $("perBody"); body.textContent = "";
     ["a","b"].forEach(function(t){
@@ -410,12 +469,71 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     }
   }
 
+  function renderRosterList(id, list){
+    var ul = $(id); ul.textContent = "";
+    if(!list || !list.length){
+      var empty = document.createElement("li"); empty.style.fontSize=".8rem"; empty.style.color="var(--muted)";
+      empty.textContent = "Aucun joueur inscrit"; ul.appendChild(empty); return;
+    }
+    list.forEach(function(p){
+      var li = document.createElement("li"); li.className = "roster-item";
+      li.innerHTML = "<span><b>#" + p.no + "</b> " + p.name + "</span><span class='pos'>" + p.pos + "</span>";
+      ul.appendChild(li);
+    });
+  }
+
   function goalie(side, shotsAgainst, goalsAgainst){
     if(!shotsAgainst){ setText("sv"+side, "–"); setText("svSub"+side, "Aucun lancer reçu"); return; }
     var saves = Math.max(0, shotsAgainst - goalsAgainst);
     setText("sv"+side, pct(saves, shotsAgainst));
     setText("svSub"+side, saves + (saves > 1 ? " arrêts" : " arrêt") + " sur " + shotsAgainst + (shotsAgainst > 1 ? " lancers" : " lancer"));
   }
+
+  // Modale Alignements
+  var rosterSheet = $("rosterSheet"), currentRosterTeam = "a";
+  document.querySelectorAll(".btn-roster-open").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      currentRosterTeam = btn.dataset.team;
+      $("rsTitle").textContent = "Alignement - " + state.names[currentRosterTeam];
+      $("teamLogoInput").value = state.logos[currentRosterTeam] || "";
+      buildRosterForm(state.rosters[currentRosterTeam] || []);
+      rosterSheet.showModal();
+    });
+  });
+
+  function buildRosterForm(list){
+    var form = $("rosterForm"); form.textContent = "";
+    list.forEach(function(p){ addRosterRow(p.no, p.name, p.pos); });
+    if(!list.length){ addRosterRow("","","A"); }
+  }
+
+  function addRosterRow(no, name, pos){
+    var div = document.createElement("div"); div.className = "roster-row";
+    div.innerHTML = "<input type='text' maxlength='2' placeholder='#' value='" + (no||"") + "' class='r-no'>" +
+                    "<input type='text' placeholder='Nom' value='" + (name||"") + "' class='r-name'>" +
+                    "<select class='r-pos'><option value='A'>A</option><option value='D'>D</option><option value='G'>G</option></select>" +
+                    "<button type='button' style='border:0;background:transparent;color:var(--red);font-weight:bold;'>✕</button>";
+    if(pos) div.querySelector(".r-pos").value = pos;
+    div.querySelector("button").addEventListener("click", function(){ div.remove(); });
+    $("rosterForm").appendChild(div);
+  }
+
+  $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
+  $("rsCancel").addEventListener("click", function(){ rosterSheet.close(); });
+  $("rsSave").addEventListener("click", function(){
+    var rows = $("rosterForm").querySelectorAll(".roster-row");
+    var newList = [];
+    rows.forEach(function(r){
+      var num = no(r.querySelector(".r-no").value);
+      var nm = r.querySelector(".r-name").value.trim();
+      var ps = r.querySelector(".r-pos").value;
+      if(num || nm){ newList.push({no:num, name:nm, pos:ps}); }
+    });
+    state.rosters[currentRosterTeam] = newList;
+    state.logos[currentRosterTeam] = $("teamLogoInput").value.trim();
+    commit();
+    rosterSheet.close();
+  });
 
   if (isAdmin) {
     $("pad").addEventListener("click", function(e){
