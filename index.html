@@ -153,19 +153,26 @@ dialog::backdrop{background:rgba(6,16,26,.6)}
 dialog h2{margin:0;font-size:1.5rem}
 dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
-/* Style de sélection tactile des joueurs - TEXTE NOIR FORCE SUR LES SÉLECTIONS */
+/* Style de sélection tactile des joueurs - HAUT CONTRASTE HOCKEY */
 .player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:40vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
-.btn-player{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left;color:#0F2236 !important}
-.btn-player span{color:#0F2236 !important}
-.btn-player .role-tag{font-size:.75rem;font-weight:bold;padding:.15rem .35rem;border-radius:4px}
-.btn-player.buteur{border-color:#1F7A4D;background:#eafaf1}
-.btn-player.buteur .role-tag{color:#0b3a22 !important;background:#a8e6cf}
-.btn-player.passe1{border-color:#1B4FA0;background:#ebf3ff}
-.btn-player.passe1 .role-tag{color:#0a2957 !important;background:#b8d5ff}
-.btn-player.passe2{border-color:#8e44ad;background:#f5eeed}
-.btn-player.passe2 .role-tag{color:#4a1b5e !important;background:#dcbbf2}
+.btn-player{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left;color:var(--ink)}
+.btn-player span{color:var(--ink)}
+.btn-player .role-tag{font-size:.75rem;font-weight:bold;padding:.15rem .35rem;border-radius:4px;white-space:nowrap}
 
-/* Champs texte noirs */
+/* Couleurs claires et distinctes lors de la sélection d'un joueur */
+.btn-player.buteur{border-color:#1F7A4D;background:#c8f2d9 !important;}
+.btn-player.buteur span{color:#072b1a !important;font-weight:bold;}
+.btn-player.buteur .role-tag{color:#072b1a !important;background:#8ae3b2;}
+
+.btn-player.passe1{border-color:#1B4FA0;background:#cbe0ff !important;}
+.btn-player.passe1 span{color:#071a36 !important;font-weight:bold;}
+.btn-player.passe1 .role-tag{color:#071a36 !important;background:#96c2ff;}
+
+.btn-player.passe2{border-color:#8e44ad;background:#e8d7f5 !important;}
+.btn-player.passe2 span{color:#2a0b38 !important;font-weight:bold;}
+.btn-player.passe2 .role-tag{color:#2a0b38 !important;background:#d1a6ed;}
+
+/* Champs texte Ajout Rapide */
 #quickNo, #quickName{color:#0F2236 !important;background:#FFFFFF !important;}
 
 .actions{display:grid;grid-template-columns:1fr 1.4fr;gap:.5rem;margin-top:.8rem}
@@ -368,12 +375,12 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur pour lui attribuer un rôle :</div>
     <div class="player-pick-grid" id="playerPickGrid"></div>
 
-    <div style="background:var(--ice);padding:.5rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
+    <div style="background:var(--ice);padding:.6rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
       <small style="display:block;font-weight:600;margin-bottom:.3rem;color:#0F2236;">Joueur manquant (Ajout rapide) :</small>
       <div style="display:flex;gap:.3rem;">
-        <input type="text" id="quickNo" placeholder="#" style="width:2.5rem;padding:.3rem;border:1px solid var(--line);border-radius:6px;">
-        <input type="text" id="quickName" placeholder="Nom" style="flex:1;padding:.3rem;border:1px solid var(--line);border-radius:6px;">
-        <button type="button" class="act-2" id="quickAddBtn" style="padding:.3rem .6rem;">Ajouter</button>
+        <input type="text" id="quickNo" placeholder="#" style="width:2.8rem;padding:.4rem;border:1px solid var(--line);border-radius:6px;">
+        <input type="text" id="quickName" placeholder="Nom du joueur" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;">
+        <button type="button" class="act-2" id="quickAddBtn" style="padding:.4rem .7rem;">Ajouter</button>
       </div>
     </div>
 
@@ -648,7 +655,8 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     }
     list.forEach(function(p){
       var li = document.createElement("li"); li.className = "roster-item";
-      li.innerHTML = "<span><b>#" + p.no + "</b> " + p.name + "</span><span class='pos'>" + p.pos + "</span>";
+      var numLabel = p.no ? "<b>#" + p.no + "</b> " : "";
+      li.innerHTML = "<span>" + numLabel + p.name + "</span><span class='pos'>" + p.pos + "</span>";
       ul.appendChild(li);
     });
   }
@@ -820,38 +828,40 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       return;
     }
 
-    roster.forEach(function(p){
+    roster.forEach(function(p, idx){
+      // Identifiant unique si pas de numéro
+      var pId = p.no || ("p_" + idx);
       var b = document.createElement("button");
       b.type = "button"; b.className = "btn-player";
       
       var roleTag = "";
-      if(curGoal.scorer === p.no){
+      if(curGoal.scorer === pId){
         b.classList.add("buteur");
         roleTag = "<span class='role-tag'>🟢 Buteur</span>";
-      } else if(curGoal.a1 === p.no){
+      } else if(curGoal.a1 === pId){
         b.classList.add("passe1");
         roleTag = "<span class='role-tag'>🔵 Passe 1</span>";
-      } else if(curGoal.a2 === p.no){
+      } else if(curGoal.a2 === pId){
         b.classList.add("passe2");
         roleTag = "<span class='role-tag'>🟣 Passe 2</span>";
       } else {
         roleTag = "<span class='role-tag' style='color:var(--muted);'>⚪ Aucun</span>";
       }
 
-      b.innerHTML = "<span><b>#" + p.no + "</b> " + p.name + "</span>" + roleTag;
+      var numDisplay = p.no ? "<b>#" + p.no + "</b> " : "";
+      b.innerHTML = "<span>" + numDisplay + (p.name || "Joueur") + "</span>" + roleTag;
       
       b.addEventListener("click", function(){
-        var num = p.no;
-        if(curGoal.scorer === num){
+        if(curGoal.scorer === pId){
           curGoal.scorer = "";
-        } else if(curGoal.a1 === num){
+        } else if(curGoal.a1 === pId){
           curGoal.a1 = "";
-        } else if(curGoal.a2 === num){
+        } else if(curGoal.a2 === pId){
           curGoal.a2 = "";
         } else {
-          if(!curGoal.scorer) curGoal.scorer = num;
-          else if(!curGoal.a1) curGoal.a1 = num;
-          else if(!curGoal.a2) curGoal.a2 = num;
+          if(!curGoal.scorer) curGoal.scorer = pId;
+          else if(!curGoal.a1) curGoal.a1 = pId;
+          else if(!curGoal.a2) curGoal.a2 = pId;
         }
         renderPlayerPickGrid();
       });
@@ -863,7 +873,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     if(currentRole !== "admin") return;
     var qNo = no($("quickNo").value);
     var qNm = $("quickName").value.trim();
-    if(!qNo){ alert("Entrez au moins un numéro."); return; }
+    if(!qNo && !qNm){ alert("Entrez au moins un numéro ou un nom."); return; }
     
     var roster = state.rosters[curGoal.team] || [];
     roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
