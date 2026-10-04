@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Feuille de match M15 - Ohmtro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
@@ -45,7 +45,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.6rem}
 .brand{display:flex;align-items:center;gap:.6rem}
 .brand img{height:2.2rem;width:auto;object-fit:contain}
-.top h1{font-family:var(--display);font-weight:600;font-size:1.2rem;margin:0;letter-spacing:.01em}
+.top h1{font-family:var(--display);font-weight:600;font-size:1.3rem;margin:0;letter-spacing:.01em}
 .top-right{display:flex;align-items:center;gap:.5rem}
 .status{font-size:.8125rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;text-align:right}
 .status::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--muted);flex:none}
@@ -54,7 +54,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .btn-login{font-size:.75rem;padding:.2rem .5rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 
 /* Tableau de pointage */
-.board{display:grid;grid-template-columns:1fr 5rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .5rem 1rem}
+.board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .5rem 1rem}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center}
 .team-header{display:flex;align-items:center;justify-content:center;gap:.3rem;width:100%}
 .team-logo{width:2rem;height:2rem;object-fit:contain;border-radius:4px;flex-shrink:0}
@@ -72,10 +72,12 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .shots b{font-family:var(--display);font-weight:600;font-size:1.75rem;color:var(--ink);font-variant-numeric:tabular-nums;margin-right:.25rem}
 
 /* Chronomètre central */
-.center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
 .timer-display{font-family:var(--display);font-weight:700;font-size:1.6rem;background:var(--ice);padding:.2rem .4rem;border-radius:8px;font-variant-numeric:tabular-nums;cursor:pointer;border:1px solid var(--line)}
-.timer-ctrls{display:flex;gap:.2rem}
-.timer-btn{font-size:.7rem;padding:.2rem .4rem;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.timer-ctrls{display:flex;flex-direction:column;align-items:center;gap:.3rem;width:100%}
+.btn-timer-toggle{width:100%;font-size:1.5rem;padding:.4rem 0;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:bold;line-height:1}
+.btn-timer-reset{width:75%;font-size:1.1rem;padding:.25rem 0;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1}
+
 .circle{position:relative;width:2.5rem;height:2.5rem;border-radius:50%;border:3px solid var(--blue);background:var(--surface);
   display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1rem}
 
@@ -159,7 +161,10 @@ dialog::backdrop{background:rgba(6,16,26,.6)}
 .sheet-in{padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom,0px))}
 @media (min-width:40rem){dialog{margin:auto;border-radius:18px}}
 dialog h2{margin:0;font-size:1.5rem}
-dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
+dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
+
+.field-group{margin-top:1rem}
+.field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem}
 
 /* Style de sélection tactile des joueurs */
 .player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:35vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
@@ -198,7 +203,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 .roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
 .roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
 
-/* CSS d'impression pour PDF parfait */
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
@@ -215,7 +219,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <header class="top">
     <div class="brand">
       <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo OHMTRO" id="ohmtroLogo" onerror="this.style.display='none'">
-      <h1>Feuille M15</h1>
+      <h1>M15</h1>
     </div>
     <div class="top-right">
       <button type="button" class="btn-login" id="btnLogin">🔒 Connexion</button>
@@ -231,15 +235,15 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       </div>
       <button type="button" class="btn-roster-open" data-team="a">Alignement</button>
       <span class="score" id="scoreA">0</span>
-      <p class="shots"><b id="shotsA">0</b>lancers</p>
+      <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
     </div>
     
     <div class="center">
       <span class="circle" id="periodMark">P1</span>
       <div class="timer-display" id="timerDisplay" title="Cliquer pour ajuster le temps">20:00</div>
       <div class="timer-ctrls">
-        <button type="button" class="timer-btn" id="btnTimerToggle">▶</button>
-        <button type="button" class="timer-btn" id="btnTimerReset">🔄</button>
+        <button type="button" class="btn-timer-toggle" id="btnTimerToggle">▶</button>
+        <button type="button" class="btn-timer-reset" id="btnTimerReset">🔄</button>
       </div>
     </div>
 
@@ -250,7 +254,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       </div>
       <button type="button" class="btn-roster-open" data-team="b">Alignement</button>
       <span class="score" id="scoreB">0</span>
-      <p class="shots"><b id="shotsB">0</b>lancers</p>
+      <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
     </div>
   </section>
 
@@ -317,7 +321,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </div>
   <ul class="events-list" id="eventsList"></ul>
 
-  <!-- Options d'Exportation -->
   <div class="export-box">
     <button type="button" class="export-btn" id="btnExportPDF">📄 Imprimer / PDF</button>
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
@@ -328,7 +331,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <button type="button" class="quiet" id="btnManagePasswords" style="margin-top:.5rem;">⚙️ Gérer les mots de passe</button>
 </div>
 
-<!-- Modales identiques préservées -->
 <dialog id="timerSheet">
   <div class="sheet-in">
     <h2>Réglage du Compteur de Temps</h2>
@@ -362,13 +364,23 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
     <p class="ctx">Modifiez les accès pour chaque rôle.</p>
-    <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.4rem;">Mot de passe Administrateur (admin) :</label>
-    <input type="password" id="pwdAdminInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
-    <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.6rem;">Mot de passe Marqueur/Buts (marqueur) :</label>
-    <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
-    <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.6rem;">Mot de passe Invité (invite) :</label>
-    <input type="password" id="pwdInviteInput" style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
-    <div class="actions">
+    
+    <div class="field-group">
+      <label>Mot de passe Administrateur (admin) :</label>
+      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+    </div>
+
+    <div class="field-group">
+      <label>Mot de passe Marqueur/Buts (marqueur) :</label>
+      <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+    </div>
+
+    <div class="field-group">
+      <label>Mot de passe Invité (invite) :</label>
+      <input type="password" id="pwdInviteInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="pwdCancel">Annuler</button>
       <button type="button" class="act-1" id="pwdSave">Enregistrer</button>
     </div>
@@ -496,6 +508,23 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   var db = firebase.database().ref("match");
   var dbPresets = firebase.database().ref("teams_presets");
   var dbPasswords = firebase.database().ref("passwords");
+  var dbPresence = firebase.database().ref("presence");
+
+  // Gestion Présence / Compteur de connexions
+  var myPresenceRef = dbPresence.push();
+  var onlineCount = 1;
+
+  firebase.database().ref(".info/connected").on("value", function(snap) {
+    if (snap.val() === true) {
+      myPresenceRef.onDisconnect().remove();
+      myPresenceRef.set(true);
+    }
+  });
+
+  dbPresence.on("value", function(snap) {
+    onlineCount = snap.numChildren() || 1;
+    updateStatusDisplay();
+  });
 
   var urlParams = new URLSearchParams(window.location.search);
   var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
@@ -507,11 +536,19 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     if(val){ passwords = val; }
   });
 
+  function updateStatusDisplay(){
+    var st = $("status");
+    var connText = onlineCount > 1 ? " (" + onlineCount + " connectés)" : "";
+    st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + connText : "En direct" + connText;
+    st.dataset.s = "live";
+  }
+
   function updateRoleUI(){
     document.body.className = "";
     document.body.classList.add("role-" + currentRole);
     var btnL = $("btnLogin");
     btnL.textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
+    updateStatusDisplay();
   }
   updateRoleUI();
 
@@ -608,9 +645,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   db.on("value", function(snapshot){
     var raw = snapshot.val();
     if(raw) { state = sanitize(raw); render(); }
-    var st = $("status");
-    st.textContent = (currentRole !== "viewer") ? "En direct (" + currentRole.toUpperCase() + ")" : "En direct";
-    st.dataset.s = "live";
+    updateStatusDisplay();
   });
 
   dbPresets.on("value", function(snapshot){
@@ -763,6 +798,11 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
     setText("scoreA", gA, true); setText("scoreB", gB, true);
     setText("shotsA", sA, true); setText("shotsB", sB, true);
+    
+    // Accord Singulier / Pluriel des lancers
+    $("lblShotsA").textContent = sA > 1 ? " lancers" : " lancer";
+    $("lblShotsB").textContent = sB > 1 ? " lancers" : " lancer";
+
     setText("periodMark", PLABEL[state.period]);
     $("timerDisplay").textContent = formatTime(getCurrentTimerSec());
     $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
