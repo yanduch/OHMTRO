@@ -88,7 +88,7 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
 /* Masquage automatique spectateur */
-body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame{display:none !important}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
 body:not(.role-admin) #newGame, body:not(.role-admin) #btnManageSettings{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
@@ -165,6 +165,8 @@ td.cur,th.cur{background:var(--crease)}
 /* Liste Historique */
 .history-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
 .history-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
+.history-ctrls{display:flex;gap:.3rem;align-items:center}
+.btn-hist-del{font-size:.65rem;padding:.2rem .4rem;border-radius:5px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
 
 .quiet{margin-top:1.2rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 .btn-stop-game{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:0;background:var(--red);color:#FFF;font-weight:700;font-size:1.1rem}
@@ -610,7 +612,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   // Compteur de connexions
   var myPresenceRef = dbPresence.push();
   var onlineCount = 1;
-  var defaultPeriodSec = 1200; // 20 minutes par défaut
+  var defaultPeriodSec = 1200;
 
   firebase.database().ref(".info/connected").on("value", function(snap) {
     if (snap.val() === true) {
@@ -890,6 +892,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("statsTeamSelect").addEventListener("change", calculateTeamStats);
 
+  // Rendu et suppression de l'historique
   function renderHistory(){
     var list = $("historyList"); list.textContent = "";
     var keys = Object.keys(historyData);
@@ -910,13 +913,27 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var dateStr = new Date(m.updatedAt || Date.now()).toLocaleDateString("fr-CA");
       li.innerHTML = "<div><strong>" + m.names.a + " " + gA + " - " + gB + " " + m.names.b + "</strong><br><small style='color:var(--muted);'>" + dateStr + "</small></div>";
       
-      var btn = document.createElement("button"); btn.type = "button"; btn.className = "btn-login";
-      btn.textContent = "Consulter";
-      btn.addEventListener("click", function(){
+      var ctrls = document.createElement("div"); ctrls.className = "history-ctrls";
+
+      var btnCons = document.createElement("button"); btnCons.type = "button"; btnCons.className = "btn-login";
+      btnCons.textContent = "Consulter";
+      btnCons.addEventListener("click", function(){
         state = m; render();
         alert("Partie chargée depuis l'historique.");
       });
-      li.appendChild(btn); list.appendChild(li);
+      ctrls.appendChild(btnCons);
+
+      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
+      btnDel.textContent = "🗑️ Supprimer";
+      btnDel.addEventListener("click", function(){
+        if(currentRole === "viewer") return;
+        if(confirm("Voulez-vous vraiment supprimer ce match de l'historique ? Cela recalculera toutes les statistiques.")){
+          dbHistory.child(key).remove();
+        }
+      });
+      ctrls.appendChild(btnDel);
+
+      li.appendChild(ctrls); list.appendChild(li);
     });
   }
 
