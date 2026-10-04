@@ -1082,9 +1082,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("timerDisplay").textContent = formatTime(getCurrentTimerSec());
     $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
 
-    // Affichage conditionnel du bouton "ARRÊTER LA GAME"
-    var isGameStarted = state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0);
-    $("btnStopGame").style.display = isGameStarted ? "block" : "none";
+    // Vérification de l'état de la partie pour afficher/masquer "ARRÊTER LA GAME"
+    var isStopped = state.events && state.events.some(function(e){ return e.type === "sys" && e.text && e.text.indexOf("ARRÊTÉE") !== -1; });
+    var isGameActive = !isStopped && (state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0));
+    
+    $("btnStopGame").style.display = isGameActive ? "block" : "none";
 
     Array.prototype.forEach.call($("seg").children, function(b){
       b.setAttribute("aria-pressed", String(Number(b.dataset.p) === state.period));
