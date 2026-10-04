@@ -150,7 +150,7 @@ td.cur,th.cur{background:var(--crease)}
 /* Fil du Match pas à pas */
 .feed-header{display:flex;align-items:center;justify-content:space-between;margin:1.6rem 0 .5rem}
 .feed-header h2{margin:0}
-.feed-filter{padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:.85rem}
+.feed-filter{padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:.85rem;max-width:11rem}
 
 .events-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
 .event-row{width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.7rem;text-align:left;
@@ -315,9 +315,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <h2>Match pas à pas</h2>
     <select id="feedFilter" class="feed-filter">
       <option value="all">Tous les événements</option>
+      <option value="team_a" id="optTeamA">Équipe Locale</option>
+      <option value="team_b" id="optTeamB">Équipe Visiteuse</option>
       <option value="goal">Buts uniquement</option>
       <option value="pen">Punitions uniquement</option>
       <option value="shot">Lancers uniquement</option>
+      <option value="none">Aucun (Masquer)</option>
     </select>
   </div>
   <ul class="events-list" id="eventsList"></ul>
@@ -609,7 +612,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var dbConfig = firebase.database().ref("config");
   var dbPresence = firebase.database().ref("presence");
 
-  // Compteur de connexions
   var myPresenceRef = dbPresence.push();
   var onlineCount = 1;
   var defaultPeriodSec = 1200;
@@ -685,7 +687,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("loginSheet").close();
   });
 
-  // Menu Gestion
   $("btnManageSettings").addEventListener("click", function(){
     $("settingsSheet").showModal();
   });
@@ -892,7 +893,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("statsTeamSelect").addEventListener("change", calculateTeamStats);
 
-  // Rendu et suppression de l'historique
   function renderHistory(){
     var list = $("historyList"); list.textContent = "";
     var keys = Object.keys(historyData);
@@ -1036,6 +1036,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("logoA").src = state.logos.a || "";
     $("logoB").src = state.logos.b || "";
 
+    $("optTeamA").textContent = n.a || "Équipe Locale";
+    $("optTeamB").textContent = n.b || "Équipe Visiteuse";
+
     var gA = goalsOf("a"), gB = goalsOf("b"), sA = sum(state.shots.a), sB = sum(state.shots.b);
     
     var isTied = (gA === gB);
@@ -1086,8 +1089,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var list = $("eventsList"); list.textContent = "";
     var filter = $("feedFilter").value;
 
+    if(filter === "none"){ return; }
+
     var filtered = state.events.filter(function(e){
       if(filter === "all") return true;
+      if(filter === "team_a") return e.team === "a";
+      if(filter === "team_b") return e.team === "b";
       return e.type === filter;
     });
 
