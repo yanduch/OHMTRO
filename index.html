@@ -151,21 +151,16 @@ dialog::backdrop{background:rgba(6,16,26,.6)}
 @media (min-width:40rem){dialog{margin:auto;border-radius:18px}}
 dialog h2{margin:0;font-size:1.5rem}
 dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
-.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
-.field{border:2px solid var(--line);background:transparent;border-radius:10px;padding:.4rem .3rem .5rem;text-align:center}
-.field small{display:block;font-size:.8rem;color:var(--muted)}
-.field b{display:block;font-family:var(--display);font-weight:700;font-size:2rem;line-height:1.1;min-height:2.2rem;font-variant-numeric:tabular-nums}
-.field[aria-pressed="true"]{border-color:var(--ink);background:var(--crease)}
 
-/* Saisie tactile des joueurs pour les buts */
+/* Saisie tactile des joueurs */
 .player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:35vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
 .btn-player{display:flex;align-items:center;justify-content:space-between;padding:.5rem .7rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left}
 .btn-player.buteur{border-color:var(--ok);background:#eafaf1;font-weight:bold}
-.btn-player.buteur::after{content:"⚽ Buteur";font-size:.7rem;color:var(--ok)}
+.btn-player.buteur::after{content:"🟢 Buteur";font-size:.7rem;color:var(--ok)}
 .btn-player.passe1{border-color:var(--blue);background:#ebf3ff;font-weight:bold}
-.btn-player.passe1::after{content:"1️⃣ Passe";font-size:.7rem;color:var(--blue)}
+.btn-player.passe1::after{content:"🔵 Passe 1";font-size:.7rem;color:var(--blue)}
 .btn-player.passe2{border-color:#8e44ad;background:#f5eeed;font-weight:bold}
-.btn-player.passe2::after{content:"2️⃣ Passe";font-size:.7rem;color:#8e44ad}
+.btn-player.passe2::after{content:"🟣 Passe 2";font-size:.7rem;color:#8e44ad}
 
 .actions{display:grid;grid-template-columns:1fr 1.4fr;gap:.5rem;margin-top:.8rem}
 .actions button{min-height:3.4rem;border-radius:12px;font-weight:600;font-size:1.05rem}
@@ -190,7 +185,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       <h1>Feuille M15</h1>
     </div>
     <div class="top-right">
-      <button type="button" class="btn-login" id="btnLogin" title="Connexion Administrateur">🔒 Connexion</button>
+      <button type="button" class="btn-login" id="btnLogin">🔒 Connexion</button>
       <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
     </div>
   </header>
@@ -318,7 +313,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     <div class="preset-box" id="presetBox">
       <label>Charger une équipe sauvegardée :</label>
       <select id="presetSelect"><option value="">-- Sélectionner une équipe --</option></select>
-      <button type="button" class="act-2" id="savePresetBtn" style="width:100%;min-height:2.2rem;font-size:.85rem;">Enregistrer dans la banque d'équipes</button>
+      <button type="button" class="act-2" id="savePresetBtn" style="width:100%;min-height:2.2rem;font-size:.85rem;margin-top:.4rem;">Enregistrer dans la banque d'équipes</button>
     </div>
 
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">URL du logo d'équipe :</label>
@@ -341,7 +336,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     <h2 id="gsTitle">But</h2>
     <p class="ctx" id="gsCtx"></p>
     
-    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur : 1x Buteur 🟢 | 2x Passe 1 🔵 | 3x Passe 2 🟣</div>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur : 🟢 Buteur | 🔵 Passe 1 | 🟣 Passe 2</div>
     <div class="player-pick-grid" id="playerPickGrid"></div>
 
     <div style="background:var(--ice);padding:.5rem;border-radius:8px;margin-top:.6rem;">
@@ -365,6 +360,9 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 (function(){
   "use strict";
 
+  var $ = function(id){ return document.getElementById(id); };
+
+  // Configuration Firebase
   var firebaseConfig = {
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
@@ -380,7 +378,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   var urlParams = new URLSearchParams(window.location.search);
   var isAdmin = urlParams.get("mode") === "admin" || sessionStorage.getItem("ohmtro_admin") === "true";
-  
+
   function updateAdminUI(){
     if (!isAdmin) {
       document.body.classList.add("viewer");
@@ -392,7 +390,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   }
   updateAdminUI();
 
-  // Connexion Invite / Hockey
+  // Gestion Connexion
   $("btnLogin").addEventListener("click", function(){ $("loginSheet").showModal(); });
   $("loginCancel").addEventListener("click", function(){ $("loginSheet").close(); });
   $("loginSubmit").addEventListener("click", function(){
@@ -412,7 +410,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   var PLABEL = ["P1","P2","P3","Prol."];
   var PLONG = ["1re période","2e période","3e période","Prolongation"];
-  var $ = function(id){ return document.getElementById(id); };
 
   function blank(names){
     return { v:1, names: names || {a:"Local", b:"Visiteur"}, period:0,
@@ -588,10 +585,9 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   }
   $("toggleRosterBtn").addEventListener("click", toggleRoster);
 
-  // Assistant Nouvelle Partie (Équipe Visiteuse puis Locale)
-  var wiz = $("newGameWizard");
-  $("newGame").addEventListener("click", function(){ wiz.showModal(); });
-  $("wizCancel").addEventListener("click", function(){ wiz.close(); });
+  // Assistant Nouvelle Partie
+  $("newGame").addEventListener("click", function(){ $("newGameWizard").showModal(); });
+  $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
   $("wizStart").addEventListener("click", function(){
     var keyB = $("wizTeamB").value;
     var keyA = $("wizTeamA").value;
@@ -608,10 +604,10 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       state.rosters.a = presets[keyA].roster || [];
     }
     commit();
-    wiz.close();
+    $("newGameWizard").close();
   });
 
-  // Alignements & Banque Équipes
+  // Alignements & Banque d'Équipes
   var rosterSheet = $("rosterSheet"), currentRosterTeam = "a";
   document.querySelectorAll(".btn-roster-open").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -735,7 +731,6 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     roster.forEach(function(p){
       var b = document.createElement("button");
       b.type = "button"; b.className = "btn-player";
-      b.dataset.no = p.no;
       
       if(curGoal.scorer === p.no) b.classList.add("buteur");
       else if(curGoal.a1 === p.no) b.classList.add("passe1");
