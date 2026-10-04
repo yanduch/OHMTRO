@@ -16,7 +16,7 @@
 :root{
   --ice:#EDF3F7; --surface:#FFFFFF; --ink:#0F2236; --muted:#586A7B; --line:#C8D5DF;
   --blue:#1B4FA0; --red:#C4202E; --crease:#D9ECF7; --on-team:#FFFFFF; --ok:#1F7A4D; --warn:#A35B00;
-  --team-a-color:#1B4FA0; --team-b-color:#C4202E;
+  --team-a-color:#6FA2EE; --team-b-color:#F2707A;
   --display:"Barlow Condensed","Arial Narrow","Roboto Condensed",Impact,sans-serif;
   --body:"Barlow","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   box-sizing:border-box;
@@ -225,6 +225,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .roster-grid{display:grid;gap:.5rem;max-height:40vh;overflow-y:auto;margin-bottom:.8rem}
 .roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
 .roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
+
+.color-picker-row{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
+.color-picker-row input[type="color"]{-webkit-appearance:none;border:none;width:2.5rem;height:2.5rem;border-radius:8px;cursor:pointer;padding:0;background:transparent;}
+.color-picker-row input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
+.color-picker-row input[type="color"]::-webkit-color-swatch{border:1px solid var(--line);border-radius:8px;}
 
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
@@ -496,39 +501,19 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="preset-box">
       <label>1. Équipe Visiteuse :</label>
       <select id="wizTeamB"><option value="">-- Choisir Équipe Visiteuse --</option></select>
-      <label style="margin-top:.4rem;display:block;">Couleur :</label>
-      <select id="wizColorB" style="width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);">
-        <option value="#C4202E" selected>🔴 Rouge</option>
-        <option value="#1B4FA0">🔵 Bleu</option>
-        <option value="#1F7A4D">🟢 Vert</option>
-        <option value="#E67E22">🟠 Orange</option>
-        <option value="#F1C40F">🟡 Jaune</option>
-        <option value="#8E44AD">🟣 Violet</option>
-        <option value="#E91E63">🌸 Rose</option>
-        <option value="#00BCD4">🌐 Cyan</option>
-        <option value="#7F8C8D">🩶 Gris</option>
-        <option value="#FFFFFF">⚪ Blanc</option>
-        <option value="#000000">⚫ Noir</option>
-      </select>
+      <div class="color-picker-row">
+        <label>Couleur d'équipe :</label>
+        <input type="color" id="wizColorB" value="#F2707A">
+      </div>
     </div>
 
     <div class="preset-box">
       <label>2. Équipe Locale :</label>
       <select id="wizTeamA"><option value="">-- Choisir Équipe Locale --</option></select>
-      <label style="margin-top:.4rem;display:block;">Couleur :</label>
-      <select id="wizColorA" style="width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);">
-        <option value="#1B4FA0" selected>🔵 Bleu</option>
-        <option value="#C4202E">🔴 Rouge</option>
-        <option value="#1F7A4D">🟢 Vert</option>
-        <option value="#E67E22">🟠 Orange</option>
-        <option value="#F1C40F">🟡 Jaune</option>
-        <option value="#8E44AD">🟣 Violet</option>
-        <option value="#E91E63">🌸 Rose</option>
-        <option value="#00BCD4">🌐 Cyan</option>
-        <option value="#7F8C8D">🩶 Gris</option>
-        <option value="#FFFFFF">⚪ Blanc</option>
-        <option value="#000000">⚫ Noir</option>
-      </select>
+      <div class="color-picker-row">
+        <label>Couleur d'équipe :</label>
+        <input type="color" id="wizColorA" value="#6FA2EE">
+      </div>
     </div>
 
     <div class="actions">
@@ -752,7 +737,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   function blank(names){
     return { v:1, names: names || {a:"Local", b:"Visiteur"}, period:0,
-             logos:{a:"", b:""}, colors:{a:"#1B4FA0", b:"#C4202E"}, rosters:{a:[], b:[]},
+             logos:{a:"", b:""}, colors:{a:"#6FA2EE", b:"#F2707A"}, rosters:{a:[], b:[]},
              shots:{a:[0,0,0,0], b:[0,0,0,0]}, events:[],
              timer:{sec:defaultPeriodSec, running:false, lastUpdate:0}, updatedAt:0 };
   }
@@ -766,7 +751,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(!d || typeof d !== "object") return s;
     if(d.names && typeof d.names === "object"){ s.names.a = str(d.names.a,"Local"); s.names.b = str(d.names.b,"Visiteur"); }
     if(d.logos && typeof d.logos === "object"){ s.logos.a = d.logos.a || ""; s.logos.b = d.logos.b || ""; }
-    if(d.colors && typeof d.colors === "object"){ s.colors.a = d.colors.a || "#1B4FA0"; s.colors.b = d.colors.b || "#C4202E"; }
+    if(d.colors && typeof d.colors === "object"){ s.colors.a = d.colors.a || "#6FA2EE"; s.colors.b = d.colors.b || "#F2707A"; }
     if(d.rosters && typeof d.rosters === "object"){
       s.rosters.a = Array.isArray(d.rosters.a) ? d.rosters.a : [];
       s.rosters.b = Array.isArray(d.rosters.b) ? d.rosters.b : [];
@@ -1070,8 +1055,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("logoA").src = state.logos.a || "";
     $("logoB").src = state.logos.b || "";
 
-    document.documentElement.style.setProperty('--team-a-color', state.colors.a || '#1B4FA0');
-    document.documentElement.style.setProperty('--team-b-color', state.colors.b || '#C4202E');
+    document.documentElement.style.setProperty('--team-a-color', state.colors.a || '#6FA2EE');
+    document.documentElement.style.setProperty('--team-b-color', state.colors.b || '#F2707A');
 
     $("optTeamA").textContent = n.a || "Équipe Locale";
     $("optTeamB").textContent = n.b || "Équipe Visiteuse";
@@ -1213,6 +1198,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("newGame").addEventListener("click", function(){
     if(currentRole !== "admin") return;
+    $("wizColorA").value = state.colors.a || "#6FA2EE";
+    $("wizColorB").value = state.colors.b || "#F2707A";
     $("newGameWizard").showModal();
   });
   $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
