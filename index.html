@@ -1,3 +1,16 @@
+Voici la version mise à jour du code intégrant le système de rôles à deux niveaux de mots de passe, ainsi que la possibilité pour l'administrateur de modifier ces mots de passe en direct.
+Structure des accès et rôles :
+ * Compte Administrateur (admin / mot de passe par défaut : hockey) :
+   * Accès total : Création et modification des équipes, alignements, logos, lancers, buts, réinitialisation de partie.
+   * Gestion des accès : Possibilité de changer le mot de passe de l'administrateur, du gestionnaire de buts et de l'invité.
+ * Compte Marqueur / Gestionnaire de buts (marqueur / mot de passe par défaut : buts) :
+   * Accès restreint : Saisie des buts et des passes via les listes de joueurs pré-remplies par l'administrateur, et saisie des lancers.
+   * Protections : Impossible de modifier les alignements, de changer le nom ou les logos des équipes, ni de réinitialiser le match.
+ * Compte Invité / Spectateur privilégié (invite / mot de passe par défaut : visiteur) :
+   * Accès restreint : Saisie des buts et des lancers uniquement.
+ * Public / Spectateur (Sans mot de passe) :
+   * Lecture seule : Suivi du pointage et des statistiques en temps réel.
+Code complet à remplacer dans index.html :
 <!doctype html>
 <html lang="fr">
 <head>
@@ -62,8 +75,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
   font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.15;padding:.1rem .2rem;border-radius:0}
 .side.a .name{color:var(--blue)} .side.b .name{color:var(--red)}
-body:not(.viewer) .name{border-bottom-color:var(--line)}
-body.viewer .name{pointer-events:none;border-bottom-color:transparent}
+body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
 .btn-roster-open{font-size:.75rem;padding:.2rem .5rem;margin-top:.3rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--muted)}
 
@@ -87,8 +99,9 @@ body.viewer .name{pointer-events:none;border-bottom-color:transparent}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 
 /* Masquage automatique spectateur */
-body.viewer .pad, body.viewer .hint, body.viewer #newGame{display:none !important}
-body.viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManagePasswords{display:none !important}
+body:not(.role-admin) #newGame, body:not(.role-admin) #btnManagePasswords{display:none !important}
+body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
 /* Clavier de saisie */
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
@@ -132,7 +145,7 @@ td.cur,th.cur{background:var(--crease)}
 .goal-row{width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.7rem;text-align:left;
   background:var(--surface);border:0;border-left:5px solid var(--team);border-radius:10px;padding:.6rem .7rem;min-height:3.5rem}
 .goal-row.a{--team:var(--blue)} .goal-row.b{--team:var(--red)}
-body.viewer .goal-row{pointer-events:none}
+body.role-viewer .goal-row{pointer-events:none}
 .goal-row .run{font-family:var(--display);font-weight:700;font-size:1.5rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .goal-row .who{min-width:0}
 .goal-row .who strong{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -177,7 +190,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 .roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice)}
 </style>
 </head>
-<body>
+<body class="role-viewer">
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -266,18 +279,41 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <ul class="goals" id="goals"></ul>
 
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
+  <button type="button" class="quiet" id="btnManagePasswords" style="margin-top:.5rem;">⚙️ Gérer les mots de passe</button>
 </div>
 
 <!-- Modal Connexion -->
 <dialog id="loginSheet">
   <div class="sheet-in">
-    <h2>Connexion Administrateur</h2>
-    <p class="ctx">Entrez vos identifiants pour débloquer les droits de modification.</p>
-    <input type="text" id="loginUser" placeholder="Utilisateur" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+    <h2>Connexion</h2>
+    <p class="ctx">Entrez vos identifiants pour débloquer les droits d'accès.</p>
+    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur, invite)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
     <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
     <div class="actions">
       <button type="button" class="act-2" id="loginCancel">Annuler</button>
       <button type="button" class="act-1" id="loginSubmit">Se connecter</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modal Gestion Mots de Passe (Admin) -->
+<dialog id="passwordsSheet">
+  <div class="sheet-in">
+    <h2>Gestion des Mots de Passe</h2>
+    <p class="ctx">Modifiez les accès pour chaque rôle.</p>
+    
+    <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.4rem;">Mot de passe Administrateur (admin) :</label>
+    <input type="password" id="pwdAdminInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+
+    <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.6rem;">Mot de passe Marqueur/Buts (marqueur) :</label>
+    <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+
+    <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.6rem;">Mot de passe Invité (invite) :</label>
+    <input type="password" id="pwdInviteInput" style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+
+    <div class="actions">
+      <button type="button" class="act-2" id="pwdCancel">Annuler</button>
+      <button type="button" class="act-1" id="pwdSave">Enregistrer</button>
     </div>
   </div>
 </dialog>
@@ -339,7 +375,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur : 🟢 Buteur | 🔵 Passe 1 | 🟣 Passe 2</div>
     <div class="player-pick-grid" id="playerPickGrid"></div>
 
-    <div style="background:var(--ice);padding:.5rem;border-radius:8px;margin-top:.6rem;">
+    <div style="background:var(--ice);padding:.5rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
       <small style="display:block;font-weight:600;margin-bottom:.3rem;">Joueur manquant (Ajout rapide) :</small>
       <div style="display:flex;gap:.3rem;">
         <input type="text" id="quickNo" placeholder="#" style="width:2.5rem;padding:.3rem;border:1px solid var(--line);border-radius:6px;">
@@ -375,37 +411,79 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   firebase.initializeApp(firebaseConfig);
   var db = firebase.database().ref("match");
   var dbPresets = firebase.database().ref("teams_presets");
+  var dbPasswords = firebase.database().ref("passwords");
 
-  var urlParams = new URLSearchParams(window.location.search);
-  var isAdmin = urlParams.get("mode") === "admin" || sessionStorage.getItem("ohmtro_admin") === "true";
+  // Rôles : "admin", "marqueur", "invite", "viewer"
+  var currentRole = sessionStorage.getItem("ohmtro_role") || "viewer";
+  var passwords = { admin: "hockey", marqueur: "buts", invite: "visiteur" };
 
-  function updateAdminUI(){
-    if (!isAdmin) {
-      document.body.classList.add("viewer");
-      $("btnLogin").style.display = "block";
+  dbPasswords.on("value", function(snap){
+    var val = snap.val();
+    if(val){ passwords = val; }
+  });
+
+  function updateRoleUI(){
+    document.body.className = "";
+    document.body.classList.add("role-" + currentRole);
+
+    var btnL = $("btnLogin");
+    if(currentRole !== "viewer"){
+      btnL.textContent = "🔓 Dégager (" + currentRole.toUpperCase() + ")";
     } else {
-      document.body.classList.remove("viewer");
-      $("btnLogin").style.display = "none";
+      btnL.textContent = "🔒 Connexion";
     }
   }
-  updateAdminUI();
+  updateRoleUI();
 
   // Gestion Connexion
-  $("btnLogin").addEventListener("click", function(){ $("loginSheet").showModal(); });
+  $("btnLogin").addEventListener("click", function(){
+    if(currentRole !== "viewer"){
+      currentRole = "viewer";
+      sessionStorage.removeItem("ohmtro_role");
+      updateRoleUI();
+      render();
+      alert("Vous êtes maintenant déconnecté.");
+    } else {
+      $("loginSheet").showModal();
+    }
+  });
   $("loginCancel").addEventListener("click", function(){ $("loginSheet").close(); });
   $("loginSubmit").addEventListener("click", function(){
     var u = $("loginUser").value.trim().toLowerCase();
     var p = $("loginPass").value.trim();
-    if(u === "invite" && p === "hockey"){
-      isAdmin = true;
-      sessionStorage.setItem("ohmtro_admin", "true");
-      updateAdminUI();
-      render();
-      $("loginSheet").close();
-      alert("Connexion réussie ! Vous êtes en mode Administrateur.");
-    } else {
+    
+    if(u === "admin" && p === passwords.admin){ currentRole = "admin"; }
+    else if(u === "marqueur" && p === passwords.marqueur){ currentRole = "marqueur"; }
+    else if(u === "invite" && p === passwords.invite){ currentRole = "invite"; }
+    else {
       alert("Identifiants incorrects.");
+      return;
     }
+
+    sessionStorage.setItem("ohmtro_role", currentRole);
+    updateRoleUI();
+    render();
+    $("loginSheet").close();
+    alert("Connexion réussie ! Rôle : " + currentRole.toUpperCase());
+  });
+
+  // Gestion des mots de passe (Admin)
+  $("btnManagePasswords").addEventListener("click", function(){
+    $("pwdAdminInput").value = passwords.admin || "hockey";
+    $("pwdMarqueurInput").value = passwords.marqueur || "buts";
+    $("pwdInviteInput").value = passwords.invite || "visiteur";
+    $("passwordsSheet").showModal();
+  });
+  $("pwdCancel").addEventListener("click", function(){ $("passwordsSheet").close(); });
+  $("pwdSave").addEventListener("click", function(){
+    var newP = {
+      admin: $("pwdAdminInput").value.trim() || "hockey",
+      marqueur: $("pwdMarqueurInput").value.trim() || "buts",
+      invite: $("pwdInviteInput").value.trim() || "visiteur"
+    };
+    dbPasswords.set(newP);
+    alert("Les mots de passe ont été mis à jour avec succès !");
+    $("passwordsSheet").close();
   });
 
   var PLABEL = ["P1","P2","P3","Prol."];
@@ -452,7 +530,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var raw = snapshot.val();
     if(raw) { state = sanitize(raw); render(); }
     var st = $("status");
-    st.textContent = isAdmin ? "En direct (Admin)" : "En direct";
+    st.textContent = (currentRole !== "viewer") ? "En direct (" + currentRole.toUpperCase() + ")" : "En direct";
     st.dataset.s = "live";
   });
 
@@ -462,7 +540,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   });
 
   function commit(){
-    if (!isAdmin) return;
+    if (currentRole === "viewer") return;
     state.updatedAt = Date.now();
     db.set(state);
     render();
@@ -586,7 +664,10 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   $("toggleRosterBtn").addEventListener("click", toggleRoster);
 
   // Assistant Nouvelle Partie
-  $("newGame").addEventListener("click", function(){ $("newGameWizard").showModal(); });
+  $("newGame").addEventListener("click", function(){
+    if(currentRole !== "admin") return;
+    $("newGameWizard").showModal();
+  });
   $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
   $("wizStart").addEventListener("click", function(){
     var keyB = $("wizTeamB").value;
@@ -619,7 +700,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       $("rosterBlock").classList.remove("hidden");
       $("toggleRosterBtn").classList.remove("collapsed");
 
-      if (!isAdmin) {
+      if (currentRole !== "admin") {
         $("presetBox").style.display = "none";
         $("addPlayerBtn").style.display = "none";
         $("rsSave").style.display = "none";
@@ -656,6 +737,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   });
 
   $("savePresetBtn").addEventListener("click", function(){
+    if(currentRole !== "admin") return;
     var teamName = state.names[currentRosterTeam];
     if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
     var logo = $("teamLogoInput").value.trim();
@@ -698,6 +780,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
   $("rsCancel").addEventListener("click", function(){ rosterSheet.close(); });
   $("rsSave").addEventListener("click", function(){
+    if(currentRole !== "admin") return;
     state.rosters[currentRosterTeam] = getFormRoster();
     state.logos[currentRosterTeam] = $("teamLogoInput").value.trim();
     commit();
@@ -715,6 +798,12 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     $("gsSkip").textContent = isNew ? "Passer" : "Annuler";
     $("gsDelete").hidden = isNew; $("gsDelete").textContent = "Supprimer ce but";
     
+    if(currentRole === "admin") {
+      $("quickAddBox").style.display = "block";
+    } else {
+      $("quickAddBox").style.display = "none";
+    }
+
     renderPlayerPickGrid();
     if(!sheetGoal.open) sheetGoal.showModal();
   }
@@ -724,7 +813,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var roster = state.rosters[curGoal.team] || [];
 
     if(!roster.length){
-      grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur dans l'alignement. Utilisez l'ajout rapide ci-dessous.</p>";
+      grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur dans l'alignement.</p>";
       return;
     }
 
@@ -755,6 +844,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   }
 
   $("quickAddBtn").addEventListener("click", function(){
+    if(currentRole !== "admin") return;
     var qNo = no($("quickNo").value);
     var qNm = $("quickName").value.trim();
     if(!qNo){ alert("Entrez au moins un numéro."); return; }
@@ -768,7 +858,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   });
 
   $("gsSave").addEventListener("click", function(){
-    if(!curGoal) return;
+    if(!curGoal || currentRole === "viewer") return;
     var g = state.goals.filter(function(x){ return x.id === curGoal.id; })[0];
     if(g){
       g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2;
@@ -779,7 +869,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
   $("gsSkip").addEventListener("click", function(){ sheetGoal.close(); });
   $("gsDelete").addEventListener("click", function(){
-    if(!curGoal) return;
+    if(!curGoal || currentRole === "viewer") return;
     var g = state.goals.filter(function(x){ return x.id === curGoal.id; })[0];
     if(g){
       state.goals = state.goals.filter(function(x){ return x.id !== g.id; });
@@ -790,7 +880,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   });
 
   $("pad").addEventListener("click", function(e){
-    if(!isAdmin) return;
+    if(currentRole === "viewer") return;
     var b = e.target.closest("button[data-act]"); if(!b) return;
     var t = b.dataset.team, p = state.period, act = b.dataset.act;
     if(act === "shot"){ state.shots[t][p] = Math.min(999, state.shots[t][p] + 1); commit(); }
@@ -805,7 +895,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   });
 
   $("seg").addEventListener("click", function(e){
-    if(!isAdmin) return;
+    if(currentRole === "viewer") return;
     var b = e.target.closest("button[data-p]"); if(!b || b.disabled) return;
     var p = Number(b.dataset.p); if(p !== state.period){ state.period = p; commit(); }
   });
@@ -813,7 +903,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   ["a","b"].forEach(function(t){
     var el = $(t === "a" ? "nameA" : "nameB");
     el.addEventListener("change", function(){
-      if(!isAdmin) return;
+      if(currentRole !== "admin") return;
       var v = str(el.value, t === "a" ? "Local" : "Visiteur");
       el.value = v; if(v !== state.names[t]){ state.names[t] = v; commit(); }
     });
@@ -821,7 +911,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   });
 
   $("goals").addEventListener("click", function(e){
-    if(!isAdmin) return;
+    if(currentRole === "viewer") return;
     var b = e.target.closest("button[data-id]"); if(b) openGoal(b.dataset.id, false);
   });
 
@@ -829,3 +919,4 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 </script>
 </body>
 </html>
+
