@@ -41,7 +41,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
-/* En-tête réorganisé */
+/* En-tête */
 .top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem}
 .brand{display:flex;align-items:center;gap:.5rem}
 .brand img{height:2rem;width:auto;object-fit:contain}
@@ -163,6 +163,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
 .field-group{margin-top:1rem}
 .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem}
+
+/* Correctif visibilité inputs */
+.sheet-in input[type="text"], .sheet-in input[type="password"] {
+  background: #FFFFFF !important;
+  color: #0F2236 !important;
+  -webkit-text-fill-color: #0F2236 !important;
+}
 
 /* Style de sélection tactile des joueurs */
 .player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:35vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
@@ -346,8 +353,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <div class="sheet-in">
     <h2>Connexion</h2>
     <p class="ctx">Entrez vos identifiants pour débloquer les droits d'accès.</p>
-    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur, invite)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
-    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     <div class="actions">
       <button type="button" class="act-2" id="loginCancel">Annuler</button>
       <button type="button" class="act-1" id="loginSubmit">Se connecter</button>
@@ -358,21 +365,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
-    <p class="ctx">Modifiez les accès pour chaque rôle.</p>
+    <p class="ctx">Modifiez les accès pour l'administrateur et le marqueur.</p>
     
     <div class="field-group">
       <label>Mot de passe Administrateur (admin) :</label>
-      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <div class="field-group">
       <label>Mot de passe Marqueur/Buts (marqueur) :</label>
-      <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
-    </div>
-
-    <div class="field-group">
-      <label>Mot de passe Invité (invite) :</label>
-      <input type="password" id="pwdInviteInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+      <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -410,7 +412,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <button type="button" class="act-2" id="savePresetBtn" style="width:100%;min-height:2.2rem;font-size:.85rem;margin-top:.4rem;">Enregistrer dans la banque d'équipes</button>
     </div>
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">URL du logo d'équipe :</label>
-    <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+    <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation :</label>
     <div class="roster-grid" id="rosterForm"></div>
     <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.5rem;margin-bottom:.8rem;">+ Ajouter un joueur</button>
@@ -505,7 +507,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var dbPasswords = firebase.database().ref("passwords");
   var dbPresence = firebase.database().ref("presence");
 
-  // Gestion Présence / Compteur de connexions
+  // Compteur de connexions
   var myPresenceRef = dbPresence.push();
   var onlineCount = 1;
 
@@ -524,7 +526,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var urlParams = new URLSearchParams(window.location.search);
   var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
   var currentRole = sessionStorage.getItem("ohmtro_role") || defaultRole;
-  var passwords = { admin: "hockey", marqueur: "buts", invite: "visiteur" };
+  var passwords = { admin: "hockey", marqueur: "buts" };
 
   dbPasswords.on("value", function(snap){
     var val = snap.val();
@@ -564,7 +566,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var p = $("loginPass").value.trim();
     if((u === "admin" || u === "yanduch") && p === passwords.admin){ currentRole = "admin"; }
     else if(u === "marqueur" && p === passwords.marqueur){ currentRole = "marqueur"; }
-    else if(u === "invite" && p === passwords.invite){ currentRole = "invite"; }
     else { alert("Identifiants incorrects."); return; }
 
     sessionStorage.setItem("ohmtro_role", currentRole);
@@ -576,15 +577,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   $("btnManagePasswords").addEventListener("click", function(){
     $("pwdAdminInput").value = passwords.admin || "hockey";
     $("pwdMarqueurInput").value = passwords.marqueur || "buts";
-    $("pwdInviteInput").value = passwords.invite || "visiteur";
     $("passwordsSheet").showModal();
   });
   $("pwdCancel").addEventListener("click", function(){ $("passwordsSheet").close(); });
   $("pwdSave").addEventListener("click", function(){
     var newP = {
       admin: $("pwdAdminInput").value.trim() || "hockey",
-      marqueur: $("pwdMarqueurInput").value.trim() || "buts",
-      invite: $("pwdInviteInput").value.trim() || "visiteur"
+      marqueur: $("pwdMarqueurInput").value.trim() || "buts"
     };
     dbPasswords.set(newP);
     alert("Mots de passe enregistrés !");
@@ -673,6 +672,20 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     return Math.max(0, state.timer.sec - elapsed);
   }
 
+  // Obtenir le nom d'un joueur par son pId
+  function getPlayerName(team, pId){
+    if(!pId) return "";
+    var roster = state.rosters[team] || [];
+    for(var i=0; i<roster.length; i++){
+      var p = roster[i];
+      var id = p.no || ("p_" + i);
+      if(id === pId){
+        return (p.no ? "#" + p.no + " " : "") + p.name;
+      }
+    }
+    return "#" + pId;
+  }
+
   clearInterval(timerInterval);
   timerInterval = setInterval(function(){
     if(state.timer.running){
@@ -697,9 +710,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var teamName = state.names[e.team] || "Systeme";
       var pName = PLABEL[e.period] || "";
       if(e.type === "goal"){
-        csv += e.time + "," + pName + "," + teamName + ",But," + (e.scorer || "") + "," + [e.a1, e.a2].filter(Boolean).join(";") + ",\n";
+        csv += e.time + "," + pName + "," + teamName + ",But," + getPlayerName(e.team, e.scorer) + "," + [e.a1, e.a2].filter(Boolean).map(function(p){ return getPlayerName(e.team, p); }).join(";") + ",\n";
       } else if(e.type === "pen"){
-        csv += e.time + "," + pName + "," + teamName + ",Punition," + (e.player || "") + ",," + (e.min||2) + " min - " + (e.reason||"") + "\n";
+        csv += e.time + "," + pName + "," + teamName + ",Punition," + getPlayerName(e.team, e.player) + ",," + (e.min||2) + " min - " + (e.reason||"") + "\n";
       } else if(e.type === "shot"){
         csv += e.time + "," + pName + "," + teamName + ",Lancer,,,\n";
       }
@@ -856,11 +869,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var sub = document.createElement("span");
 
       if(e.type === "goal"){
-        st.textContent = "BUT - " + (state.names[e.team] || "") + (e.scorer ? " (#" + e.scorer + ")" : "");
-        var as = [e.a1, e.a2].filter(Boolean);
-        sub.textContent = as.length ? "Passes : " + as.map(function(x){ return "#" + x; }).join(", ") : "Sans aide";
+        var scorerName = getPlayerName(e.team, e.scorer);
+        st.textContent = "BUT - " + (state.names[e.team] || "") + (scorerName ? " (" + scorerName + ")" : "");
+        var as = [e.a1, e.a2].filter(Boolean).map(function(pId){ return getPlayerName(e.team, pId); });
+        sub.textContent = as.length ? "Passes : " + as.join(", ") : "Sans aide";
       } else if(e.type === "pen"){
-        st.textContent = "PUNITION - " + (state.names[e.team] || "") + (e.player ? " (#" + e.player + ")" : "");
+        var penName = getPlayerName(e.team, e.player);
+        st.textContent = "PUNITION - " + (state.names[e.team] || "") + (penName ? " (" + penName + ")" : "");
         sub.textContent = (e.min || 2) + " min - " + (e.reason || "Infraction");
       } else if(e.type === "shot"){
         st.textContent = "LANCER - " + (state.names[e.team] || "");
