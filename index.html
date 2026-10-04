@@ -88,8 +88,8 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
 /* Masquage automatique spectateur */
-body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManagePasswords, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame{display:none !important}
-body:not(.role-admin) #newGame, body:not(.role-admin) #btnManagePasswords{display:none !important}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame{display:none !important}
+body:not(.role-admin) #newGame, body:not(.role-admin) #btnManageSettings{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
 /* Clavier de saisie */
@@ -181,7 +181,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .field-group{margin-top:1rem}
 .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem}
 
-.sheet-in input[type="text"], .sheet-in input[type="password"] {
+.sheet-in input[type="text"], .sheet-in input[type="password"], .sheet-in select {
   background: #FFFFFF !important;
   color: #0F2236 !important;
   -webkit-text-fill-color: #0F2236 !important;
@@ -390,10 +390,58 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   <button type="button" class="btn-stop-game" id="btnStopGame">🛑 ARRÊTER LA GAME</button>
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
-  <button type="button" class="quiet" id="btnManagePasswords" style="margin-top:.5rem;">⚙️ Gérer les mots de passe</button>
+  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:.5rem;">⚙️ Gestion</button>
 </div>
 
-<!-- Modales -->
+<!-- Dialogue Gestion Principale -->
+<dialog id="settingsSheet">
+  <div class="sheet-in">
+    <h2>Gestion</h2>
+    <p class="ctx">Paramètres généraux et sécurité.</p>
+    
+    <div class="field-group">
+      <label>Temps de période par défaut (minutes) :</label>
+      <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+        <option value="10">10 minutes</option>
+        <option value="12">12 minutes</option>
+        <option value="15">15 minutes</option>
+        <option value="18">18 minutes</option>
+        <option value="20" selected>20 minutes</option>
+      </select>
+    </div>
+
+    <button type="button" class="act-2" id="btnOpenPasswords" style="width:100%;min-height:3rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="settingsCancel">Fermer</button>
+      <button type="button" class="act-1" id="settingsSave">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modale Mot de passe -->
+<dialog id="passwordsSheet">
+  <div class="sheet-in">
+    <h2>Gestion des Mots de Passe</h2>
+    <p class="ctx">Modifiez les accès pour l'administrateur et le marqueur.</p>
+    
+    <div class="field-group">
+      <label>Mot de passe Administrateur (admin) :</label>
+      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <div class="field-group">
+      <label>Mot de passe Marqueur/Buts (marqueur) :</label>
+      <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="pwdCancel">Annuler</button>
+      <button type="button" class="act-1" id="pwdSave">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="saveHistorySheet">
   <div class="sheet-in">
     <h2>Sauvegarder le Match ?</h2>
@@ -430,28 +478,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="actions">
       <button type="button" class="act-2" id="loginCancel">Annuler</button>
       <button type="button" class="act-1" id="loginSubmit">Se connecter</button>
-    </div>
-  </div>
-</dialog>
-
-<dialog id="passwordsSheet">
-  <div class="sheet-in">
-    <h2>Gestion des Mots de Passe</h2>
-    <p class="ctx">Modifiez les accès pour l'administrateur et le marqueur.</p>
-    
-    <div class="field-group">
-      <label>Mot de passe Administrateur (admin) :</label>
-      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    </div>
-
-    <div class="field-group">
-      <label>Mot de passe Marqueur/Buts (marqueur) :</label>
-      <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    </div>
-
-    <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="pwdCancel">Annuler</button>
-      <button type="button" class="act-1" id="pwdSave">Enregistrer</button>
     </div>
   </div>
 </dialog>
@@ -578,11 +604,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var dbHistory = firebase.database().ref("history");
   var dbPresets = firebase.database().ref("teams_presets");
   var dbPasswords = firebase.database().ref("passwords");
+  var dbConfig = firebase.database().ref("config");
   var dbPresence = firebase.database().ref("presence");
 
   // Compteur de connexions
   var myPresenceRef = dbPresence.push();
   var onlineCount = 1;
+  var defaultPeriodSec = 1200; // 20 minutes par défaut
 
   firebase.database().ref(".info/connected").on("value", function(snap) {
     if (snap.val() === true) {
@@ -594,6 +622,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   dbPresence.on("value", function(snap) {
     onlineCount = snap.numChildren() || 1;
     updateStatusDisplay();
+  });
+
+  dbConfig.on("value", function(snap){
+    var cfg = snap.val();
+    if(cfg && cfg.defaultPeriodMin){
+      defaultPeriodSec = Number(cfg.defaultPeriodMin) * 60;
+      $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
+    }
   });
 
   var urlParams = new URLSearchParams(window.location.search);
@@ -647,7 +683,20 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("loginSheet").close();
   });
 
-  $("btnManagePasswords").addEventListener("click", function(){
+  // Menu Gestion
+  $("btnManageSettings").addEventListener("click", function(){
+    $("settingsSheet").showModal();
+  });
+  $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
+  $("settingsSave").addEventListener("click", function(){
+    var min = Number($("defaultPeriodMinInput").value);
+    dbConfig.child("defaultPeriodMin").set(min);
+    alert("Paramètres enregistrés !");
+    $("settingsSheet").close();
+  });
+
+  $("btnOpenPasswords").addEventListener("click", function(){
+    $("settingsSheet").close();
     $("pwdAdminInput").value = passwords.admin || "hockey";
     $("pwdMarqueurInput").value = passwords.marqueur || "buts";
     $("passwordsSheet").showModal();
@@ -670,7 +719,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     return { v:1, names: names || {a:"Local", b:"Visiteur"}, period:0,
              logos:{a:"", b:""}, rosters:{a:[], b:[]},
              shots:{a:[0,0,0,0], b:[0,0,0,0]}, events:[],
-             timer:{sec:1200, running:false, lastUpdate:0}, updatedAt:0 };
+             timer:{sec:defaultPeriodSec, running:false, lastUpdate:0}, updatedAt:0 };
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function int(v,min,max){ v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); }
@@ -781,7 +830,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   }
 
-  // Calcul des statistiques
   function calculateTeamStats(){
     var targetTeamKey = $("statsTeamSelect").value;
     var targetTeamName = state.names[targetTeamKey];
@@ -842,7 +890,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("statsTeamSelect").addEventListener("change", calculateTeamStats);
 
-  // Rendu de l'historique
   function renderHistory(){
     var list = $("historyList"); list.textContent = "";
     var keys = Object.keys(historyData);
@@ -873,7 +920,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // Exportation PDF & CSV
   $("btnExportPDF").addEventListener("click", function(){ window.print(); });
   $("btnExportCSV").addEventListener("click", function(){
     var csv = "Temps,Periode,Equipe,Type,Joueur,Passes,Detail\n";
@@ -897,7 +943,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     a.click();
   });
 
-  // Contrôles Chrono
   $("btnTimerToggle").addEventListener("click", function(){
     if(currentRole === "viewer") return;
     if(state.timer.running){
@@ -913,7 +958,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   $("btnTimerReset").addEventListener("click", function(){
     if(currentRole === "viewer") return;
     state.timer.running = false;
-    state.timer.sec = 1200;
+    state.timer.sec = defaultPeriodSec;
     commit();
   });
 
@@ -934,7 +979,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("timerSheet").close();
   });
 
-  // Arrêter la Game
   $("btnStopGame").addEventListener("click", function(){
     if(currentRole === "viewer") return;
     state.timer.running = false;
@@ -955,7 +999,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("saveHistorySheet").close();
   });
 
-  // Inversion des côtés
   $("btnSwapSides").addEventListener("click", function(){
     if(currentRole === "viewer") return;
     var tmpN = state.names.a; state.names.a = state.names.b; state.names.b = tmpN;
@@ -1096,7 +1139,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     setText("svSub"+side, saves + (saves > 1 ? " arrêts" : " arrêt") + " sur " + shotsAgainst + (shotsAgainst > 1 ? " lancers" : " lancer"));
   }
 
-  // Gestion des blocs accordéons
   function setupToggle(btnId, blockId){
     $(btnId).addEventListener("click", function(){
       $(blockId).classList.toggle("hidden");
@@ -1108,7 +1150,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   setupToggle("toggleGoaliesBtn", "goaliesBlock");
   setupToggle("toggleHistoryBtn", "historyBlock");
 
-  // Assistant Nouvelle Partie
   $("newGame").addEventListener("click", function(){
     if(currentRole !== "admin") return;
     $("newGameWizard").showModal();
@@ -1123,7 +1164,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("newGameWizard").close();
   });
 
-  // Alignements
   var rosterSheet = $("rosterSheet"), currentRosterTeam = "a";
   document.querySelectorAll(".btn-roster-open").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -1196,7 +1236,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     rosterSheet.close();
   });
 
-  // Modale Buts
   var sheetGoal = $("goalSheet"), curGoal = null;
   function openGoal(id, isNew){
     var g = state.events.filter(function(x){ return x.id === id; })[0]; if(!g) return;
@@ -1269,7 +1308,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     sheetGoal.close();
   });
 
-  // Modale Punition
   var sheetPen = $("penSheet"), curPen = null;
   function openPen(team){
     curPen = { id: uid(), team: team, period: state.period, time: formatTime(getCurrentTimerSec()), player: "", min: 2, reason: "Accrochage" };
@@ -1311,7 +1349,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     sheetPen.close();
   });
 
-  // Clics boutons du pad
   $("pad").addEventListener("click", function(e){
     if(currentRole === "viewer") return;
     var b = e.target.closest("button[data-act]"); if(!b) return;
