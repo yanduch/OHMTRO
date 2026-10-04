@@ -78,15 +78,16 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 @keyframes bump{from{transform:scale(1.18)}to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.bump{animation:none}}
 
-/* Période */
-.periods{display:flex;align-items:center;gap:.6rem;margin:.75rem 0}
-.periods span{font-size:.9rem;color:var(--muted)}
+/* Période & Inversion */
+.periods{display:flex;align-items:center;gap:.4rem;margin:.75rem 0}
+.periods span{font-size:.85rem;color:var(--muted)}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);flex:1;background:var(--surface);border-radius:10px;padding:3px;gap:3px}
 .seg button{border:0;background:transparent;border-radius:8px;min-height:2.6rem;font-family:var(--display);font-weight:600;font-size:1.15rem}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
 /* Masquage automatique spectateur */
-body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManagePasswords{display:none !important}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManagePasswords, body.role-viewer .btn-swap{display:none !important}
 body:not(.role-admin) #newGame, body:not(.role-admin) #btnManagePasswords{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
@@ -101,7 +102,7 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 .hint{font-size:.8125rem;color:var(--muted);margin:.5rem 0 0;text-align:center}
 
-/* Alignements */
+/* Sections & Alignements */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
 .toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
 .toggle-title::after{content:"▼";font-size:.8rem;color:var(--muted);transition:transform .2s}
@@ -152,16 +153,20 @@ dialog::backdrop{background:rgba(6,16,26,.6)}
 dialog h2{margin:0;font-size:1.5rem}
 dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
-/* Style de sélection tactile des joueurs pour les buts */
+/* Style de sélection tactile des joueurs - TEXTE NOIR FORCE SUR LES SÉLECTIONS */
 .player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:40vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
-.btn-player{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left}
-.btn-player .role-tag{font-size:.75rem;font-weight:bold;padding:.1rem .3rem;border-radius:4px}
-.btn-player.buteur{border-color:var(--ok);background:#eafaf1}
-.btn-player.buteur .role-tag{color:var(--ok);background:#c8f2d9}
-.btn-player.passe1{border-color:var(--blue);background:#ebf3ff}
-.btn-player.passe1 .role-tag{color:var(--blue);background:#cbe0ff}
+.btn-player{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left;color:#0F2236 !important}
+.btn-player span{color:#0F2236 !important}
+.btn-player .role-tag{font-size:.75rem;font-weight:bold;padding:.15rem .35rem;border-radius:4px}
+.btn-player.buteur{border-color:#1F7A4D;background:#eafaf1}
+.btn-player.buteur .role-tag{color:#0b3a22 !important;background:#a8e6cf}
+.btn-player.passe1{border-color:#1B4FA0;background:#ebf3ff}
+.btn-player.passe1 .role-tag{color:#0a2957 !important;background:#b8d5ff}
 .btn-player.passe2{border-color:#8e44ad;background:#f5eeed}
-.btn-player.passe2 .role-tag{color:#8e44ad;background:#e8d7f5}
+.btn-player.passe2 .role-tag{color:#4a1b5e !important;background:#dcbbf2}
+
+/* Champs texte noirs */
+#quickNo, #quickName{color:#0F2236 !important;background:#FFFFFF !important;}
 
 .actions{display:grid;grid-template-columns:1fr 1.4fr;gap:.5rem;margin-top:.8rem}
 .actions button{min-height:3.4rem;border-radius:12px;font-weight:600;font-size:1.05rem}
@@ -174,7 +179,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 .preset-box select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);margin-bottom:.4rem;background:var(--surface)}
 .roster-grid{display:grid;gap:.5rem;max-height:40vh;overflow-y:auto;margin-bottom:.8rem}
 .roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
-.roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice)}
+.roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
 </style>
 </head>
 <body class="role-viewer">
@@ -220,6 +225,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       <button type="button" data-p="2">3</button>
       <button type="button" data-p="3" id="btnOt">Prol.</button>
     </div>
+    <button type="button" class="btn-swap" id="btnSwapSides" title="Inverser les côtés de la glace">🔄 Inverser</button>
   </div>
 
   <section class="pad" id="pad" aria-label="Saisie">
@@ -274,8 +280,8 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   <div class="sheet-in">
     <h2>Connexion</h2>
     <p class="ctx">Entrez vos identifiants pour débloquer les droits d'accès.</p>
-    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur, invite)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
-    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur, invite)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
+    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
     <div class="actions">
       <button type="button" class="act-2" id="loginCancel">Annuler</button>
       <button type="button" class="act-1" id="loginSubmit">Se connecter</button>
@@ -290,13 +296,13 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     <p class="ctx">Modifiez les accès pour chaque rôle.</p>
     
     <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.4rem;">Mot de passe Administrateur (admin) :</label>
-    <input type="password" id="pwdAdminInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+    <input type="password" id="pwdAdminInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
 
     <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.6rem;">Mot de passe Marqueur/Buts (marqueur) :</label>
-    <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+    <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
 
     <label style="display:block;font-size:.8rem;font-weight:600;margin-top:.6rem;">Mot de passe Invité (invite) :</label>
-    <input type="password" id="pwdInviteInput" style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+    <input type="password" id="pwdInviteInput" style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
 
     <div class="actions">
       <button type="button" class="act-2" id="pwdCancel">Annuler</button>
@@ -340,7 +346,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     </div>
 
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">URL du logo d'équipe :</label>
-    <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);">
+    <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236;">
 
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation :</label>
     <div class="roster-grid" id="rosterForm"></div>
@@ -353,7 +359,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modal But avec sélection tactile des joueurs -->
+<!-- Modal But avec sélection tactile -->
 <dialog id="goalSheet">
   <div class="sheet-in">
     <h2 id="gsTitle">But</h2>
@@ -363,7 +369,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     <div class="player-pick-grid" id="playerPickGrid"></div>
 
     <div style="background:var(--ice);padding:.5rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
-      <small style="display:block;font-weight:600;margin-bottom:.3rem;">Joueur manquant (Ajout rapide) :</small>
+      <small style="display:block;font-weight:600;margin-bottom:.3rem;color:#0F2236;">Joueur manquant (Ajout rapide) :</small>
       <div style="display:flex;gap:.3rem;">
         <input type="text" id="quickNo" placeholder="#" style="width:2.5rem;padding:.3rem;border:1px solid var(--line);border-radius:6px;">
         <input type="text" id="quickName" placeholder="Nom" style="flex:1;padding:.3rem;border:1px solid var(--line);border-radius:6px;">
@@ -543,6 +549,17 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
       if(bump){ el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
     }
   }
+
+  // Inversion des côtés
+  $("btnSwapSides").addEventListener("click", function(){
+    if(currentRole === "viewer") return;
+    var tmpN = state.names.a; state.names.a = state.names.b; state.names.b = tmpN;
+    var tmpL = state.logos.a; state.logos.a = state.logos.b; state.logos.b = tmpL;
+    var tmpR = state.rosters.a; state.rosters.a = state.rosters.b; state.rosters.b = tmpR;
+    var tmpS = state.shots.a; state.shots.a = state.shots.b; state.shots.b = tmpS;
+    state.goals.forEach(function(g){ g.team = (g.team === "a" ? "b" : "a"); });
+    commit();
+  });
 
   function render(){
     var n = state.names;
