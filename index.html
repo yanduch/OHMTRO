@@ -104,7 +104,7 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 
 /* Carte Statistiques d'équipe */
-.stats-card{background:var(--surface);border-radius:14px;padding:.8rem;margin-top:1rem;border:1px solid var(--line)}
+.stats-card{background:var(--surface);border-radius:14px;padding:.8rem;border:1px solid var(--line)}
 .stats-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
 .stats-card-header h3{margin:0;font-size:1rem;font-family:var(--display);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .stats-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.2rem;text-align:center;margin-bottom:.8rem}
@@ -117,14 +117,17 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .export-box{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.2rem}
 .export-btn{padding:.7rem .5rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:.4rem}
 
-/* Alignements & Sections */
+/* Titres Dépliables (Accordéon) */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
-.toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;margin:1.2rem 0 .4rem}
 .toggle-title::after{content:"▼";font-size:.8rem;color:var(--muted);transition:transform .2s}
 .toggle-title.collapsed::after{transform:rotate(-90deg)}
 
-.roster-container{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;transition:all .2s;overflow:hidden}
-.roster-container.hidden{display:none}
+.toggle-block{transition:all .2s;overflow:hidden}
+.toggle-block.hidden{display:none !important}
+
+/* Alignements */
+.roster-container{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:.4rem}
 .roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
 .roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
@@ -223,7 +226,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .btn-roster-open, .export-box, .stats-card, #historySection { display:none !important; }
+  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .btn-roster-open, .export-box, .stats-card, #historyBlock { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -272,34 +275,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </div>
   </section>
 
-  <!-- Carte Statistiques d'Équipe (Inspiré de l'image) -->
-  <section class="stats-card">
-    <div class="stats-card-header">
-      <h3>Résumé Statistiques</h3>
-      <select id="statsTeamSelect" style="font-size:.8rem;padding:.2rem;border-radius:4px;border:1px solid var(--line);background:var(--ice);color:#0F2236;">
-        <option value="a">Équipe Locale</option>
-        <option value="b">Équipe Visiteuse</option>
-      </select>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-item"><div class="lbl">PJ</div><div class="val" id="stPJ">0</div></div>
-      <div class="stat-item"><div class="lbl">V</div><div class="val v" id="stV">0</div></div>
-      <div class="stat-item"><div class="lbl">D</div><div class="val d" id="stD">0</div></div>
-      <div class="stat-item"><div class="lbl">ÉGA</div><div class="val" id="stEGA">0</div></div>
-      <div class="stat-item"><div class="lbl">BP</div><div class="val blue" id="stBP">0</div></div>
-      <div class="stat-item"><div class="lbl">BC</div><div class="val d" id="stBC">0</div></div>
-      <div class="stat-item"><div class="lbl">DIF</div><div class="val" id="stDIF">0</div></div>
-    </div>
-
-    <div class="stats-grid-2">
-      <div class="stat-item"><div class="lbl">10D</div><div class="val v" id="st10D">0-0-0</div></div>
-      <div class="stat-item"><div class="lbl">SÉQ.</div><div class="val d" id="stSEQ">-</div></div>
-      <div class="stat-item"><div class="lbl">GAA</div><div class="val blue" id="stGAA">0.0</div></div>
-      <div class="stat-item"><div class="lbl">MOY SV%</div><div class="val blue" id="stSV">0%</div></div>
-    </div>
-  </section>
-
   <div class="periods">
     <span id="perLabel">Période</span>
     <div class="seg" id="seg" role="group" aria-labelledby="perLabel">
@@ -326,24 +301,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </div>
   </section>
 
-  <h2 class="toggle-title collapsed" id="toggleRosterBtn">Alignements</h2>
-  <div class="roster-container hidden" id="rosterBlock">
-    <div>
-      <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
-      <ul class="roster-list" id="rosterA"></ul>
-    </div>
-    <div>
-      <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
-      <ul class="roster-list" id="rosterB"></ul>
-    </div>
-  </div>
-
-  <h2>Arrêts des gardiens</h2>
-  <section class="goalies">
-    <div class="g"><h3 id="gNameA"></h3><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p></div>
-    <div class="g"><h3 id="gNameB"></h3><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p></div>
-  </section>
-
   <h2>Lancers par période</h2>
   <div class="scroll">
     <table>
@@ -363,9 +320,66 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
   <ul class="events-list" id="eventsList"></ul>
 
-  <!-- Historique des matchs archivés -->
-  <div id="historySection">
-    <h2>Historique des parties</h2>
+  <!-- SECTIONS DÉPLIABLES SOUS LE PAS À PAS -->
+
+  <!-- 1. Résumé Statistiques -->
+  <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
+  <div class="toggle-block hidden" id="statsBlock">
+    <section class="stats-card">
+      <div class="stats-card-header">
+        <h3>Statistiques d'équipe</h3>
+        <select id="statsTeamSelect" style="font-size:.8rem;padding:.2rem;border-radius:4px;border:1px solid var(--line);background:var(--ice);color:#0F2236;">
+          <option value="a">Équipe Locale</option>
+          <option value="b">Équipe Visiteuse</option>
+        </select>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item"><div class="lbl">PJ</div><div class="val" id="stPJ">0</div></div>
+        <div class="stat-item"><div class="lbl">V</div><div class="val v" id="stV">0</div></div>
+        <div class="stat-item"><div class="lbl">D</div><div class="val d" id="stD">0</div></div>
+        <div class="stat-item"><div class="lbl">ÉGA</div><div class="val" id="stEGA">0</div></div>
+        <div class="stat-item"><div class="lbl">BP</div><div class="val blue" id="stBP">0</div></div>
+        <div class="stat-item"><div class="lbl">BC</div><div class="val d" id="stBC">0</div></div>
+        <div class="stat-item"><div class="lbl">DIF</div><div class="val" id="stDIF">0</div></div>
+      </div>
+
+      <div class="stats-grid-2">
+        <div class="stat-item"><div class="lbl">10D</div><div class="val v" id="st10D">0-0-0</div></div>
+        <div class="stat-item"><div class="lbl">SÉQ.</div><div class="val d" id="stSEQ">-</div></div>
+        <div class="stat-item"><div class="lbl">GAA</div><div class="val blue" id="stGAA">0.0</div></div>
+        <div class="stat-item"><div class="lbl">MOY SV%</div><div class="val blue" id="stSV">0%</div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 2. Alignements -->
+  <h2 class="toggle-title collapsed" id="toggleRosterBtn">Alignements</h2>
+  <div class="toggle-block hidden" id="rosterBlock">
+    <div class="roster-container">
+      <div>
+        <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
+        <ul class="roster-list" id="rosterA"></ul>
+      </div>
+      <div>
+        <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
+        <ul class="roster-list" id="rosterB"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Arrêts des gardiens -->
+  <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">Arrêts des gardiens</h2>
+  <div class="toggle-block hidden" id="goaliesBlock">
+    <section class="goalies">
+      <div class="g"><h3 id="gNameA"></h3><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p></div>
+      <div class="g"><h3 id="gNameB"></h3><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p></div>
+    </section>
+  </div>
+
+  <!-- 4. Historique des parties -->
+  <h2 class="toggle-title collapsed" id="toggleHistoryBtn">Historique des parties</h2>
+  <div class="toggle-block hidden" id="historyBlock">
     <ul class="history-list" id="historyList"></ul>
   </div>
 
@@ -379,7 +393,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <button type="button" class="quiet" id="btnManagePasswords" style="margin-top:.5rem;">⚙️ Gérer les mots de passe</button>
 </div>
 
-<!-- Modal Demande d'Archivage dans l'Historique -->
+<!-- Modales -->
 <dialog id="saveHistorySheet">
   <div class="sheet-in">
     <h2>Sauvegarder le Match ?</h2>
@@ -767,14 +781,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   }
 
-  // Calcul complet des statistiques d'équipe
+  // Calcul des statistiques
   function calculateTeamStats(){
     var targetTeamKey = $("statsTeamSelect").value;
     var targetTeamName = state.names[targetTeamKey];
 
     var pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0;
     var last10 = [];
-    var totalShotsFor = 0, totalShotsAgainst = 0;
+    var totalShotsAgainst = 0;
 
     Object.keys(historyData).forEach(function(key){
       var m = historyData[key];
@@ -810,7 +824,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var diff = bp - bc;
     $("stDIF").textContent = (diff > 0 ? "+" : "") + diff;
 
-    // Séquence & 10 derniers
     var l10V = last10.slice(-10).filter(function(x){ return x==="V"; }).length;
     var l10D = last10.slice(-10).filter(function(x){ return x==="D"; }).length;
     var l10N = last10.slice(-10).filter(function(x){ return x==="N"; }).length;
@@ -921,7 +934,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("timerSheet").close();
   });
 
-  // Arrêter la Game + Demande d'enregistrement dans l'historique
+  // Arrêter la Game
   $("btnStopGame").addEventListener("click", function(){
     if(currentRole === "viewer") return;
     state.timer.running = false;
@@ -1083,10 +1096,17 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     setText("svSub"+side, saves + (saves > 1 ? " arrêts" : " arrêt") + " sur " + shotsAgainst + (shotsAgainst > 1 ? " lancers" : " lancer"));
   }
 
-  $("toggleRosterBtn").addEventListener("click", function(){
-    $("rosterBlock").classList.toggle("hidden");
-    $("toggleRosterBtn").classList.toggle("collapsed");
-  });
+  // Gestion des blocs accordéons
+  function setupToggle(btnId, blockId){
+    $(btnId).addEventListener("click", function(){
+      $(blockId).classList.toggle("hidden");
+      $(btnId).classList.toggle("collapsed");
+    });
+  }
+  setupToggle("toggleStatsBtn", "statsBlock");
+  setupToggle("toggleRosterBtn", "rosterBlock");
+  setupToggle("toggleGoaliesBtn", "goaliesBlock");
+  setupToggle("toggleHistoryBtn", "historyBlock");
 
   // Assistant Nouvelle Partie
   $("newGame").addEventListener("click", function(){
