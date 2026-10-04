@@ -1,16 +1,3 @@
-Voici la version mise à jour du code intégrant le système de rôles à deux niveaux de mots de passe, ainsi que la possibilité pour l'administrateur de modifier ces mots de passe en direct.
-Structure des accès et rôles :
- * Compte Administrateur (admin / mot de passe par défaut : hockey) :
-   * Accès total : Création et modification des équipes, alignements, logos, lancers, buts, réinitialisation de partie.
-   * Gestion des accès : Possibilité de changer le mot de passe de l'administrateur, du gestionnaire de buts et de l'invité.
- * Compte Marqueur / Gestionnaire de buts (marqueur / mot de passe par défaut : buts) :
-   * Accès restreint : Saisie des buts et des passes via les listes de joueurs pré-remplies par l'administrateur, et saisie des lancers.
-   * Protections : Impossible de modifier les alignements, de changer le nom ou les logos des équipes, ni de réinitialiser le match.
- * Compte Invité / Spectateur privilégié (invite / mot de passe par défaut : visiteur) :
-   * Accès restreint : Saisie des buts et des lancers uniquement.
- * Public / Spectateur (Sans mot de passe) :
-   * Lecture seule : Suivi du pointage et des statistiques en temps réel.
-Code complet à remplacer dans index.html :
 <!doctype html>
 <html lang="fr">
 <head>
@@ -414,7 +401,9 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   var dbPasswords = firebase.database().ref("passwords");
 
   // Rôles : "admin", "marqueur", "invite", "viewer"
-  var currentRole = sessionStorage.getItem("ohmtro_role") || "viewer";
+  var urlParams = new URLSearchParams(window.location.search);
+  var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
+  var currentRole = sessionStorage.getItem("ohmtro_role") || defaultRole;
   var passwords = { admin: "hockey", marqueur: "buts", invite: "visiteur" };
 
   dbPasswords.on("value", function(snap){
@@ -428,7 +417,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 
     var btnL = $("btnLogin");
     if(currentRole !== "viewer"){
-      btnL.textContent = "🔓 Dégager (" + currentRole.toUpperCase() + ")";
+      btnL.textContent = "🔓 Déconnexion (" + currentRole.toUpperCase() + ")";
     } else {
       btnL.textContent = "🔒 Connexion";
     }
@@ -452,7 +441,7 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
     var u = $("loginUser").value.trim().toLowerCase();
     var p = $("loginPass").value.trim();
     
-    if(u === "admin" && p === passwords.admin){ currentRole = "admin"; }
+    if((u === "admin" || u === "yanduch") && p === passwords.admin){ currentRole = "admin"; }
     else if(u === "marqueur" && p === passwords.marqueur){ currentRole = "marqueur"; }
     else if(u === "invite" && p === passwords.invite){ currentRole = "invite"; }
     else {
@@ -870,9 +859,9 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
   $("gsSkip").addEventListener("click", function(){ sheetGoal.close(); });
   $("gsDelete").addEventListener("click", function(){
     if(!curGoal || currentRole === "viewer") return;
-    var g = state.goals.filter(function(x){ return x.id === curGoal.id; })[0];
+    var g = state.goals.filter(function(x){ return x.id !== curGoal.id; });
     if(g){
-      state.goals = state.goals.filter(function(x){ return x.id !== g.id; });
+      state.goals = state.goals.filter(function(x){ return x.id !== curGoal.id; });
       if(state.shots[g.team][g.period] > 0) state.shots[g.team][g.period]--;
       commit();
     }
@@ -919,4 +908,3 @@ dialog .ctx{margin:.1rem 0 .8rem;color:var(--muted);font-size:.9rem}
 </script>
 </body>
 </html>
-
