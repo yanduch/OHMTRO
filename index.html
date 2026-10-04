@@ -399,7 +399,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
-  <button type="button" class="btn-stop-game" id="btnStopGame">🛑 ARRÊTER LA GAME</button>
+  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:.5rem;">⚙️ Gestion</button>
 </div>
@@ -1082,6 +1082,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("timerDisplay").textContent = formatTime(getCurrentTimerSec());
     $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
 
+    // Affichage conditionnel du bouton "ARRÊTER LA GAME"
+    var isGameStarted = state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0);
+    $("btnStopGame").style.display = isGameStarted ? "block" : "none";
+
     Array.prototype.forEach.call($("seg").children, function(b){
       b.setAttribute("aria-pressed", String(Number(b.dataset.p) === state.period));
     });
@@ -1208,18 +1212,23 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   });
   $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
 
+  function getTeamColor(teamKey){
+    if(!teamKey || !presets[teamKey]) return null;
+    var name = (presets[teamKey].name || "").toLowerCase();
+    if(name.indexOf("aigles") !== -1) return "#6FA2EE"; // Bleu pastel pour les Aigles
+    return presets[teamKey].color || null;
+  }
+
   $("wizTeamA").addEventListener("change", function(){
     var keyA = $("wizTeamA").value;
-    if(keyA && presets[keyA] && presets[keyA].color){
-      $("wizColorA").value = presets[keyA].color;
-    }
+    var colorA = getTeamColor(keyA);
+    if(colorA) $("wizColorA").value = colorA;
   });
 
   $("wizTeamB").addEventListener("change", function(){
     var keyB = $("wizTeamB").value;
-    if(keyB && presets[keyB] && presets[keyB].color){
-      $("wizColorB").value = presets[keyB].color;
-    }
+    var colorB = getTeamColor(keyB);
+    if(colorB) $("wizColorB").value = colorB;
   });
 
   $("wizStart").addEventListener("click", function(){
@@ -1252,7 +1261,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(pKey && presets[pKey]){
       var p = presets[pKey];
       if(p.logo) $("teamLogoInput").value = p.logo;
-      if(p.color) $("presetTeamColor").value = p.color;
+      var c = getTeamColor(pKey) || p.color;
+      if(c) $("presetTeamColor").value = c;
       if(p.roster) buildRosterForm(p.roster);
     }
   });
