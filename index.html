@@ -36,7 +36,7 @@
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--ice);color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.4}
-button,input,select{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 button:disabled{cursor:not-allowed;opacity:.4}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
@@ -128,9 +128,10 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .stat-item .val{font-family:var(--display);font-weight:700;font-size:1.3rem}
 .stat-item .val.v{color:var(--ok)} .stat-item .val.d{color:var(--red)} .stat-item .val.blue{color:var(--blue)}
 
-/* Section Exportation */
+/* Section Exportation & Contact */
 .export-box{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.2rem}
 .export-btn{padding:.7rem .5rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:.4rem}
+.btn-contact-designer{margin-top:1.5rem;width:100%;text-align:center;background:transparent;border:0;color:var(--muted);font-size:.8rem;text-decoration:underline;cursor:pointer;}
 
 /* Titres Dépliables (Accordéon) */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
@@ -146,6 +147,8 @@ h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 
 .roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:.4rem}
 .roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
 .roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
+.staff-section{margin-top:.6rem;padding-top:.4rem;border-top:1px dashed var(--line)}
+.staff-title{font-size:.75rem;font-weight:bold;color:var(--muted);text-transform:uppercase;margin-bottom:.3rem}
 
 .goalies{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .g{background:var(--crease);border-radius:12px;padding:.7rem .75rem}
@@ -177,7 +180,7 @@ td.cur,th.cur{background:var(--crease)}
 .event-row .info span{display:block;font-size:.85rem;color:var(--muted)}
 .event-row .per{font-size:.85rem;color:var(--muted);white-space:nowrap}
 
-/* Liste Historique & Équipes */
+/* Liste Historique, Équipes & Catégories */
 .history-list, .team-manage-list, .cat-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
 .history-item, .team-manage-item, .cat-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
 .history-ctrls, .team-ctrls, .cat-ctrls{display:flex;gap:.3rem;align-items:center}
@@ -198,7 +201,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .field-group{margin-top:1rem}
 .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem}
 
-.sheet-in input[type="text"], .sheet-in input[type="password"], .sheet-in select, .sheet-in input[type="url"] {
+.sheet-in input[type="text"], .sheet-in input[type="email"], .sheet-in input[type="password"], .sheet-in select, .sheet-in input[type="url"], .sheet-in textarea {
   background: #FFFFFF !important;
   color: #0F2236 !important;
   -webkit-text-fill-color: #0F2236 !important;
@@ -236,9 +239,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .preset-box{background:var(--ice);padding:.6rem;border-radius:10px;margin-bottom:.8rem;border:1px solid var(--line)}
 .preset-box label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.3rem}
 .preset-box select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);background:var(--surface)}
-.roster-grid{display:grid;gap:.5rem;max-height:40vh;overflow-y:auto;margin-bottom:.8rem}
+.roster-grid{display:grid;gap:.5rem;max-height:30vh;overflow-y:auto;margin-bottom:.8rem}
 .roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
-.roster-row input, .roster-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
+.staff-row{display:grid;grid-template-columns:1fr 6rem auto;gap:.3rem;align-items:center}
+.roster-row input, .roster-row select, .staff-row input, .staff-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
 
 .color-picker-row{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
 .color-picker-row input[type="color"]{-webkit-appearance:none;border:none;width:2.5rem;height:2.5rem;border-radius:8px;cursor:pointer;padding:0;background:transparent;}
@@ -252,7 +256,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top { display:none !important; }
+  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top, .btn-contact-designer { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -402,10 +406,18 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <div>
         <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
         <ul class="roster-list" id="rosterA"></ul>
+        <div class="staff-section" id="staffBoxA" style="display:none;">
+          <div class="staff-title">Entraîneurs / Staff</div>
+          <ul class="roster-list" id="staffA"></ul>
+        </div>
       </div>
       <div>
         <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
         <ul class="roster-list" id="rosterB"></ul>
+        <div class="staff-section" id="staffBoxB" style="display:none;">
+          <div class="staff-title">Entraîneurs / Staff</div>
+          <ul class="roster-list" id="staffB"></ul>
+        </div>
       </div>
     </div>
   </div>
@@ -433,6 +445,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:.5rem;">⚙️ Gestion</button>
+
+  <button type="button" class="btn-contact-designer" id="btnOpenContact">✉️ Contacter le concepteur du site</button>
 </div>
 
 <!-- Dialogue Gestion Principale -->
@@ -447,7 +461,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <small style="color:var(--muted);font-size:.75rem;">Laissez vide pour masquer le bandeau.</small>
     </div>
 
-    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:3rem;margin-top:1.2rem;font-weight:600;">🏷️ Gestion des Catégories / Équipes</button>
+    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:3rem;margin-top:1.2rem;font-weight:600;">🏷️ Gestion des Catégories</button>
     <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:3rem;margin-top:.6rem;font-weight:600;">🛡️ Banque d'équipes et alignements</button>
 
     <div class="field-group" style="margin-top:1.2rem;">
@@ -600,15 +614,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Édition d'Équipe -->
+<!-- Modale Édition d'Équipe (Avec Catégorie & Section Staff) -->
 <dialog id="rosterSheet">
   <div class="sheet-in">
     <h2 id="rsTitle">Édition d'Équipe</h2>
-    <p class="ctx">Configurez l'équipe et sa formation de joueurs.</p>
+    <p class="ctx">Configurez l'équipe, sa catégorie et sa formation.</p>
 
     <div class="field-group" style="margin-top:0;">
       <label style="font-size:.8rem;font-weight:600;">Nom de l'équipe :</label>
-      <input type="text" id="editTeamNameInput" placeholder="Ex: Aigles" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="editTeamNameInput" placeholder="Ex: Lions M15 A" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <div class="field-group" style="margin-top:.6rem;">
+      <label style="font-size:.8rem;font-weight:600;">Catégorie associée :</label>
+      <select id="presetTeamCat" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+        <!-- Rempli dynamiquement -->
+      </select>
     </div>
 
     <div class="color-picker-row" style="margin:.6rem 0;">
@@ -622,14 +643,51 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <img id="logoPreview" class="logo-preview-img" src="" alt="Aperçu logo" style="display:none;">
     </div>
     
-    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation / Alignement :</label>
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Joueurs :</label>
     <div class="roster-grid" id="rosterForm"></div>
-    <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.5rem;margin-bottom:.8rem;">+ Ajouter un joueur</button>
+    <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.2rem;margin-bottom:.8rem;font-size:.85rem;">+ Ajouter un joueur</button>
+
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Entraîneurs / Personnel (Staff) :</label>
+    <div class="roster-grid" id="staffForm"></div>
+    <button type="button" class="act-2" id="addStaffBtn" style="width:100%;min-height:2.2rem;margin-bottom:.8rem;font-size:.85rem;">+ Ajouter un membre du staff</button>
     
     <div class="actions">
       <button type="button" class="act-2" id="rsCancel">Annuler</button>
       <button type="button" class="act-1" id="rsSave">Enregistrer l'équipe</button>
     </div>
+  </div>
+</dialog>
+
+<!-- Modale Formulaire de Contact Concepteur -->
+<dialog id="contactSheet">
+  <div class="sheet-in">
+    <h2>Contacter le concepteur</h2>
+    <p class="ctx">Un problème ou une suggestion ? Envoyez un message directement.</p>
+
+    <form id="contactForm">
+      <input type="hidden" name="access_key" value="d6c0a00d-587d-450f-a2e6-9e8c313a89a1">
+      <input type="hidden" name="subject" value="Message depuis l'application Feuille de Match">
+      
+      <div class="field-group" style="margin-top:0;">
+        <label>Votre Nom :</label>
+        <input type="text" name="name" required style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      </div>
+
+      <div class="field-group">
+        <label>Votre courriel :</label>
+        <input type="email" name="email" required style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      </div>
+
+      <div class="field-group">
+        <label>Message :</label>
+        <textarea name="message" rows="4" required style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;resize:vertical;"></textarea>
+      </div>
+
+      <div class="actions" style="margin-top:1.2rem;">
+        <button type="button" class="act-2" id="contactCancel">Annuler</button>
+        <button type="submit" class="act-1" id="contactSubmit">Envoyer le message</button>
+      </div>
+    </form>
   </div>
 </dialog>
 
@@ -716,7 +774,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
   var currentCat = urlParams.get("cat") || sessionStorage.getItem("ohmtro_cat") || "m15";
 
-  var categoriesList = ["m13", "m15", "m17"]; // Valeurs par défaut
+  var categoriesList = ["m13", "m15", "m17"];
 
   var db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence, dbCategories;
   var myPresenceRef = null;
@@ -729,7 +787,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var timerInterval = null;
   var passwords = { admin: "hockey", marqueur: "buts", categories: {} };
 
-  // 1. Gestion de la persistance Admin (localStorage global) vs Marqueur (sessionStorage temporaire)
   var isAdminGlobal = localStorage.getItem("ohmtro_admin_auth") === "true";
   var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
   var assignedCat = sessionStorage.getItem("ohmtro_assigned_cat") || null;
@@ -748,7 +805,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("orgSelectTop").value = orgKey;
 
     if(!isAdminGlobal && currentRole === "marqueur" && assignedCat && assignedCat !== catKey){
-      // Si un marqueur passe à une catégorie non autorisée, il retombe en spectateur
       currentRole = "viewer";
       sessionStorage.removeItem("ohmtro_role");
       assignedCat = null;
@@ -762,7 +818,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     if(myPresenceRef){ myPresenceRef.remove(); }
 
-    // Noeuds Firebase séparés par Organisation ET par Catégorie
     db = firebase.database().ref(currentOrg + "/" + currentCat + "/match");
     dbHistory = firebase.database().ref(currentOrg + "/" + currentCat + "/history");
     dbPresets = firebase.database().ref(currentOrg + "/teams_presets");
@@ -907,14 +962,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var u = $("loginUser").value.trim().toLowerCase();
     var p = $("loginPass").value.trim();
 
-    // 1. Vérification Admin Global
     if((u === "admin" || u === "yanduch") && p === (passwords.admin || "hockey")){
       currentRole = "admin";
       isAdminGlobal = true;
       localStorage.setItem("ohmtro_admin_auth", "true");
       sessionStorage.setItem("ohmtro_role", "admin");
     }
-    // 2. Vérification Marqueur Global ou Par Catégorie
     else if(u === "marqueur"){
       var matchCatKey = null;
       if(p === (passwords.marqueur || "buts")){ matchCatKey = currentCat; }
@@ -941,6 +994,43 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     updateRoleUI();
     render();
     $("loginSheet").close();
+  });
+
+  // --- FORMULAIRE CONTACT CONCEPTEUR ---
+  $("btnOpenContact").addEventListener("click", function(){
+    $("contactSheet").showModal();
+  });
+  $("contactCancel").addEventListener("click", function(){ $("contactSheet").close(); });
+
+  $("contactForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var btn = $("contactSubmit");
+    btn.disabled = true;
+    btn.textContent = "Envoi en cours...";
+
+    var formData = new FormData(this);
+
+    fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      body: formData
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if(data.success){
+        alert("Merci ! Votre message a été transmis avec succès au concepteur.");
+        $("contactForm").reset();
+        $("contactSheet").close();
+      } else {
+        alert("Erreur lors de l'envoi du message. Veuillez réessayer.");
+      }
+      btn.disabled = false;
+      btn.textContent = "Envoyer le message";
+    })
+    .catch(function(err){
+      alert("Erreur de connexion : " + err.message);
+      btn.disabled = false;
+      btn.textContent = "Envoyer le message";
+    });
   });
 
   $("btnManageSettings").addEventListener("click", function(){ $("settingsSheet").showModal(); });
@@ -1037,7 +1127,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   function blank(names){
     return { v:1, names: names || {a:"Local", b:"Visiteur"}, period:0,
-             logos:{a:"", b:""}, colors:{a:"#6FA2EE", b:"#F2707A"}, rosters:{a:[], b:[]},
+             logos:{a:"", b:""}, colors:{a:"#6FA2EE", b:"#F2707A"}, rosters:{a:[], b:[]}, staff:{a:[], b:[]},
              shots:{a:[0,0,0,0], b:[0,0,0,0]}, events:[],
              timer:{sec:defaultPeriodSec, running:false, lastUpdate:0}, updatedAt:0 };
   }
@@ -1056,6 +1146,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(d.rosters && typeof d.rosters === "object"){
       s.rosters.a = Array.isArray(d.rosters.a) ? JSON.parse(JSON.stringify(d.rosters.a)) : [];
       s.rosters.b = Array.isArray(d.rosters.b) ? JSON.parse(JSON.stringify(d.rosters.b)) : [];
+    }
+
+    if(d.staff && typeof d.staff === "object"){
+      s.staff.a = Array.isArray(d.staff.a) ? JSON.parse(JSON.stringify(d.staff.a)) : [];
+      s.staff.b = Array.isArray(d.staff.b) ? JSON.parse(JSON.stringify(d.staff.b)) : [];
     }
 
     s.period = int(d.period,0,3);
@@ -1331,6 +1426,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var tmpL = state.logos.a; state.logos.a = state.logos.b; state.logos.b = tmpL;
     var tmpC = state.colors.a; state.colors.a = state.colors.b; state.colors.b = tmpC;
     var tmpR = state.rosters.a; state.rosters.a = state.rosters.b; state.rosters.b = tmpR;
+    var tmpSt = state.staff.a; state.staff.a = state.staff.b; state.staff.b = tmpSt;
     var tmpS = state.shots.a; state.shots.a = state.shots.b; state.shots.b = tmpS;
     state.events.forEach(function(e){
       if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a";
@@ -1389,6 +1485,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("rosterTitleB").textContent = n.b;
     renderRosterList("rosterA", state.rosters.a);
     renderRosterList("rosterB", state.rosters.b);
+
+    renderStaffList("staffA", "staffBoxA", state.staff ? state.staff.a : []);
+    renderStaffList("staffB", "staffBoxB", state.staff ? state.staff.b : []);
 
     var body = $("perBody"); body.textContent = "";
     ["a","b"].forEach(function(t){
@@ -1485,6 +1584,17 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
+  function renderStaffList(ulId, boxId, list){
+    var ul = $(ulId); var box = $(boxId); ul.textContent = "";
+    if(!list || !list.length){ box.style.display = "none"; return; }
+    box.style.display = "block";
+    list.forEach(function(s){
+      var li = document.createElement("li"); li.className = "roster-item";
+      li.innerHTML = "<span>" + s.name + "</span><span class='pos'>" + s.role + "</span>";
+      ul.appendChild(li);
+    });
+  }
+
   function goalie(side, shotsAgainst, goalsAgainst){
     if(!shotsAgainst){ setText("sv"+side, "–"); setText("svSub"+side, "Aucun lancer reçu"); return; }
     var saves = Math.max(0, shotsAgainst - goalsAgainst);
@@ -1538,11 +1648,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       state.names.b = presets[keyB].name;
       state.logos.b = presets[keyB].logo || "";
       state.rosters.b = JSON.parse(JSON.stringify(presets[keyB].roster || []));
+      state.staff.b = JSON.parse(JSON.stringify(presets[keyB].staff || []));
     }
     if(keyA && presets[keyA]){
       state.names.a = presets[keyA].name;
       state.logos.a = presets[keyA].logo || "";
       state.rosters.a = JSON.parse(JSON.stringify(presets[keyA].roster || []));
+      state.staff.a = JSON.parse(JSON.stringify(presets[keyA].staff || []));
     }
     
     state.colors.a = $("wizColorA").value;
@@ -1552,7 +1664,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("newGameWizard").close();
   });
 
-  // --- GESTION DES ÉQUIPES ---
+  // --- GESTION DES ÉQUIPES ET CATÉGORIES ASSOCIÉES ---
   var editingTeamKey = null;
 
   $("btnOpenTeamsManage").addEventListener("click", function(){
@@ -1581,7 +1693,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var info = document.createElement("div");
       var colorDot = "<span style='display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:" + (team.color || "#6FA2EE") + ";margin-right:.4rem;'></span>";
       var rosterCount = team.roster ? team.roster.length : 0;
-      info.innerHTML = "<div>" + colorDot + "<strong>" + team.name + "</strong><br><small style='color:var(--muted);'>" + rosterCount + " joueur(s)</small></div>";
+      var catTag = team.category ? " [" + team.category.toUpperCase() + "]" : " [Toutes]";
+      info.innerHTML = "<div>" + colorDot + "<strong>" + team.name + catTag + "</strong><br><small style='color:var(--muted);'>" + rosterCount + " joueur(s)</small></div>";
 
       var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
 
@@ -1612,13 +1725,21 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   function openTeamEditor(key){
     editingTeamKey = key;
-    var team = key && presets[key] ? presets[key] : { name: "", logo: "", color: "#6FA2EE", roster: [] };
+    var team = key && presets[key] ? presets[key] : { name: "", logo: "", color: "#6FA2EE", category: currentCat, roster: [], staff: [] };
     
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
     $("editTeamNameInput").value = team.name || "";
     $("teamLogoInput").value = team.logo || "";
     $("presetTeamColor").value = team.color || "#6FA2EE";
     
+    // Remplir la sélection des catégories
+    var catSelect = $("presetTeamCat"); catSelect.innerHTML = '<option value="">Toutes les catégories</option>';
+    categoriesList.forEach(function(c){
+      var opt = document.createElement("option"); opt.value = c; opt.textContent = c.toUpperCase();
+      if(c === (team.category || currentCat)) opt.selected = true;
+      catSelect.appendChild(opt);
+    });
+
     updateLogoPreview(team.logo || "");
 
     if((team.name || "").toLowerCase().indexOf("aigles") !== -1){
@@ -1626,6 +1747,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
 
     buildRosterForm(team.roster || []);
+    buildStaffForm(team.staff || []);
     $("teamsManageSheet").close();
     $("rosterSheet").showModal();
   }
@@ -1658,7 +1780,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       if(!sel) return;
       sel.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
       Object.keys(presets).forEach(function(key){
-        var opt = document.createElement("option"); opt.value = key; opt.textContent = presets[key].name; sel.appendChild(opt);
+        var team = presets[key];
+        // Filtrer pour n'afficher que les équipes de la catégorie actuelle ou sans catégorie spécifique
+        if(!team.category || team.category === currentCat){
+          var opt = document.createElement("option"); opt.value = key; opt.textContent = team.name; sel.appendChild(opt);
+        }
       });
     });
   }
@@ -1672,12 +1798,27 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function addRosterRow(no, name, pos){
     var div = document.createElement("div"); div.className = "roster-row";
     div.innerHTML = "<input type='text' maxlength='2' placeholder='#' value='" + (no||"") + "' class='r-no'>" +
-                    "<input type='text' placeholder='Nom' value='" + (name||"") + "' class='r-name'>" +
+                    "<input type='text' placeholder='Nom du joueur' value='" + (name||"") + "' class='r-name'>" +
                     "<select class='r-pos'><option value='A'>A</option><option value='D'>D</option><option value='G'>G</option></select>" +
                     "<button type='button' style='border:0;background:transparent;color:var(--red);font-weight:bold;'>✕</button>";
     if(pos) div.querySelector(".r-pos").value = pos;
     div.querySelector("button").addEventListener("click", function(){ div.remove(); });
     $("rosterForm").appendChild(div);
+  }
+
+  function buildStaffForm(list){
+    var form = $("staffForm"); form.textContent = "";
+    list.forEach(function(s){ addStaffRow(s.name, s.role); });
+  }
+
+  function addStaffRow(name, role){
+    var div = document.createElement("div"); div.className = "staff-row";
+    div.innerHTML = "<input type='text' placeholder='Nom (Entraîneur, Gérant...)' value='" + (name||"") + "' class='s-name'>" +
+                    "<select class='s-role'><option value='Entraîneur-chef'>Chef</option><option value='Adjoint'>Adjoint</option><option value='Gérant'>Gérant</option><option value='Soigneur'>Soigneur</option></select>" +
+                    "<button type='button' style='border:0;background:transparent;color:var(--red);font-weight:bold;'>✕</button>";
+    if(role) div.querySelector(".s-role").value = role;
+    div.querySelector("button").addEventListener("click", function(){ div.remove(); });
+    $("staffForm").appendChild(div);
   }
 
   function getFormRoster(){
@@ -1692,7 +1833,20 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     return list;
   }
 
+  function getFormStaff(){
+    var rows = $("staffForm").querySelectorAll(".staff-row");
+    var list = [];
+    rows.forEach(function(r){
+      var nm = r.querySelector(".s-name").value.trim();
+      var rl = r.querySelector(".s-role").value;
+      if(nm){ list.push({name:nm, role:rl}); }
+    });
+    return list;
+  }
+
   $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
+  $("addStaffBtn").addEventListener("click", function(){ addStaffRow("","Entraîneur-chef"); });
+
   $("rsCancel").addEventListener("click", function(){
     $("rosterSheet").close();
     $("teamsManageSheet").showModal();
@@ -1706,9 +1860,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var logoUrl = $("teamLogoInput").value.trim();
     var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
     var color = $("presetTeamColor").value;
+    var category = $("presetTeamCat").value;
     var roster = getFormRoster();
+    var staff = getFormStaff();
 
-    dbPresets.child(key).set({ name: teamName, logo: logoUrl, color: color, roster: roster });
+    dbPresets.child(key).set({ name: teamName, logo: logoUrl, color: color, category: category, roster: roster, staff: staff });
     
     alert("Équipe '" + teamName + "' enregistrée avec succès !");
     $("rosterSheet").close();
