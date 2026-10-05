@@ -58,21 +58,21 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .ticker-wrap.active{display:flex;}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
 .ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;}
-.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker 18s linear infinite;}
+.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker 20s linear infinite;}
 .ticker-text:hover{animation-play-state:paused;}
 @keyframes ticker {
-  0% { transform: translate3d(100%, 0, 0); }
-  100% { transform: translate3d(-100%, 0, 0); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 /* Tableau de pointage */
-.board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .5rem 1rem}
-.side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center}
-.team-header{display:flex;align-items:center;justify-content:center;gap:.3rem;width:100%}
-.team-logo{width:2rem;height:2rem;object-fit:contain;border-radius:4px;flex-shrink:0}
+.board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .3rem 1rem;gap:.2rem;}
+.side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden;}
+.team-header{display:flex;align-items:center;justify-content:center;gap:.2rem;width:100%;overflow:hidden;}
+.team-logo{width:1.8rem;height:1.8rem;object-fit:contain;border-radius:4px;flex-shrink:0}
 .team-logo[src=""]{display:none}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
-  font-family:var(--display);font-weight:600;font-size:clamp(0.9rem, 3.5vw, 1.35rem);line-height:1.15;padding:.1rem .2rem;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  font-family:var(--display);font-weight:600;font-size:clamp(0.75rem, 2.8vw, 1.25rem);line-height:1.15;padding:.1rem 0;border-radius:0;white-space:nowrap;}
 .side.a .name{color:var(--team-a-color)} .side.b .name{color:var(--team-b-color)}
 body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
@@ -291,7 +291,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="side a">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoA">
-        <input class="name" id="nameA" maxlength="30" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameA" maxlength="40" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
@@ -309,7 +309,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="side b">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoB">
-        <input class="name" id="nameB" maxlength="30" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameB" maxlength="40" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
@@ -910,19 +910,27 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var text = $("tickerText");
       
       var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"; // 10 espaces
-      var fullText = "";
+      var unitText = "";
       
       if(msg1.trim() && msg2.trim()){
-        fullText = msg1.trim() + spaces + msg2.trim() + spaces;
+        unitText = msg1.trim() + spaces + msg2.trim() + spaces;
       } else if(msg1.trim()){
-        fullText = msg1.trim() + spaces;
+        unitText = msg1.trim() + spaces;
       } else if(msg2.trim()){
-        fullText = msg2.trim() + spaces;
+        unitText = msg2.trim() + spaces;
       }
       
-      if(fullText){
-        text.textContent = fullText + fullText; // Doubler pour une boucle sans saut abrupt
+      if(unitText){
+        text.textContent = unitText + unitText; // Dupliqué pour la boucle 50%
         wrap.classList.add("active");
+        
+        // Ajustement dynamique de la vitesse constante (60px par seconde)
+        setTimeout(function(){
+          var width = text.offsetWidth / 2;
+          var speed = 60; // pixels par seconde
+          var duration = Math.max(8, width / speed);
+          text.style.animationDuration = duration + "s";
+        }, 50);
       } else {
         wrap.classList.remove("active");
         text.textContent = "";
@@ -1339,7 +1347,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function int(v,min,max){ v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); }
-  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,30); return v || fb; }
+  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,40); return v || fb; }
   function no(v){ return String(v == null ? "" : v).replace(/\D/g,"").slice(0,2); }
 
   function sanitize(d){
