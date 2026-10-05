@@ -58,7 +58,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .ticker-wrap.active{display:flex;}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
 .ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;}
-.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker 15s linear infinite;}
+.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker 18s linear infinite;}
 .ticker-text:hover{animation-play-state:paused;}
 @keyframes ticker {
   0% { transform: translate3d(100%, 0, 0); }
@@ -452,8 +452,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <p class="ctx">Paramètres généraux, organisations, catégories et sécurité.</p>
 
     <div class="field-group" style="margin-top:0;">
-      <label>Message personnalisé (Bandeau d'annonce) :</label>
-      <input type="text" id="customMessageInput" placeholder="Ex: Prochain match Samedi 14h à Chavigny" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label>Message personnalisé 1 (Bandeau d'annonce) :</label>
+      <input type="text" id="customMessageInput1" placeholder="Ex: Prochain match Samedi 14h à Chavigny" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.5rem;">
+      <label>Message personnalisé 2 :</label>
+      <input type="text" id="customMessageInput2" placeholder="Ex: Bienvenue à tous les supporters !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
       <small style="color:var(--muted);font-size:.75rem;">Laissez vide pour masquer le bandeau.</small>
     </div>
 
@@ -898,12 +900,28 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
       }
       
-      var msg = cfg.customMessage || "";
-      $("customMessageInput").value = msg;
+      var msg1 = cfg.customMessage1 || cfg.customMessage || "";
+      var msg2 = cfg.customMessage2 || "";
+      
+      $("customMessageInput1").value = msg1;
+      $("customMessageInput2").value = msg2;
+      
       var wrap = $("tickerWrap");
       var text = $("tickerText");
-      if(msg.trim()){
-        text.textContent = msg;
+      
+      var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"; // 10 espaces
+      var fullText = "";
+      
+      if(msg1.trim() && msg2.trim()){
+        fullText = msg1.trim() + spaces + msg2.trim() + spaces;
+      } else if(msg1.trim()){
+        fullText = msg1.trim() + spaces;
+      } else if(msg2.trim()){
+        fullText = msg2.trim() + spaces;
+      }
+      
+      if(fullText){
+        text.textContent = fullText + fullText; // Doubler pour une boucle sans saut abrupt
         wrap.classList.add("active");
       } else {
         wrap.classList.remove("active");
@@ -1055,10 +1073,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
   $("settingsSave").addEventListener("click", function(){
     var min = Number($("defaultPeriodMinInput").value);
-    var msg = $("customMessageInput").value.trim();
+    var msg1 = $("customMessageInput1").value.trim();
+    var msg2 = $("customMessageInput2").value.trim();
     
     dbConfig.child("defaultPeriodMin").set(min);
-    dbConfig.child("customMessage").set(msg);
+    dbConfig.child("customMessage1").set(msg1);
+    dbConfig.child("customMessage2").set(msg2);
     
     alert("Paramètres enregistrés !");
     $("settingsSheet").close();
