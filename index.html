@@ -63,7 +63,6 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .side.a .name{color:var(--team-a-color)} .side.b .name{color:var(--team-b-color)}
 body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
-.btn-roster-open{font-size:.75rem;padding:.2rem .5rem;margin-top:.3rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--muted)}
 
 .score{display:block;font-family:var(--display);font-weight:700;font-size:clamp(4.5rem,24vw,7rem);line-height:.95;
   font-variant-numeric:tabular-nums;margin-top:.15rem}
@@ -165,10 +164,10 @@ td.cur,th.cur{background:var(--crease)}
 .event-row .info span{display:block;font-size:.85rem;color:var(--muted)}
 .event-row .per{font-size:.85rem;color:var(--muted);white-space:nowrap}
 
-/* Liste Historique */
-.history-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
-.history-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
-.history-ctrls{display:flex;gap:.3rem;align-items:center}
+/* Liste Historique & Équipes */
+.history-list, .team-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
+.history-item, .team-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
+.history-ctrls, .team-ctrls{display:flex;gap:.3rem;align-items:center}
 .btn-hist-del{font-size:.65rem;padding:.2rem .4rem;border-radius:5px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
 
 .quiet{margin-top:1.2rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
@@ -186,7 +185,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .field-group{margin-top:1rem}
 .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem}
 
-.sheet-in input[type="text"], .sheet-in input[type="password"], .sheet-in select {
+.sheet-in input[type="text"], .sheet-in input[type="password"], .sheet-in select, .sheet-in input[type="url"] {
   background: #FFFFFF !important;
   color: #0F2236 !important;
   -webkit-text-fill-color: #0F2236 !important;
@@ -236,7 +235,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .btn-roster-open, .export-box, .stats-card, #historyBlock { display:none !important; }
+  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -260,7 +259,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <img src="" alt="" class="team-logo" id="logoA">
         <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
       </div>
-      <button type="button" class="btn-roster-open" data-team="a">Alignement</button>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
     </div>
@@ -279,7 +277,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <img src="" alt="" class="team-logo" id="logoB">
         <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
       </div>
-      <button type="button" class="btn-roster-open" data-team="b">Alignement</button>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
     </div>
@@ -410,9 +407,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="settingsSheet">
   <div class="sheet-in">
     <h2>Gestion</h2>
-    <p class="ctx">Paramètres généraux et sécurité.</p>
+    <p class="ctx">Paramètres généraux, équipes et sécurité.</p>
     
-    <div class="field-group">
+    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:3rem;margin-top:.5rem;font-weight:600;">🛡️ Gestion des équipes</button>
+
+    <div class="field-group" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
         <option value="10">10 minutes</option>
@@ -428,6 +427,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="settingsCancel">Fermer</button>
       <button type="button" class="act-1" id="settingsSave">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modale Gestion des Équipes (Banque de données) -->
+<dialog id="teamsManageSheet">
+  <div class="sheet-in">
+    <h2>Gestion des Équipes</h2>
+    <p class="ctx">Ajoutez, modifiez ou supprimez des équipes de la banque d'équipes.</p>
+    
+    <button type="button" class="act-1" id="btnAddNewTeam" style="width:100%;min-height:2.6rem;margin-bottom:.8rem;font-size:.9rem;">➕ Créer une nouvelle équipe</button>
+    
+    <ul class="team-manage-list" id="teamManageList"></ul>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
     </div>
   </div>
 </dialog>
@@ -525,26 +540,32 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
+<!-- Modale Édition d'Équipe (Nom, Logo, Couleur, Alignement) -->
 <dialog id="rosterSheet">
   <div class="sheet-in">
-    <h2 id="rsTitle">Alignement</h2>
-    <div class="preset-box" id="presetBox">
-      <label>Charger une équipe sauvegardée :</label>
-      <select id="presetSelect"><option value="">-- Sélectionner une équipe --</option></select>
-      <div class="color-picker-row" style="margin-top:.6rem;">
-        <label style="font-size:.85rem;font-weight:600;">Couleur de l'équipe :</label>
-        <input type="color" id="presetTeamColor" value="#6FA2EE">
-      </div>
-      <button type="button" class="act-2" id="savePresetBtn" style="width:100%;min-height:2.2rem;font-size:.85rem;margin-top:.6rem;">Enregistrer dans la banque d'équipes</button>
+    <h2 id="rsTitle">Édition d'Équipe</h2>
+    <p class="ctx">Configurez l'équipe et sa formation de joueurs.</p>
+
+    <div class="field-group" style="margin-top:0;">
+      <label style="font-size:.8rem;font-weight:600;">Nom de l'équipe :</label>
+      <input type="text" id="editTeamNameInput" placeholder="Ex: Aigles" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
+
+    <div class="color-picker-row" style="margin:.6rem 0;">
+      <label style="font-size:.85rem;font-weight:600;">Couleur par défaut :</label>
+      <input type="color" id="presetTeamColor" value="#6FA2EE">
+    </div>
+
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">URL du logo d'équipe :</label>
     <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation :</label>
+    
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation / Alignement :</label>
     <div class="roster-grid" id="rosterForm"></div>
     <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.5rem;margin-bottom:.8rem;">+ Ajouter un joueur</button>
+    
     <div class="actions">
       <button type="button" class="act-2" id="rsCancel">Annuler</button>
-      <button type="button" class="act-1" id="rsSave">Appliquer au match</button>
+      <button type="button" class="act-1" id="rsSave">Enregistrer l'équipe</button>
     </div>
   </div>
 </dialog>
@@ -795,6 +816,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   dbPresets.on("value", function(snapshot){
     presets = snapshot.val() || {};
     updatePresetDropdowns();
+    renderTeamsManageList();
   });
 
   dbHistory.on("value", function(snapshot){
@@ -948,7 +970,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       ctrls.appendChild(btnCons);
 
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
-      btnDel.textContent = "🗑️️ Supprimer";
+      btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
         if(currentRole === "viewer") return;
         if(confirm("Voulez-vous vraiment supprimer ce match de l'historique ? Cela recalculera toutes les statistiques.")){
@@ -1120,7 +1142,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     renderEvents();
     
-    // Par défaut, sélectionner l'équipe locale dans le résumé des statistiques
     if(!$("statsTeamSelect").dataset.userTouched){
       $("statsTeamSelect").value = "a";
     }
@@ -1261,31 +1282,92 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("newGameWizard").close();
   });
 
-  var rosterSheet = $("rosterSheet"), currentRosterTeam = "a";
-  document.querySelectorAll(".btn-roster-open").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      currentRosterTeam = btn.dataset.team;
-      $("rsTitle").textContent = "Alignement - " + state.names[currentRosterTeam];
-      $("teamLogoInput").value = state.logos[currentRosterTeam] || "";
-      $("presetTeamColor").value = state.colors[currentRosterTeam] || (currentRosterTeam === "a" ? "#6FA2EE" : "#F2707A");
-      buildRosterForm(state.rosters[currentRosterTeam] || []);
-      rosterSheet.showModal();
+  // --- GESTION DES ÉQUIPES ---
+  var editingTeamKey = null;
+
+  $("btnOpenTeamsManage").addEventListener("click", function(){
+    $("settingsSheet").close();
+    renderTeamsManageList();
+    $("teamsManageSheet").showModal();
+  });
+  $("teamsManageClose").addEventListener("click", function(){ $("teamsManageSheet").close(); });
+
+  function renderTeamsManageList(){
+    var list = $("teamManageList"); if(!list) return;
+    list.textContent = "";
+    var keys = Object.keys(presets);
+
+    if(!keys.length){
+      var empty = document.createElement("li"); empty.style.fontSize=".85rem"; empty.style.color="var(--muted)";
+      empty.textContent = "Aucune équipe enregistrée.";
+      list.appendChild(empty);
+      return;
+    }
+
+    keys.forEach(function(key){
+      var team = presets[key];
+      var li = document.createElement("li"); li.className = "team-manage-item";
+      
+      var info = document.createElement("div");
+      var colorDot = "<span style='display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:" + (team.color || "#6FA2EE") + ";margin-right:.4rem;'></span>";
+      var rosterCount = team.roster ? team.roster.length : 0;
+      info.innerHTML = "<div>" + colorDot + "<strong>" + team.name + "</strong><br><small style='color:var(--muted);'>" + rosterCount + " joueur(s)</small></div>";
+
+      var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
+
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
+      btnEdit.textContent = "✏️ Éditer";
+      btnEdit.addEventListener("click", function(){
+        openTeamEditor(key);
+      });
+      ctrls.appendChild(btnEdit);
+
+      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
+      btnDel.textContent = "🗑 Supprimer";
+      btnDel.addEventListener("click", function(){
+        if(confirm("Voulez-vous vraiment supprimer l'équipe '" + team.name + "' ?")){
+          dbPresets.child(key).remove();
+        }
+      });
+      ctrls.appendChild(btnDel);
+
+      li.appendChild(info); li.appendChild(ctrls);
+      list.appendChild(li);
     });
+  }
+
+  $("btnAddNewTeam").addEventListener("click", function(){
+    openTeamEditor(null);
   });
 
-  $("presetSelect").addEventListener("change", function(){
-    var pKey = $("presetSelect").value;
-    if(pKey && presets[pKey]){
-      var p = presets[pKey];
-      if(p.logo) $("teamLogoInput").value = p.logo;
-      var c = getTeamColor(pKey) || p.color;
-      if(c) $("presetTeamColor").value = c;
-      if(p.roster) buildRosterForm(p.roster);
+  function openTeamEditor(key){
+    editingTeamKey = key;
+    var team = key && presets[key] ? presets[key] : { name: "", logo: "", color: "#6FA2EE", roster: [] };
+    
+    $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
+    $("editTeamNameInput").value = team.name || "";
+    $("teamLogoInput").value = team.logo || "";
+    $("presetTeamColor").value = team.color || "#6FA2EE";
+    
+    // Auto-détection couleur si Aigles
+    if((team.name || "").toLowerCase().indexOf("aigles") !== -1){
+      $("presetTeamColor").value = "#6FA2EE";
+    }
+
+    buildRosterForm(team.roster || []);
+    $("teamsManageSheet").close();
+    $("rosterSheet").showModal();
+  }
+
+  $("editTeamNameInput").addEventListener("input", function(){
+    var nm = $("editTeamNameInput").value.trim().toLowerCase();
+    if(nm.indexOf("aigles") !== -1){
+      $("presetTeamColor").value = "#6FA2EE";
     }
   });
 
   function updatePresetDropdowns(){
-    var selS = [$("presetSelect"), $("wizTeamA"), $("wizTeamB")];
+    var selS = [$("wizTeamA"), $("wizTeamB")];
     selS.forEach(function(sel){
       if(!sel) return;
       sel.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
@@ -1294,18 +1376,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       });
     });
   }
-
-  $("savePresetBtn").addEventListener("click", function(){
-    if(currentRole !== "admin") return;
-    var teamName = state.names[currentRosterTeam];
-    if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
-    var logo = $("teamLogoInput").value.trim();
-    var color = $("presetTeamColor").value;
-    var roster = getFormRoster();
-    var key = teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    dbPresets.child(key).set({ name: teamName, logo: logo, color: color, roster: roster });
-    alert("Équipe '" + teamName + "' sauvegardée avec sa couleur !");
-  });
 
   function buildRosterForm(list){
     var form = $("rosterForm"); form.textContent = "";
@@ -1337,14 +1407,26 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
 
   $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
-  $("rsCancel").addEventListener("click", function(){ rosterSheet.close(); });
+  $("rsCancel").addEventListener("click", function(){
+    $("rosterSheet").close();
+    $("teamsManageSheet").showModal();
+  });
+
   $("rsSave").addEventListener("click", function(){
     if(currentRole !== "admin") return;
-    state.rosters[currentRosterTeam] = getFormRoster();
-    state.logos[currentRosterTeam] = $("teamLogoInput").value.trim();
-    state.colors[currentRosterTeam] = $("presetTeamColor").value;
-    commit();
-    rosterSheet.close();
+    var teamName = $("editTeamNameInput").value.trim();
+    if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
+
+    var logo = $("teamLogoInput").value.trim();
+    var color = $("presetTeamColor").value;
+    var roster = getFormRoster();
+
+    var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    dbPresets.child(key).set({ name: teamName, logo: logo, color: color, roster: roster });
+    
+    alert("Équipe '" + teamName + "' enregistrée avec succès !");
+    $("rosterSheet").close();
+    $("teamsManageSheet").showModal();
   });
 
   var sheetGoal = $("goalSheet"), curGoal = null;
