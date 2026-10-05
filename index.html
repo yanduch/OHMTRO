@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Feuille de match - Ohmtro</title>
+<title>Feuille de match en direct</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -43,9 +43,10 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
 /* En-tête */
-.top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:.5rem}
 .brand img{height:2rem;width:auto;object-fit:contain}
+.org-select-top{font-size:.85rem;font-weight:700;padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;}
 .status{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;text-align:left}
 .status::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
@@ -235,7 +236,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock { display:none !important; }
+  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .org-select-top { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -247,9 +248,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo OHMTRO" id="ohmtroLogo" onerror="this.style.display='none'">
-      <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
+      <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo" onerror="this.style.display='none'">
+      <select id="orgSelectTop" class="org-select-top">
+        <option value="ohmtro">OHMTRO</option>
+        <option value="lions">Lions de Chavigny</option>
+      </select>
     </div>
+    <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
     <button type="button" class="btn-login" id="btnLogin">🔒 Connexion</button>
   </header>
 
@@ -501,6 +506,15 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <div class="sheet-in">
     <h2>Connexion</h2>
     <p class="ctx">Entrez vos identifiants pour débloquer les droits d'accès.</p>
+    
+    <div class="field-group" style="margin-bottom:.8rem;">
+      <label style="font-size:.8rem;font-weight:600;">Organisation :</label>
+      <select id="loginOrgSelect" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+        <option value="ohmtro">OHMTRO</option>
+        <option value="lions">Lions de Chavigny</option>
+      </select>
+    </div>
+
     <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     <div class="actions">
@@ -638,7 +652,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   var $ = function(id){ return document.getElementById(id); };
 
-  // Firebase
+  // Config Firebase
   var firebaseConfig = {
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
@@ -649,46 +663,95 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     appId: "1:906447628739:web:efe6e0344fed3b3628f576"
   };
   firebase.initializeApp(firebaseConfig);
-  var db = firebase.database().ref("match");
-  var dbHistory = firebase.database().ref("history");
-  var dbPresets = firebase.database().ref("teams_presets");
-  var dbPasswords = firebase.database().ref("passwords");
-  var dbConfig = firebase.database().ref("config");
-  var dbPresence = firebase.database().ref("presence");
 
-  var myPresenceRef = dbPresence.push();
+  // Détection de l'organisation courante
+  var urlParams = new URLSearchParams(window.location.search);
+  var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
+
+  var db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence;
+  var myPresenceRef = null;
   var onlineCount = 1;
   var defaultPeriodSec = 1200;
 
-  firebase.database().ref(".info/connected").on("value", function(snap) {
-    if (snap.val() === true) {
-      myPresenceRef.onDisconnect().remove();
-      myPresenceRef.set(true);
+  function switchOrganization(orgKey){
+    currentOrg = orgKey;
+    sessionStorage.setItem("ohmtro_org", orgKey);
+    $("orgSelectTop").value = orgKey;
+
+    if(myPresenceRef){ myPresenceRef.remove(); }
+
+    db = firebase.database().ref(currentOrg + "/match");
+    dbHistory = firebase.database().ref(currentOrg + "/history");
+    dbPresets = firebase.database().ref(currentOrg + "/teams_presets");
+    dbPasswords = firebase.database().ref(currentOrg + "/passwords");
+    dbConfig = firebase.database().ref(currentOrg + "/config");
+    dbPresence = firebase.database().ref(currentOrg + "/presence");
+
+    myPresenceRef = dbPresence.push();
+    myPresenceRef.onDisconnect().remove();
+    myPresenceRef.set(true);
+
+    if(currentOrg === "lions"){
+      $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png"; // Image / Logo des Lions
+      document.title = "Feuille de match - Lions de Chavigny";
+    } else {
+      $("ohmtroLogo").src = "https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png";
+      document.title = "Feuille de match - OHMTRO";
     }
+
+    attachListeners();
+  }
+
+  $("orgSelectTop").addEventListener("change", function(){
+    switchOrganization($("orgSelectTop").value);
   });
 
-  dbPresence.on("value", function(snap) {
-    onlineCount = snap.numChildren() || 1;
-    updateStatusDisplay();
-  });
-
-  dbConfig.on("value", function(snap){
-    var cfg = snap.val();
-    if(cfg && cfg.defaultPeriodMin){
-      defaultPeriodSec = Number(cfg.defaultPeriodMin) * 60;
-      $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
-    }
-  });
-
-  var urlParams = new URLSearchParams(window.location.search);
-  var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
-  var currentRole = sessionStorage.getItem("ohmtro_role") || defaultRole;
+  var state = blank();
+  var presets = {};
+  var historyData = {};
+  var timerInterval = null;
   var passwords = { admin: "hockey", marqueur: "buts" };
 
-  dbPasswords.on("value", function(snap){
-    var val = snap.val();
-    if(val){ passwords = val; }
-  });
+  function attachListeners(){
+    dbPresence.on("value", function(snap) {
+      onlineCount = snap.numChildren() || 1;
+      updateStatusDisplay();
+    });
+
+    dbConfig.on("value", function(snap){
+      var cfg = snap.val();
+      if(cfg && cfg.defaultPeriodMin){
+        defaultPeriodSec = Number(cfg.defaultPeriodMin) * 60;
+        $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
+      }
+    });
+
+    dbPasswords.on("value", function(snap){
+      var val = snap.val();
+      if(val){ passwords = val; }
+    });
+
+    db.on("value", function(snapshot){
+      var raw = snapshot.val();
+      if(raw) { state = sanitize(raw); render(); }
+      updateStatusDisplay();
+    });
+
+    dbPresets.on("value", function(snapshot){
+      presets = snapshot.val() || {};
+      updatePresetDropdowns();
+      renderTeamsManageList();
+    });
+
+    dbHistory.on("value", function(snapshot){
+      historyData = snapshot.val() || {};
+      renderHistory();
+      calculateTeamStats();
+    });
+  }
+
+  var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
+  var currentRole = sessionStorage.getItem("ohmtro_role") || defaultRole;
 
   function updateStatusDisplay(){
     var st = $("status");
@@ -714,13 +777,18 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       render();
       alert("Vous êtes déconnecté.");
     } else {
+      $("loginOrgSelect").value = currentOrg;
       $("loginSheet").showModal();
     }
   });
   $("loginCancel").addEventListener("click", function(){ $("loginSheet").close(); });
   $("loginSubmit").addEventListener("click", function(){
+    var targetOrg = $("loginOrgSelect").value;
     var u = $("loginUser").value.trim().toLowerCase();
     var p = $("loginPass").value.trim();
+
+    if(targetOrg !== currentOrg){ switchOrganization(targetOrg); }
+
     if((u === "admin" || u === "yanduch") && p === passwords.admin){ currentRole = "admin"; }
     else if(u === "marqueur" && p === passwords.marqueur){ currentRole = "marqueur"; }
     else { alert("Identifiants incorrects."); return; }
@@ -731,9 +799,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("loginSheet").close();
   });
 
-  $("btnManageSettings").addEventListener("click", function(){
-    $("settingsSheet").showModal();
-  });
+  $("btnManageSettings").addEventListener("click", function(){ $("settingsSheet").showModal(); });
   $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
   $("settingsSave").addEventListener("click", function(){
     var min = Number($("defaultPeriodMinInput").value);
@@ -780,7 +846,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(d.logos && typeof d.logos === "object"){ s.logos.a = d.logos.a || ""; s.logos.b = d.logos.b || ""; }
     if(d.colors && typeof d.colors === "object"){ s.colors.a = d.colors.a || "#6FA2EE"; s.colors.b = d.colors.b || "#F2707A"; }
     
-    // Deep clone des alignements pour éviter toute fuite ou mutation mémoire
     if(d.rosters && typeof d.rosters === "object"){
       s.rosters.a = Array.isArray(d.rosters.a) ? JSON.parse(JSON.stringify(d.rosters.a)) : [];
       s.rosters.b = Array.isArray(d.rosters.b) ? JSON.parse(JSON.stringify(d.rosters.b)) : [];
@@ -806,29 +871,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     s.updatedAt = Number(d.updatedAt) || 0;
     return s;
   }
-
-  var state = blank();
-  var presets = {};
-  var historyData = {};
-  var timerInterval = null;
-
-  db.on("value", function(snapshot){
-    var raw = snapshot.val();
-    if(raw) { state = sanitize(raw); render(); }
-    updateStatusDisplay();
-  });
-
-  dbPresets.on("value", function(snapshot){
-    presets = snapshot.val() || {};
-    updatePresetDropdowns();
-    renderTeamsManageList();
-  });
-
-  dbHistory.on("value", function(snapshot){
-    historyData = snapshot.val() || {};
-    renderHistory();
-    calculateTeamStats();
-  });
 
   function commit(){
     if (currentRole === "viewer") return;
@@ -1115,7 +1157,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("timerDisplay").textContent = formatTime(getCurrentTimerSec());
     $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
 
-    // Vérification de l'état de la partie pour afficher/masquer "ARRÊTER LA GAME"
     var isStopped = state.events && state.events.some(function(e){ return e.type === "sys" && e.text && e.text.indexOf("ARRÊTÉE") !== -1; });
     var isGameActive = !isStopped && (state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0));
     
@@ -1607,6 +1648,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       if(ev && ev.type === "goal") openGoal(ev.id, false);
     }
   });
+
+  // Initialisation sur l'organisation courante
+  switchOrganization(currentOrg);
 
 })();
 </script>
