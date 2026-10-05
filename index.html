@@ -8,10 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Firebase -->
+<!-- Firebase (Database uniquement) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
 :root{
@@ -53,6 +52,18 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
 .btn-login{font-size:.6rem;padding:.15rem .4rem;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);margin-left:auto}
+
+/* Bandeau d'annonce défilant */
+.ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
+.ticker-wrap.active{display:flex;}
+.ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
+.ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;}
+.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker 15s linear infinite;}
+.ticker-text:hover{animation-play-state:paused;}
+@keyframes ticker {
+  0% { transform: translate3d(100%, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
 
 /* Tableau de pointage */
 .board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .5rem 1rem}
@@ -263,6 +274,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <button type="button" class="btn-login" id="btnLogin">🔒 Connexion</button>
   </header>
 
+  <!-- Bandeau Défilant de Message Personnalisé -->
+  <div class="ticker-wrap" id="tickerWrap">
+    <span class="ticker-icon">📢</span>
+    <div class="ticker-content">
+      <span class="ticker-text" id="tickerText"></span>
+    </div>
+  </div>
+
   <section class="board" aria-label="Pointage">
     <div class="side a">
       <div class="team-header">
@@ -418,8 +437,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <div class="sheet-in">
     <h2>Gestion</h2>
     <p class="ctx">Paramètres généraux, équipes et sécurité.</p>
-    
-    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:3rem;margin-top:.5rem;font-weight:600;">🛡️ Gestion des équipes</button>
+
+    <div class="field-group" style="margin-top:0;">
+      <label>Message personnalisé (Bandeau d'annonce) :</label>
+      <input type="text" id="customMessageInput" placeholder="Ex: Prochain match Samedi 14h à Chavigny" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <small style="color:var(--muted);font-size:.75rem;">Laissez vide pour masquer le bandeau.</small>
+    </div>
+
+    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:3rem;margin-top:1.2rem;font-weight:600;">🛡️ Gestion des équipes</button>
 
     <div class="field-group" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
@@ -483,10 +508,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="saveHistorySheet">
   <div class="sheet-in">
     <h2>Sauvegarder le Match ?</h2>
-    <p class="ctx">Voulez-vous ajouter cette partie à l'historique et mettre à jour les statistiques d'équipe ?</p>
+    <p class="ctx">Voulez-vous ajouter cette partie à l'historique et remettre le tableau à zéro ?</p>
     <div class="actions">
       <button type="button" class="act-2" id="saveHistoryNo">Non, ignorer</button>
-      <button type="button" class="act-1" id="saveHistoryYes">Enregistrer dans l'historique</button>
+      <button type="button" class="act-1" id="saveHistoryYes">Enregistrer et remettre à zéro</button>
     </div>
   </div>
 </dialog>
@@ -576,9 +601,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </div>
 
     <div class="logo-upload-box">
-      <label style="font-size:.8rem;font-weight:600;">Logo d'équipe :</label>
-      <input type="file" id="teamLogoFile" accept="image/*" style="font-size:.85rem;padding:.3rem 0;">
-      <input type="url" id="teamLogoInput" placeholder="Ou coller une URL https://..." style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label style="font-size:.8rem;font-weight:600;">URL du Logo d'équipe :</label>
+      <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
       <img id="logoPreview" class="logo-preview-img" src="" alt="Aperçu logo" style="display:none;">
     </div>
     
@@ -661,18 +685,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   var $ = function(id){ return document.getElementById(id); };
 
-  // Config Firebase
+  // Config Firebase Realtime Database
   var firebaseConfig = {
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
     databaseURL: "https://ohmtro-26e56-default-rtdb.firebaseio.com",
     projectId: "ohmtro-26e56",
-    storageBucket: "ohmtro-26e56.firebasestorage.app",
     messagingSenderId: "906447628739",
     appId: "1:906447628739:web:efe6e0344fed3b3628f576"
   };
   firebase.initializeApp(firebaseConfig);
-  var storage = firebase.storage();
 
   var urlParams = new URLSearchParams(window.location.search);
   var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
@@ -689,11 +711,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var passwords = { admin: "hockey", marqueur: "buts" };
 
   function switchOrganization(orgKey){
-// 1. Réinitialiser le rôle à spectateur lors du changement d'organisation
     currentRole = "viewer";
     sessionStorage.removeItem("ohmtro_role");
     updateRoleUI();
-// Détacher les anciens écouteurs Firebase
+
     if(db) db.off();
     if(dbHistory) dbHistory.off();
     if(dbPresets) dbPresets.off();
@@ -747,10 +768,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
 
     dbConfig.on("value", function(snap){
-      var cfg = snap.val();
-      if(cfg && cfg.defaultPeriodMin){
+      var cfg = snap.val() || {};
+      if(cfg.defaultPeriodMin){
         defaultPeriodSec = Number(cfg.defaultPeriodMin) * 60;
         $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
+      }
+      
+      var msg = cfg.customMessage || "";
+      $("customMessageInput").value = msg;
+      var wrap = $("tickerWrap");
+      var text = $("tickerText");
+      if(msg.trim()){
+        text.textContent = msg;
+        wrap.classList.add("active");
+      } else {
+        wrap.classList.remove("active");
+        text.textContent = "";
       }
     });
 
@@ -832,7 +865,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
   $("settingsSave").addEventListener("click", function(){
     var min = Number($("defaultPeriodMinInput").value);
+    var msg = $("customMessageInput").value.trim();
+    
     dbConfig.child("defaultPeriodMin").set(min);
+    dbConfig.child("customMessage").set(msg);
+    
     alert("Paramètres enregistrés !");
     $("settingsSheet").close();
   });
@@ -1132,10 +1169,18 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   });
 
   $("saveHistoryNo").addEventListener("click", function(){ $("saveHistorySheet").close(); });
+  
   $("saveHistoryYes").addEventListener("click", function(){
     var hKey = Date.now().toString();
-    dbHistory.child(hKey).set(state);
-    alert("Partie enregistrée dans l'historique !");
+    dbHistory.child(hKey).set(state, function(error){
+      if(!error){
+        state = blank();
+        commit();
+        alert("Partie enregistrée dans l'historique et tableau réinitialisé à zéro !");
+      } else {
+        alert("Erreur lors de la sauvegarde : " + error.message);
+      }
+    });
     $("saveHistorySheet").close();
   });
 
@@ -1366,7 +1411,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("newGameWizard").close();
   });
 
-  // --- GESTION DES ÉQUIPES ET LOGO UPLOAD ---
+  // --- GESTION DES ÉQUIPES ---
   var editingTeamKey = null;
 
   $("btnOpenTeamsManage").addEventListener("click", function(){
@@ -1431,7 +1476,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
     $("editTeamNameInput").value = team.name || "";
     $("teamLogoInput").value = team.logo || "";
-    $("teamLogoFile").value = "";
     $("presetTeamColor").value = team.color || "#6FA2EE";
     
     updateLogoPreview(team.logo || "");
@@ -1458,15 +1502,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("teamLogoInput").addEventListener("input", function(){
     updateLogoPreview($("teamLogoInput").value.trim());
-  });
-
-  $("teamLogoFile").addEventListener("change", function(e){
-    var file = e.target.files[0];
-    if(file){
-      var reader = new FileReader();
-      reader.onload = function(evt){ updateLogoPreview(evt.target.result); };
-      reader.readAsDataURL(file);
-    }
   });
 
   $("editTeamNameInput").addEventListener("input", function(){
@@ -1522,40 +1557,18 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("teamsManageSheet").showModal();
   });
 
-  $("rsSave").addEventListener("click", async function(){
+  $("rsSave").addEventListener("click", function(){
     if(currentRole !== "admin") return;
     var teamName = $("editTeamNameInput").value.trim();
     if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
 
-    var fileInput = $("teamLogoFile");
     var logoUrl = $("teamLogoInput").value.trim();
     var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
-
-    // Téléversement d'image si un fichier est choisi
-    if(fileInput.files && fileInput.files[0]){
-      var file = fileInput.files[0];
-      var fileRef = storage.ref("logos/" + currentOrg + "_" + key + "_" + Date.now() + "_" + file.name);
-      try {
-        var btnSave = $("rsSave");
-        btnSave.disabled = true;
-        btnSave.textContent = "Téléversement...";
-        await fileRef.put(file);
-        logoUrl = await fileRef.getDownloadURL();
-      } catch(err){
-        alert("Erreur lors du téléversement de l'image : " + err.message);
-        $("rsSave").disabled = false;
-        $("rsSave").textContent = "Enregistrer l'équipe";
-        return;
-      }
-    }
-
     var color = $("presetTeamColor").value;
     var roster = getFormRoster();
 
     dbPresets.child(key).set({ name: teamName, logo: logoUrl, color: color, roster: roster });
     
-    $("rsSave").disabled = false;
-    $("rsSave").textContent = "Enregistrer l'équipe";
     alert("Équipe '" + teamName + "' enregistrée avec succès !");
     $("rosterSheet").close();
     $("teamsManageSheet").showModal();
