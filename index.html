@@ -44,9 +44,9 @@ button:disabled{cursor:not-allowed;opacity:.4}
 
 /* En-tête */
 .top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem;flex-wrap:wrap;}
-.brand{display:flex;align-items:center;gap:.5rem}
+.brand{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
 .brand img{height:2rem;width:auto;object-fit:contain}
-.org-select-top{font-size:.85rem;font-weight:700;padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;}
+.select-top{font-size:.85rem;font-weight:700;padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;}
 .status{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;text-align:left}
 .status::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
@@ -178,9 +178,9 @@ td.cur,th.cur{background:var(--crease)}
 .event-row .per{font-size:.85rem;color:var(--muted);white-space:nowrap}
 
 /* Liste Historique & Équipes */
-.history-list, .team-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
-.history-item, .team-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
-.history-ctrls, .team-ctrls{display:flex;gap:.3rem;align-items:center}
+.history-list, .team-manage-list, .cat-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
+.history-item, .team-manage-item, .cat-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
+.history-ctrls, .team-ctrls, .cat-ctrls{display:flex;gap:.3rem;align-items:center}
 .btn-hist-del{font-size:.65rem;padding:.2rem .4rem;border-radius:5px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
 
 .quiet{margin-top:1.2rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
@@ -252,7 +252,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .org-select-top { display:none !important; }
+  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -265,9 +265,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <header class="top">
     <div class="brand">
       <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo" onerror="this.style.display='none'">
-      <select id="orgSelectTop" class="org-select-top">
+      <select id="orgSelectTop" class="select-top">
         <option value="ohmtro">OHMTRO</option>
         <option value="lions">Lions de Chavigny</option>
+      </select>
+      <select id="catSelectTop" class="select-top">
+        <!-- Rempli dynamiquement -->
       </select>
     </div>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
@@ -436,7 +439,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="settingsSheet">
   <div class="sheet-in">
     <h2>Gestion</h2>
-    <p class="ctx">Paramètres généraux, équipes et sécurité.</p>
+    <p class="ctx">Paramètres généraux, catégories, équipes et sécurité.</p>
 
     <div class="field-group" style="margin-top:0;">
       <label>Message personnalisé (Bandeau d'annonce) :</label>
@@ -444,7 +447,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <small style="color:var(--muted);font-size:.75rem;">Laissez vide pour masquer le bandeau.</small>
     </div>
 
-    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:3rem;margin-top:1.2rem;font-weight:600;">🛡️ Gestion des équipes</button>
+    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:3rem;margin-top:1.2rem;font-weight:600;">🏷️ Gestion des Catégories / Équipes</button>
+    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:3rem;margin-top:.6rem;font-weight:600;">🛡️ Banque d'équipes et alignements</button>
 
     <div class="field-group" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
@@ -462,6 +466,25 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="settingsCancel">Fermer</button>
       <button type="button" class="act-1" id="settingsSave">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modale Gestion des Catégories -->
+<dialog id="categoriesManageSheet">
+  <div class="sheet-in">
+    <h2>Gestion des Catégories</h2>
+    <p class="ctx">Gérez les catégories disponibles pour cette organisation (ex: M13, M15, M17).</p>
+    
+    <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
+      <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C..." style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <button type="button" class="act-1" id="btnAddCat" style="padding:.4rem .8rem;font-size:.9rem;">➕ Ajouter</button>
+    </div>
+    
+    <ul class="cat-manage-list" id="catManageList"></ul>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
     </div>
   </div>
 </dialog>
@@ -486,17 +509,18 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
-    <p class="ctx">Modifiez les accès pour l'administrateur et le marqueur.</p>
+    <p class="ctx">Définissez le mot de passe Administrateur et les accès des marqueurs par catégorie.</p>
     
     <div class="field-group">
-      <label>Mot de passe Administrateur (admin) :</label>
+      <label>Mot de passe Administrateur (Global) :</label>
       <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
-    <div class="field-group">
-      <label>Mot de passe Marqueur/Buts (marqueur) :</label>
-      <input type="password" id="pwdMarqueurInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    </div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:1.2rem 0;">
+    <h3 style="font-size:1rem;margin:0 0 .4rem;">Mots de passe Marqueurs par Catégorie</h3>
+    <p class="ctx" style="margin-bottom:.6rem;">Chaque marqueur accède uniquement à sa catégorie avec son mot de passe :</p>
+    
+    <div id="catPasswordsContainer"></div>
 
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="pwdCancel">Annuler</button>
@@ -536,14 +560,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <div class="sheet-in">
     <h2>Connexion</h2>
     <p class="ctx">Entrez vos identifiants pour débloquer les droits d'accès.</p>
-    
-    <div class="field-group" style="margin-bottom:.8rem;">
-      <label style="font-size:.8rem;font-weight:600;">Organisation :</label>
-      <select id="loginOrgSelect" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-        <option value="ohmtro">OHMTRO</option>
-        <option value="lions">Lions de Chavigny</option>
-      </select>
-    </div>
 
     <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
@@ -698,8 +714,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   var urlParams = new URLSearchParams(window.location.search);
   var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
+  var currentCat = urlParams.get("cat") || sessionStorage.getItem("ohmtro_cat") || "m15";
 
-  var db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence;
+  var categoriesList = ["m13", "m15", "m17"]; // Valeurs par défaut
+
+  var db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence, dbCategories;
   var myPresenceRef = null;
   var onlineCount = 1;
   var defaultPeriodSec = 1200;
@@ -708,35 +727,49 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var presets = {};
   var historyData = {};
   var timerInterval = null;
-  var passwords = { admin: "hockey", marqueur: "buts" };
+  var passwords = { admin: "hockey", marqueur: "buts", categories: {} };
 
-  function switchOrganization(orgKey){
-    currentRole = "viewer";
-    sessionStorage.removeItem("ohmtro_role");
-    updateRoleUI();
+  // 1. Gestion de la persistance Admin (localStorage global) vs Marqueur (sessionStorage temporaire)
+  var isAdminGlobal = localStorage.getItem("ohmtro_admin_auth") === "true";
+  var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
+  var assignedCat = sessionStorage.getItem("ohmtro_assigned_cat") || null;
 
+  function switchOrganization(orgKey, catKey){
     if(db) db.off();
     if(dbHistory) dbHistory.off();
     if(dbPresets) dbPresets.off();
     if(dbPasswords) dbPasswords.off();
     if(dbConfig) dbConfig.off();
     if(dbPresence) dbPresence.off();
+    if(dbCategories) dbCategories.off();
 
     currentOrg = orgKey;
     sessionStorage.setItem("ohmtro_org", orgKey);
     $("orgSelectTop").value = orgKey;
 
-    var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?org=' + orgKey;
+    if(!isAdminGlobal && currentRole === "marqueur" && assignedCat && assignedCat !== catKey){
+      // Si un marqueur passe à une catégorie non autorisée, il retombe en spectateur
+      currentRole = "viewer";
+      sessionStorage.removeItem("ohmtro_role");
+      assignedCat = null;
+    }
+
+    currentCat = catKey || currentCat || "m15";
+    sessionStorage.setItem("ohmtro_cat", currentCat);
+
+    var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?org=' + orgKey + '&cat=' + currentCat;
     window.history.pushState({path: newUrl}, '', newUrl);
 
     if(myPresenceRef){ myPresenceRef.remove(); }
 
-    db = firebase.database().ref(currentOrg + "/match");
-    dbHistory = firebase.database().ref(currentOrg + "/history");
+    // Noeuds Firebase séparés par Organisation ET par Catégorie
+    db = firebase.database().ref(currentOrg + "/" + currentCat + "/match");
+    dbHistory = firebase.database().ref(currentOrg + "/" + currentCat + "/history");
     dbPresets = firebase.database().ref(currentOrg + "/teams_presets");
     dbPasswords = firebase.database().ref(currentOrg + "/passwords");
     dbConfig = firebase.database().ref(currentOrg + "/config");
-    dbPresence = firebase.database().ref(currentOrg + "/presence");
+    dbPresence = firebase.database().ref(currentOrg + "/" + currentCat + "/presence");
+    dbCategories = firebase.database().ref(currentOrg + "/categories");
 
     myPresenceRef = dbPresence.push();
     myPresenceRef.onDisconnect().remove();
@@ -744,27 +777,41 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     if(currentOrg === "lions"){
       $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png";
-      document.title = "Feuille de match - Lions de Chavigny";
+      document.title = "Feuille de match - Lions de Chavigny (" + currentCat.toUpperCase() + ")";
     } else {
       $("ohmtroLogo").src = "https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png";
-      document.title = "Feuille de match - OHMTRO";
+      document.title = "Feuille de match - OHMTRO (" + currentCat.toUpperCase() + ")";
     }
 
     state = blank();
     presets = {};
     historyData = {};
 
+    updateRoleUI();
     attachListeners();
   }
 
   $("orgSelectTop").addEventListener("change", function(){
-    switchOrganization($("orgSelectTop").value);
+    switchOrganization($("orgSelectTop").value, currentCat);
+  });
+
+  $("catSelectTop").addEventListener("change", function(){
+    switchOrganization(currentOrg, $("catSelectTop").value);
   });
 
   function attachListeners(){
     dbPresence.on("value", function(snap) {
       onlineCount = snap.numChildren() || 1;
       updateStatusDisplay();
+    });
+
+    dbCategories.on("value", function(snap){
+      var val = snap.val();
+      if(val && Array.isArray(val)){
+        categoriesList = val;
+      }
+      renderCategoriesDropdown();
+      renderCategoriesManageList();
     });
 
     dbConfig.on("value", function(snap){
@@ -789,7 +836,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     dbPasswords.on("value", function(snap){
       var val = snap.val();
-      if(val){ passwords = val; }
+      if(val){ passwords = val; if(!passwords.categories) passwords.categories = {}; }
     });
 
     db.on("value", function(snapshot){
@@ -812,13 +859,21 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  var defaultRole = urlParams.get("mode") === "admin" ? "admin" : "viewer";
-  var currentRole = sessionStorage.getItem("ohmtro_role") || defaultRole;
+  function renderCategoriesDropdown(){
+    var sel = $("catSelectTop"); sel.innerHTML = "";
+    categoriesList.forEach(function(cat){
+      var opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat.toUpperCase();
+      if(cat === currentCat) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
 
   function updateStatusDisplay(){
     var st = $("status");
     var connText = onlineCount > 1 ? " (" + onlineCount + " connectés)" : "";
-    st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + connText : "En direct" + connText;
+    st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + " [" + currentCat.toUpperCase() + "]" + connText : "En direct [" + currentCat.toUpperCase() + "]" + connText;
     st.dataset.s = "live";
   }
 
@@ -829,33 +884,60 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     btnL.textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
     updateStatusDisplay();
   }
-  updateRoleUI();
 
   $("btnLogin").addEventListener("click", function(){
     if(currentRole !== "viewer"){
       currentRole = "viewer";
+      isAdminGlobal = false;
+      localStorage.removeItem("ohmtro_admin_auth");
       sessionStorage.removeItem("ohmtro_role");
+      sessionStorage.removeItem("ohmtro_assigned_cat");
+      assignedCat = null;
       updateRoleUI();
       render();
       alert("Vous êtes déconnecté.");
     } else {
-      $("loginOrgSelect").value = currentOrg;
       $("loginSheet").showModal();
     }
   });
+
   $("loginCancel").addEventListener("click", function(){ $("loginSheet").close(); });
+  
   $("loginSubmit").addEventListener("click", function(){
-    var targetOrg = $("loginOrgSelect").value;
     var u = $("loginUser").value.trim().toLowerCase();
     var p = $("loginPass").value.trim();
 
-    if(targetOrg !== currentOrg){ switchOrganization(targetOrg); }
+    // 1. Vérification Admin Global
+    if((u === "admin" || u === "yanduch") && p === (passwords.admin || "hockey")){
+      currentRole = "admin";
+      isAdminGlobal = true;
+      localStorage.setItem("ohmtro_admin_auth", "true");
+      sessionStorage.setItem("ohmtro_role", "admin");
+    }
+    // 2. Vérification Marqueur Global ou Par Catégorie
+    else if(u === "marqueur"){
+      var matchCatKey = null;
+      if(p === (passwords.marqueur || "buts")){ matchCatKey = currentCat; }
+      else {
+        Object.keys(passwords.categories || {}).forEach(function(catKey){
+          if(passwords.categories[catKey] === p) matchCatKey = catKey;
+        });
+      }
 
-    if((u === "admin" || u === "yanduch") && p === passwords.admin){ currentRole = "admin"; }
-    else if(u === "marqueur" && p === passwords.marqueur){ currentRole = "marqueur"; }
-    else { alert("Identifiants incorrects."); return; }
+      if(matchCatKey){
+        currentRole = "marqueur";
+        isAdminGlobal = false;
+        assignedCat = matchCatKey;
+        sessionStorage.setItem("ohmtro_role", "marqueur");
+        sessionStorage.setItem("ohmtro_assigned_cat", matchCatKey);
+        if(matchCatKey !== currentCat){ switchOrganization(currentOrg, matchCatKey); }
+      } else {
+        alert("Mot de passe marqueur incorrect pour cette catégorie."); return;
+      }
+    } else {
+      alert("Identifiants incorrects."); return;
+    }
 
-    sessionStorage.setItem("ohmtro_role", currentRole);
     updateRoleUI();
     render();
     $("loginSheet").close();
@@ -874,18 +956,77 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("settingsSheet").close();
   });
 
+  // --- GESTION DES CATÉGORIES ---
+  $("btnOpenCategoriesManage").addEventListener("click", function(){
+    $("settingsSheet").close();
+    renderCategoriesManageList();
+    $("categoriesManageSheet").showModal();
+  });
+  $("categoriesManageClose").addEventListener("click", function(){ $("categoriesManageSheet").close(); });
+
+  $("btnAddCat").addEventListener("click", function(){
+    var val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if(!val) return;
+    if(categoriesList.indexOf(val) === -1){
+      categoriesList.push(val);
+      dbCategories.set(categoriesList);
+      $("newCatInput").value = "";
+    }
+  });
+
+  function renderCategoriesManageList(){
+    var list = $("catManageList"); if(!list) return;
+    list.textContent = "";
+    categoriesList.forEach(function(cat){
+      var li = document.createElement("li"); li.className = "cat-manage-item";
+      li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
+      
+      var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
+      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
+      btnDel.textContent = "🗑 Supprimer";
+      btnDel.addEventListener("click", function(){
+        if(categoriesList.length <= 1){ alert("Vous devez conserver au moins une catégorie."); return; }
+        if(confirm("Supprimer la catégorie '" + cat.toUpperCase() + "' ?")){
+          categoriesList = categoriesList.filter(function(c){ return c !== cat; });
+          dbCategories.set(categoriesList);
+        }
+      });
+      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
+    });
+  }
+
+  // --- GESTION DES MOTS DE PASSE MULTI-CATÉGORIES ---
   $("btnOpenPasswords").addEventListener("click", function(){
     $("settingsSheet").close();
     $("pwdAdminInput").value = passwords.admin || "hockey";
-    $("pwdMarqueurInput").value = passwords.marqueur || "buts";
+    
+    var container = $("catPasswordsContainer"); container.textContent = "";
+    categoriesList.forEach(function(cat){
+      var group = document.createElement("div"); group.className = "field-group";
+      var label = document.createElement("label"); label.textContent = "Marqueur - " + cat.toUpperCase() + " :";
+      var input = document.createElement("input"); input.type = "password"; input.className = "cat-pwd-input";
+      input.dataset.cat = cat;
+      input.value = (passwords.categories && passwords.categories[cat]) || passwords.marqueur || "buts";
+      input.style.cssText = "width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;";
+      
+      group.appendChild(label); group.appendChild(input); container.appendChild(group);
+    });
+
     $("passwordsSheet").showModal();
   });
   $("pwdCancel").addEventListener("click", function(){ $("passwordsSheet").close(); });
   $("pwdSave").addEventListener("click", function(){
     var newP = {
       admin: $("pwdAdminInput").value.trim() || "hockey",
-      marqueur: $("pwdMarqueurInput").value.trim() || "buts"
+      marqueur: passwords.marqueur || "buts",
+      categories: {}
     };
+
+    var catInputs = document.querySelectorAll(".cat-pwd-input");
+    catInputs.forEach(function(inp){
+      newP.categories[inp.dataset.cat] = inp.value.trim() || "buts";
+    });
+
     dbPasswords.set(newP);
     alert("Mots de passe enregistrés !");
     $("passwordsSheet").close();
@@ -1058,7 +1199,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     if(!keys.length){
       var empty = document.createElement("li"); empty.className = "empty";
-      empty.textContent = "Aucun match dans l'historique.";
+      empty.textContent = "Aucun match dans l'historique (" + currentCat.toUpperCase() + ").";
       list.appendChild(empty);
       return;
     }
@@ -1116,7 +1257,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "Match_" + state.names.a + "_vs_" + state.names.b + ".csv";
+    a.download = "Match_" + currentCat.toUpperCase() + "_" + state.names.a + "_vs_" + state.names.b + ".csv";
     a.click();
   });
 
@@ -1176,7 +1317,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       if(!error){
         state = blank();
         commit();
-        alert("Partie enregistrée dans l'historique et tableau réinitialisé à zéro !");
+        alert("Partie enregistrée dans l'historique (" + currentCat.toUpperCase() + ") et tableau réinitialisé à zéro !");
       } else {
         alert("Erreur lors de la sauvegarde : " + error.message);
       }
@@ -1741,7 +1882,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   });
 
   // Initialisation au chargement de la page
-  switchOrganization(currentOrg);
+  switchOrganization(currentOrg, currentCat);
 
 })();
 </script>
