@@ -72,7 +72,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .team-logo{width:2rem;height:2rem;object-fit:contain;border-radius:4px;flex-shrink:0}
 .team-logo[src=""]{display:none}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
-  font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.15;padding:.1rem .2rem;border-radius:0}
+  font-family:var(--display);font-weight:600;font-size:clamp(0.9rem, 3.5vw, 1.35rem);line-height:1.15;padding:.1rem .2rem;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .side.a .name{color:var(--team-a-color)} .side.b .name{color:var(--team-b-color)}
 body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
@@ -291,7 +291,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="side a">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoA">
-        <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameA" maxlength="30" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
@@ -309,7 +309,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="side b">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoB">
-        <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameB" maxlength="30" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
@@ -657,7 +657,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     <div class="field-group" style="margin-top:0;">
       <label style="font-size:.8rem;font-weight:600;">Nom de l'équipe :</label>
-      <input type="text" id="editTeamNameInput" placeholder="Ex: Lions M15 A" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="editTeamNameInput" placeholder="Ex: Lions de Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <div class="color-picker-row" style="margin:.6rem 0;">
@@ -1339,7 +1339,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function int(v,min,max){ v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); }
-  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,18); return v || fb; }
+  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,30); return v || fb; }
   function no(v){ return String(v == null ? "" : v).replace(/\D/g,"").slice(0,2); }
 
   function sanitize(d){
