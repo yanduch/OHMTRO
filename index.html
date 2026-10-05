@@ -335,7 +335,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
   <ul class="events-list" id="eventsList"></ul>
 
-  <!-- SECTIONS DÉPLIABLES SOUS LE PAS À PAS -->
+  <!-- SECTIONS DÉPLIABLES -->
 
   <!-- 1. Résumé Statistiques -->
   <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
@@ -664,7 +664,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   };
   firebase.initializeApp(firebaseConfig);
 
-  // Détection de l'organisation courante
+  // Détection initiale de l'organisation dans l'URL ou le SessionStorage
   var urlParams = new URLSearchParams(window.location.search);
   var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
 
@@ -673,10 +673,28 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var onlineCount = 1;
   var defaultPeriodSec = 1200;
 
+  var state = blank();
+  var presets = {};
+  var historyData = {};
+  var timerInterval = null;
+  var passwords = { admin: "hockey", marqueur: "buts" };
+
   function switchOrganization(orgKey){
+    // Détacher les anciens écouteurs Firebase pour éviter les conflits
+    if(db) db.off();
+    if(dbHistory) dbHistory.off();
+    if(dbPresets) dbPresets.off();
+    if(dbPasswords) dbPasswords.off();
+    if(dbConfig) dbConfig.off();
+    if(dbPresence) dbPresence.off();
+
     currentOrg = orgKey;
     sessionStorage.setItem("ohmtro_org", orgKey);
     $("orgSelectTop").value = orgKey;
+
+    // Mise à jour de l'URL dans la barre d'adresse sans recharger la page
+    var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?org=' + orgKey;
+    window.history.pushState({path: newUrl}, '', newUrl);
 
     if(myPresenceRef){ myPresenceRef.remove(); }
 
@@ -692,12 +710,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     myPresenceRef.set(true);
 
     if(currentOrg === "lions"){
-      $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png"; // Image / Logo des Lions
+      $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png";
       document.title = "Feuille de match - Lions de Chavigny";
     } else {
       $("ohmtroLogo").src = "https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png";
       document.title = "Feuille de match - OHMTRO";
     }
+
+    state = blank();
+    presets = {};
+    historyData = {};
 
     attachListeners();
   }
@@ -705,12 +727,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   $("orgSelectTop").addEventListener("change", function(){
     switchOrganization($("orgSelectTop").value);
   });
-
-  var state = blank();
-  var presets = {};
-  var historyData = {};
-  var timerInterval = null;
-  var passwords = { admin: "hockey", marqueur: "buts" };
 
   function attachListeners(){
     dbPresence.on("value", function(snap) {
@@ -733,7 +749,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     db.on("value", function(snapshot){
       var raw = snapshot.val();
-      if(raw) { state = sanitize(raw); render(); }
+      state = raw ? sanitize(raw) : blank();
+      render();
       updateStatusDisplay();
     });
 
@@ -1649,7 +1666,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   });
 
-  // Initialisation sur l'organisation courante
+  // Initialisation au chargement de la page
   switchOrganization(currentOrg);
 
 })();
