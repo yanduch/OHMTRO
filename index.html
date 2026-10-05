@@ -431,7 +431,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Équipes (Banque de données) -->
+<!-- Modale Gestion des Équipes -->
 <dialog id="teamsManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Équipes</h2>
@@ -540,7 +540,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Édition d'Équipe (Nom, Logo, Couleur, Alignement) -->
+<!-- Modale Édition d'Équipe -->
 <dialog id="rosterSheet">
   <div class="sheet-in">
     <h2 id="rsTitle">Édition d'Équipe</h2>
@@ -779,20 +779,25 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(d.names && typeof d.names === "object"){ s.names.a = str(d.names.a,"Local"); s.names.b = str(d.names.b,"Visiteur"); }
     if(d.logos && typeof d.logos === "object"){ s.logos.a = d.logos.a || ""; s.logos.b = d.logos.b || ""; }
     if(d.colors && typeof d.colors === "object"){ s.colors.a = d.colors.a || "#6FA2EE"; s.colors.b = d.colors.b || "#F2707A"; }
+    
+    // Deep clone des alignements pour éviter toute fuite ou mutation mémoire
     if(d.rosters && typeof d.rosters === "object"){
-      s.rosters.a = Array.isArray(d.rosters.a) ? d.rosters.a : [];
-      s.rosters.b = Array.isArray(d.rosters.b) ? d.rosters.b : [];
+      s.rosters.a = Array.isArray(d.rosters.a) ? JSON.parse(JSON.stringify(d.rosters.a)) : [];
+      s.rosters.b = Array.isArray(d.rosters.b) ? JSON.parse(JSON.stringify(d.rosters.b)) : [];
     }
+
     s.period = int(d.period,0,3);
     ["a","b"].forEach(function(t){
       for(var i=0;i<4;i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999);
     });
-    if(Array.isArray(d.events)){ s.events = d.events; }
+
+    if(Array.isArray(d.events)){ s.events = JSON.parse(JSON.stringify(d.events)); }
     else if(Array.isArray(d.goals)){
       s.events = d.goals.map(function(g){
         return { id:g.id, type:"goal", team:g.team, period:g.period, time:"--:--", scorer:g.scorer, a1:g.a1, a2:g.a2, t:g.t };
       });
     }
+
     if(d.timer && typeof d.timer === "object"){
       s.timer.sec = int(d.timer.sec, 0, 5999);
       s.timer.running = !!d.timer.running;
@@ -856,7 +861,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     for(var i=0; i<roster.length; i++){
       var p = roster[i];
       var id = p.no || ("p_" + i);
-      if(id === pId){
+      if(id === pId || p.no === pId){
         return (p.no ? "#" + p.no + " " : "") + p.name;
       }
     }
@@ -964,7 +969,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var btnCons = document.createElement("button"); btnCons.type = "button"; btnCons.className = "btn-login";
       btnCons.textContent = "Consulter";
       btnCons.addEventListener("click", function(){
-        state = m; render();
+        state = sanitize(m);
+        commit();
         alert("Partie chargée depuis l'historique.");
       });
       ctrls.appendChild(btnCons);
@@ -1252,7 +1258,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function getTeamColor(teamKey){
     if(!teamKey || !presets[teamKey]) return null;
     var name = (presets[teamKey].name || "").toLowerCase();
-    if(name.indexOf("aigles") !== -1) return "#6FA2EE"; // Bleu pastel pour les Aigles
+    if(name.indexOf("aigles") !== -1) return "#6FA2EE";
     return presets[teamKey].color || null;
   }
 
@@ -1272,8 +1278,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var keyB = $("wizTeamB").value; var keyA = $("wizTeamA").value;
     state = blank();
     delete $("statsTeamSelect").dataset.userTouched;
-    if(keyB && presets[keyB]){ state.names.b = presets[keyB].name; state.logos.b = presets[keyB].logo || ""; state.rosters.b = presets[keyB].roster || []; }
-    if(keyA && presets[keyA]){ state.names.a = presets[keyA].name; state.logos.a = presets[keyA].logo || ""; state.rosters.a = presets[keyA].roster || []; }
+    if(keyB && presets[keyB]){
+      state.names.b = presets[keyB].name;
+      state.logos.b = presets[keyB].logo || "";
+      state.rosters.b = JSON.parse(JSON.stringify(presets[keyB].roster || []));
+    }
+    if(keyA && presets[keyA]){
+      state.names.a = presets[keyA].name;
+      state.logos.a = presets[keyA].logo || "";
+      state.rosters.a = JSON.parse(JSON.stringify(presets[keyA].roster || []));
+    }
     
     state.colors.a = $("wizColorA").value;
     state.colors.b = $("wizColorB").value;
@@ -1349,7 +1363,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("teamLogoInput").value = team.logo || "";
     $("presetTeamColor").value = team.color || "#6FA2EE";
     
-    // Auto-détection couleur si Aigles
     if((team.name || "").toLowerCase().indexOf("aigles") !== -1){
       $("presetTeamColor").value = "#6FA2EE";
     }
@@ -1450,21 +1463,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var pId = p.no || ("p_" + idx);
       var b = document.createElement("button"); b.type = "button"; b.className = "btn-player";
       var roleTag = "";
-      if(curGoal.scorer === pId){ b.classList.add("buteur"); roleTag = "<span class='role-tag'>🟢 Buteur</span>"; }
-      else if(curGoal.a1 === pId){ b.classList.add("passe1"); roleTag = "<span class='role-tag'>🔵 Passe 1</span>"; }
-      else if(curGoal.a2 === pId){ b.classList.add("passe2"); roleTag = "<span class='role-tag'>🟣 Passe 2</span>"; }
+      if(curGoal.scorer === pId || curGoal.scorer === p.no){ b.classList.add("buteur"); roleTag = "<span class='role-tag'>🟢 Buteur</span>"; }
+      else if(curGoal.a1 === pId || curGoal.a1 === p.no){ b.classList.add("passe1"); roleTag = "<span class='role-tag'>🔵 Passe 1</span>"; }
+      else if(curGoal.a2 === pId || curGoal.a2 === p.no){ b.classList.add("passe2"); roleTag = "<span class='role-tag'>🟣 Passe 2</span>"; }
       else { roleTag = "<span class='role-tag' style='color:var(--muted);'>⚪ Aucun</span>"; }
 
       var numDisplay = p.no ? "<b>#" + p.no + "</b> " : "";
       b.innerHTML = "<span>" + numDisplay + (p.name || "Joueur") + "</span>" + roleTag;
       b.addEventListener("click", function(){
-        if(curGoal.scorer === pId) curGoal.scorer = "";
-        else if(curGoal.a1 === pId) curGoal.a1 = "";
-        else if(curGoal.a2 === pId) curGoal.a2 = "";
+        var targetVal = p.no || pId;
+        if(curGoal.scorer === targetVal || curGoal.scorer === pId) curGoal.scorer = "";
+        else if(curGoal.a1 === targetVal || curGoal.a1 === pId) curGoal.a1 = "";
+        else if(curGoal.a2 === targetVal || curGoal.a2 === pId) curGoal.a2 = "";
         else {
-          if(!curGoal.scorer) curGoal.scorer = pId;
-          else if(!curGoal.a1) curGoal.a1 = pId;
-          else if(!curGoal.a2) curGoal.a2 = pId;
+          if(!curGoal.scorer) curGoal.scorer = targetVal;
+          else if(!curGoal.a1) curGoal.a1 = targetVal;
+          else if(!curGoal.a2) curGoal.a2 = targetVal;
         }
         renderPlayerPickGrid();
       });
@@ -1518,12 +1532,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     roster.forEach(function(p, idx){
       var pId = p.no || ("p_" + idx);
       var b = document.createElement("button"); b.type = "button"; b.className = "btn-player";
-      if(curPen.player === pId){ b.classList.add("penalized"); }
+      if(curPen.player === pId || curPen.player === p.no){ b.classList.add("penalized"); }
 
       var numDisplay = p.no ? "<b>#" + p.no + "</b> " : "";
       b.innerHTML = "<span>" + numDisplay + (p.name || "Joueur") + "</span>";
       b.addEventListener("click", function(){
-        curPen.player = (curPen.player === pId) ? "" : pId;
+        var targetVal = p.no || pId;
+        curPen.player = (curPen.player === targetVal || curPen.player === pId) ? "" : targetVal;
         renderPenPlayerGrid();
       });
       grid.appendChild(b);
