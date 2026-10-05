@@ -458,7 +458,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </div>
 
     <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🏢 Gestion des Organisations</button>
-    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷️️ Gestion des Catégories</button>
+    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
     <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡️ Banque d'équipes et alignements</button>
 
     <div class="field-group" style="margin-top:1.2rem;">
@@ -501,7 +501,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Catégories (avec sélection Organisation) -->
+<!-- Modale Gestion des Catégories -->
 <dialog id="categoriesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Catégories</h2>
@@ -525,7 +525,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Équipes (avec sélection Organisation & Catégorie) -->
+<!-- Modale Gestion des Équipes -->
 <dialog id="teamsManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Équipes</h2>
@@ -927,6 +927,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       presets = snapshot.val() || {};
       updatePresetDropdowns();
       renderTeamsManageList();
+      syncStateWithPresets();
     });
 
     dbHistory.on("value", function(snapshot){
@@ -934,6 +935,38 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       renderHistory();
       calculateTeamStats();
     });
+  }
+
+  function syncStateWithPresets(){
+    if(!presets || typeof presets !== "object") return;
+    var changed = false;
+    ["a", "b"].forEach(function(side){
+      var teamName = state.names[side];
+      Object.keys(presets).forEach(function(k){
+        var p = presets[k];
+        if(p && p.name === teamName){
+          if(!state.rosters[side] || state.rosters[side].length === 0){
+            if(p.roster && p.roster.length > 0){
+              state.rosters[side] = JSON.parse(JSON.stringify(p.roster));
+              changed = true;
+            }
+          }
+          if(!state.staff[side] || state.staff[side].length === 0){
+            if(p.staff && p.staff.length > 0){
+              state.staff[side] = JSON.parse(JSON.stringify(p.staff));
+              changed = true;
+            }
+          }
+          if(!state.logos[side] && p.logo){
+            state.logos[side] = p.logo;
+            changed = true;
+          }
+        }
+      });
+    });
+    if(changed){
+      render();
+    }
   }
 
   function renderCategoriesDropdownTop(){
@@ -1072,7 +1105,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // --- 2. GESTION DES CATÉGORIES (AVEC SÉLECTION D'ORGANISATION) ---
+  // --- 2. GESTION DES CATÉGORIES ---
   var manageCatOrgKey = currentOrg;
 
   $("btnOpenCategoriesManage").addEventListener("click", function(){
@@ -1140,7 +1173,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // --- 3. GESTION DES ÉQUIPES (AVEC SÉLECTION ORGANISATION ET CATÉGORIE) ---
+  // --- 3. GESTION DES ÉQUIPES ---
   var manageTeamOrgKey = currentOrg;
   var manageTeamCatKey = currentCat;
   var manageTeamPresets = {};
