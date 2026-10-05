@@ -11,6 +11,7 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
 :root{
@@ -232,6 +233,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .color-picker-row input[type="color"]{-webkit-appearance:none;border:none;width:2.5rem;height:2.5rem;border-radius:8px;cursor:pointer;padding:0;background:transparent;}
 .color-picker-row input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
 .color-picker-row input[type="color"]::-webkit-color-swatch{border:1px solid var(--line);border-radius:8px;}
+
+/* Preview de logo */
+.logo-upload-box{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;}
+.logo-preview-img{max-height:3.5rem;width:auto;object-fit:contain;border-radius:6px;margin-top:.3rem;}
 
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
@@ -570,8 +575,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <input type="color" id="presetTeamColor" value="#6FA2EE">
     </div>
 
-    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">URL du logo d'équipe :</label>
-    <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    <div class="logo-upload-box">
+      <label style="font-size:.8rem;font-weight:600;">Logo d'équipe :</label>
+      <input type="file" id="teamLogoFile" accept="image/*" style="font-size:.85rem;padding:.3rem 0;">
+      <input type="url" id="teamLogoInput" placeholder="Ou coller une URL https://..." style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <img id="logoPreview" class="logo-preview-img" src="" alt="Aperçu logo" style="display:none;">
+    </div>
     
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Formation / Alignement :</label>
     <div class="roster-grid" id="rosterForm"></div>
@@ -663,8 +672,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     appId: "1:906447628739:web:efe6e0344fed3b3628f576"
   };
   firebase.initializeApp(firebaseConfig);
+  var storage = firebase.storage();
 
-  // Détection initiale de l'organisation dans l'URL ou le SessionStorage
   var urlParams = new URLSearchParams(window.location.search);
   var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
 
@@ -680,7 +689,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var passwords = { admin: "hockey", marqueur: "buts" };
 
   function switchOrganization(orgKey){
-    // Détacher les anciens écouteurs Firebase pour éviter les conflits
+// 1. Réinitialiser le rôle à spectateur lors du changement d'organisation
+    currentRole = "viewer";
+    sessionStorage.removeItem("ohmtro_role");
+    updateRoleUI();
+// Détacher les anciens écouteurs Firebase
     if(db) db.off();
     if(dbHistory) dbHistory.off();
     if(dbPresets) dbPresets.off();
@@ -692,7 +705,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     sessionStorage.setItem("ohmtro_org", orgKey);
     $("orgSelectTop").value = orgKey;
 
-    // Mise à jour de l'URL dans la barre d'adresse sans recharger la page
     var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?org=' + orgKey;
     window.history.pushState({path: newUrl}, '', newUrl);
 
@@ -1354,7 +1366,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("newGameWizard").close();
   });
 
-  // --- GESTION DES ÉQUIPES ---
+  // --- GESTION DES ÉQUIPES ET LOGO UPLOAD ---
   var editingTeamKey = null;
 
   $("btnOpenTeamsManage").addEventListener("click", function(){
@@ -1419,8 +1431,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
     $("editTeamNameInput").value = team.name || "";
     $("teamLogoInput").value = team.logo || "";
+    $("teamLogoFile").value = "";
     $("presetTeamColor").value = team.color || "#6FA2EE";
     
+    updateLogoPreview(team.logo || "");
+
     if((team.name || "").toLowerCase().indexOf("aigles") !== -1){
       $("presetTeamColor").value = "#6FA2EE";
     }
@@ -1429,6 +1444,30 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("teamsManageSheet").close();
     $("rosterSheet").showModal();
   }
+
+  function updateLogoPreview(url){
+    var img = $("logoPreview");
+    if(url){
+      img.src = url;
+      img.style.display = "block";
+    } else {
+      img.src = "";
+      img.style.display = "none";
+    }
+  }
+
+  $("teamLogoInput").addEventListener("input", function(){
+    updateLogoPreview($("teamLogoInput").value.trim());
+  });
+
+  $("teamLogoFile").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(file){
+      var reader = new FileReader();
+      reader.onload = function(evt){ updateLogoPreview(evt.target.result); };
+      reader.readAsDataURL(file);
+    }
+  });
 
   $("editTeamNameInput").addEventListener("input", function(){
     var nm = $("editTeamNameInput").value.trim().toLowerCase();
@@ -1483,18 +1522,40 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("teamsManageSheet").showModal();
   });
 
-  $("rsSave").addEventListener("click", function(){
+  $("rsSave").addEventListener("click", async function(){
     if(currentRole !== "admin") return;
     var teamName = $("editTeamNameInput").value.trim();
     if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
 
-    var logo = $("teamLogoInput").value.trim();
+    var fileInput = $("teamLogoFile");
+    var logoUrl = $("teamLogoInput").value.trim();
+    var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+
+    // Téléversement d'image si un fichier est choisi
+    if(fileInput.files && fileInput.files[0]){
+      var file = fileInput.files[0];
+      var fileRef = storage.ref("logos/" + currentOrg + "_" + key + "_" + Date.now() + "_" + file.name);
+      try {
+        var btnSave = $("rsSave");
+        btnSave.disabled = true;
+        btnSave.textContent = "Téléversement...";
+        await fileRef.put(file);
+        logoUrl = await fileRef.getDownloadURL();
+      } catch(err){
+        alert("Erreur lors du téléversement de l'image : " + err.message);
+        $("rsSave").disabled = false;
+        $("rsSave").textContent = "Enregistrer l'équipe";
+        return;
+      }
+    }
+
     var color = $("presetTeamColor").value;
     var roster = getFormRoster();
 
-    var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    dbPresets.child(key).set({ name: teamName, logo: logo, color: color, roster: roster });
+    dbPresets.child(key).set({ name: teamName, logo: logoUrl, color: color, roster: roster });
     
+    $("rsSave").disabled = false;
+    $("rsSave").textContent = "Enregistrer l'équipe";
     alert("Équipe '" + teamName + "' enregistrée avec succès !");
     $("rosterSheet").close();
     $("teamsManageSheet").showModal();
