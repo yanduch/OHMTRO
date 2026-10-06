@@ -370,6 +370,13 @@ body:not(.role-viewer) .g-who{display:none}
 /* --- Changement de gardien depuis le pavé de saisie --- */
 .btn.goalie{min-height:2.6rem;font-family:var(--body);font-weight:600;font-size:.85rem;background:var(--crease);border:1px solid var(--line);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 .4rem}
 .actions.single{grid-template-columns:1fr}
+
+/* --- Tableaux par équipe --- */
+#teamSelectTop{flex-shrink:1;min-width:3.5rem;max-width:8rem;text-overflow:ellipsis}
+.check-row{display:flex;gap:.5rem;align-items:flex-start;margin-top:.8rem;font-size:.9rem;font-weight:600;cursor:pointer}
+.check-row input{width:1.2rem;height:1.2rem;margin-top:.1rem;flex:none}
+.check-row small{display:block;font-weight:400;font-size:.78rem;color:var(--muted);margin-top:.15rem}
+.own-tag{display:inline-block;margin-left:.4rem;padding:.05rem .35rem;border-radius:4px;background:var(--crease);color:var(--blue);font-size:.7rem;font-weight:700;vertical-align:middle;white-space:nowrap}
 </style>
 </head>
 <body class="role-viewer">
@@ -378,7 +385,8 @@ body:not(.role-viewer) .g-who{display:none}
     <div class="brand">
       <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo">
       <select id="orgSelectTop" class="select-top"></select>
-      <select id="catSelectTop" class="select-top"></select>
+      <select id="catSelectTop" class="select-top" aria-label="Catégorie"></select>
+      <select id="teamSelectTop" class="select-top" aria-label="Équipe" style="display:none"></select>
     </div>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
   </header>
@@ -824,6 +832,7 @@ body:not(.role-viewer) .g-who{display:none}
       <label for="editTeamCatSelect">Catégorie :</label>
       <select id="editTeamCatSelect" class="full-input"></select>
     </div>
+    <label class="check-row"><input type="checkbox" id="editTeamOwn"><span>Équipe de l'organisation<small>Si une catégorie compte deux équipes de l'organisation ou plus, chacune a son propre tableau en direct et son mot de passe de marqueur.</small></span></label>
     <div class="color-picker-row" style="margin:.6rem 0;">
       <label>Couleur par défaut :</label>
       <input type="color" id="presetTeamColor" value="#6FA2EE">
@@ -1069,6 +1078,13 @@ document.addEventListener("DOMContentLoaded", function(){
   let currentRole = isAdminGlobal ? "admin" : (store.get(sessionStorage, "ohmtro_role") || "viewer");
   let assignedCat = store.get(sessionStorage, "ohmtro_assigned_cat") || null;
   let assignedOrg = store.get(sessionStorage, "ohmtro_assigned_org") || null;
+  let assignedTeam = store.get(sessionStorage, "ohmtro_assigned_team") || "";
+
+  /* Tableaux par équipe : quand une catégorie compte au moins deux équipes de l'organisation,
+     chacune a son propre tableau en direct (…/boards/<équipe>/match). Sinon, un seul tableau par catégorie. */
+  let wantedTeam = cleanKey(urlParams.get("team") || (urlParams.get("org") ? "" : store.get(sessionStorage, "ohmtro_team")));
+  let boardTeam = "", boardBase = "", boardSubs = [], matchRef = null, presetsLoaded = false;
+  let boardLink = null, linkStale = false, linkKnown = true, pendingSnap = null;   // confrontation entre deux équipes de l'organisation
   if(["admin","marqueur","viewer"].indexOf(currentRole) === -1) currentRole = "viewer";
 
   const isAdmin = () => currentRole === "admin";
@@ -1090,6 +1106,7 @@ document.addEventListener("DOMContentLoaded", function(){
       timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 },
       finished: false,
       histKey: "",
+      id: "",
       updatedAt: 0
     };
   }
@@ -1114,6 +1131,7 @@ document.addEventListener("DOMContentLoaded", function(){
       s.timer.sec = int(d.timer.sec, 0, 5999); s.timer.running = !!d.timer.running; s.timer.lastUpdate = Number(d.timer.lastUpdate) || 0;
     }
     s.histKey = typeof d.histKey === "string" ? d.histKey : "";
+    s.id = typeof d.id === "string" ? d.id : "";
     const last = s.events[s.events.length - 1];
     // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
     s.finished = (typeof d.finished === "boolean") ? d.finished
@@ -1220,7 +1238,8 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   function demoteToViewer(){
-    currentRole = "viewer"; isAdminGlobal = false; assignedCat = null; assignedOrg = null;
+    currentRole = "viewer"; isAdminGlobal = false; assignedCat = null; assignedOrg = null; assignedTeam = "";
+    store.del(sessionStorage, "ohmtro_assigned_team");
     store.del(localStorage, "ohmtro_admin_auth"); store.del(sessionStorage, "ohmtro_role");
     store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_org");
   }
@@ -1250,12 +1269,32 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function sub(r, cb){ r.on("value", cb); subs.push([r, cb]); }
 
-  function switchOrganization(orgKey, catKey, nav){
+  function bsub(r, cb){ r.on("value", cb); boardSubs.push([r, cb]); }
+
+  // Équipes de l'organisation dans une catégorie (celles qui peuvent avoir leur propre tableau)
+  function boardTeams(cat){
+    return Object.keys(presets).filter(k => { const p = presets[k]; return p && p.name && p.own && (!p.category || p.category === cat); })
+                 .sort((x, y) => String(presets[x].name).localeCompare(String(presets[y].name), "fr", { numeric: true }));
+  }
+  function boardFor(cat, team){
+    const teams = boardTeams(cat);
+    return teams.length < 2 ? "" : (teams.indexOf(team) !== -1 ? team : teams[0]);
+  }
+  const catBase = () => currentOrg + "/" + currentCat;
+
+  function setUrl(nav){
+    if(nav === "pop") return;
+    const newUrl = window.location.pathname + "?org=" + encodeURIComponent(currentOrg) + "&cat=" + encodeURIComponent(currentCat) +
+                   (boardTeam ? "&team=" + encodeURIComponent(boardTeam) : "");
+    try{
+      if(nav === "init") window.history.replaceState(null, "", newUrl);
+      else window.history.pushState(null, "", newUrl);
+    }catch(e){}
+  }
+
+  function switchOrganization(orgKey, catKey, nav, teamKey){
     subs.forEach(s => s[0].off("value", s[1])); subs = [];
-    if(myPresenceRef){ myPresenceRef.onDisconnect().cancel(); myPresenceRef.remove(); myPresenceRef = null; }
     historyOn = false; historyLoaded = false; historyList = []; historyWaiters = [];
-    archiveKey = null; liveState = null; $("archiveBar").hidden = true;
-    lastLocal = 0; openCardId = null;
 
     orgKey = cleanKey(orgKey) || "ohmtro";
     catKey = cleanKey(catKey) || currentCat || "m15";
@@ -1269,33 +1308,97 @@ document.addEventListener("DOMContentLoaded", function(){
     currentOrg = orgKey; currentCat = catKey;
     store.set(sessionStorage, "ohmtro_org", currentOrg);
     store.set(sessionStorage, "ohmtro_cat", currentCat);
+    wantedTeam = cleanKey(teamKey);
 
-    if(nav !== "pop"){
-      const newUrl = window.location.pathname + "?org=" + encodeURIComponent(currentOrg) + "&cat=" + encodeURIComponent(currentCat);
-      try{
-        if(nav === "init") window.history.replaceState(null, "", newUrl);
-        else window.history.pushState(null, "", newUrl);
-      }catch(e){}
-    }
-
-    const base = currentOrg + "/" + currentCat;
-    db = ref(base + "/match");
-    dbHistory = ref(base + "/history");
-    dbPresence = ref(base + "/presence");
+    dbHistory = ref(catBase() + "/history");
     dbPresets = ref(currentOrg + "/teams_presets");
     dbPasswords = ref(currentOrg + "/passwords");
     dbConfig = ref(currentOrg + "/config");
     dbCategories = ref(currentOrg + "/categories");
 
-    myPresenceRef = dbPresence.push();
-    if(connected) announcePresence();
-
-    state = blank(); presets = {}; presetByName = {}; presetsRev++;
+    presets = {}; presetByName = {}; presetsRev++; presetsLoaded = false;
     if(nav !== "init" || !categoriesList.length) categoriesList = [currentCat];   // liste provisoire, le temps de charger celle de l'organisation
-    renderOrgsDropdownTop(); renderCategoriesDropdownTop(); updateBrand(); updateRoleUI();
-    render();
+    renderOrgsDropdownTop(); renderCategoriesDropdownTop(); updateBrand();
+    attachBoard(wantedTeam, nav);        // tableau présumé ; corrigé au besoin dès que les équipes sont chargées
     attachListeners();
     if(needsHistory()) ensureHistory();
+  }
+
+  function detachBoard(){
+    boardSubs.forEach(s => s[0].off("value", s[1])); boardSubs = [];
+    if(matchRef){ matchRef.off("value", onMatch); matchRef = null; }
+    if(myPresenceRef){ myPresenceRef.onDisconnect().cancel(); myPresenceRef.remove(); myPresenceRef = null; }
+  }
+
+  // Marqueur d'une équipe : il ne peut marquer que sur le tableau de son équipe
+  function checkMarqueurScope(){
+    if(presetsLoaded && !isAdminGlobal && currentRole === "marqueur" && (assignedTeam || "") !== boardTeam) demoteToViewer();
+  }
+
+  function attachBoard(teamKey, nav){
+    detachBoard();
+    boardTeam = teamKey || "";
+    store.set(sessionStorage, "ohmtro_team", boardTeam);
+    boardBase = catBase() + (boardTeam ? "/boards/" + boardTeam : "");
+    boardLink = null; linkStale = false; pendingSnap = null; linkKnown = !boardTeam;
+    archiveKey = null; liveState = null; $("archiveBar").hidden = true;
+    lastLocal = 0; openCardId = null; state = blank();
+    setUrl(nav); checkMarqueurScope();
+
+    dbPresence = ref(boardBase + "/presence");
+    myPresenceRef = dbPresence.push();
+    if(connected) announcePresence();
+    bsub(dbPresence, snap => { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
+
+    // Confrontation entre deux équipes de l'organisation : ce tableau peut pointer vers la partie de l'autre équipe
+    if(boardTeam) bsub(ref(boardBase + "/link"), snap => {
+      const l = snap.val(), nl = (l && l.team && l.id) ? { team: cleanKey(l.team), id: String(l.id) } : null;
+      const changed = JSON.stringify(nl) !== JSON.stringify(boardLink), first = !linkKnown;
+      boardLink = nl; linkKnown = true;
+      if(changed){ linkStale = false; watchMatch(); }
+      else if(first && pendingSnap){ const s = pendingSnap; pendingSnap = null; onMatch(s); }
+    });
+    watchMatch();
+    renderTeamDropdownTop(); updateRoleUI(); render();
+  }
+
+  const isLinked = () => !!(boardLink && !linkStale);
+  function watchMatch(){
+    if(matchRef) matchRef.off("value", onMatch);
+    pendingSnap = null;
+    db = matchRef = ref(isLinked() ? catBase() + "/boards/" + boardLink.team + "/match" : boardBase + "/match");
+    matchRef.on("value", onMatch);
+  }
+  function onMatch(snap){
+    if(!linkKnown){ pendingSnap = snap; return; }             // on attend de savoir si le tableau pointe ailleurs
+    const raw = snap.val();
+    // L'autre équipe a commencé une autre partie : le lien n'est plus valide, retour à notre propre tableau
+    if(isLinked() && (!raw || raw.id !== boardLink.id)){ linkStale = true; watchMatch(); return; }
+    // Écho de notre propre écriture : l'écran est déjà à jour, inutile de tout redessiner
+    if(raw && lastLocal && raw.updatedAt === lastLocal && state.updatedAt === lastLocal) return;
+    const s = raw ? sanitize(raw) : blank();
+    if(archiveKey){ liveState = s; return; }
+    state = s; syncStateWithPresets(); render();
+  }
+
+  // Une fois les équipes connues : choisit le bon tableau (par équipe ou par catégorie)
+  function resolveBoard(){
+    presetsLoaded = true;
+    const teams = boardTeams(currentCat);
+    const want = teams.length < 2 ? "" : (teams.indexOf(wantedTeam) !== -1 ? wantedTeam : (teams.indexOf(boardTeam) !== -1 ? boardTeam : teams[0]));
+    wantedTeam = want;
+    if(want !== boardTeam){ attachBoard(want, "init"); return true; }
+    const before = currentRole; checkMarqueurScope(); if(before !== currentRole) updateRoleUI();
+    renderTeamDropdownTop();
+    return false;
+  }
+  function switchBoard(teamKey){ wantedTeam = cleanKey(teamKey); attachBoard(wantedTeam); }
+
+  function renderTeamDropdownTop(){
+    const sel = $("teamSelectTop"), teams = presetsLoaded ? boardTeams(currentCat) : [];
+    if(teams.length < 2){ sel.style.display = "none"; return; }
+    fillSelect(sel, teams.map(k => ({ value: k, label: presets[k].name })), boardTeam);
+    sel.style.display = "";
   }
 
   on("orgSelectTop", "change", () => {
@@ -1304,14 +1407,13 @@ document.addEventListener("DOMContentLoaded", function(){
     loadCats(org).then(go, () => go([currentCat]));
   });
   on("catSelectTop", "change", () => switchOrganization(currentOrg, $("catSelectTop").value));
+  on("teamSelectTop", "change", () => switchBoard($("teamSelectTop").value));
   window.addEventListener("popstate", () => {
     const p = new URLSearchParams(window.location.search);
-    switchOrganization(p.get("org") || currentOrg, p.get("cat") || currentCat, "pop");
+    switchOrganization(p.get("org") || currentOrg, p.get("cat") || currentCat, "pop", p.get("team"));
   });
 
   function attachListeners(){
-    sub(dbPresence, snap => { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
-
     sub(dbCategories, snap => {
       const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
       categoriesList = val.length ? val : DEFAULT_CATS.slice();
@@ -1334,19 +1436,11 @@ document.addEventListener("DOMContentLoaded", function(){
       render();
     });
 
-    sub(db, snap => {
-      const raw = snap.val();
-      // Écho de notre propre écriture : l'écran est déjà à jour, inutile de tout redessiner
-      if(raw && lastLocal && raw.updatedAt === lastLocal && state.updatedAt === lastLocal) return;
-      const s = raw ? sanitize(raw) : blank();
-      if(archiveKey){ liveState = s; return; }
-      state = s; syncStateWithPresets(); render();
-    });
-
     sub(dbPresets, snap => {
       const v = snap.val();
       presets = (v && typeof v === "object") ? v : {};
       presetsRev++; indexPresets();
+      if(resolveBoard()) return;         // changement de tableau : l'affichage est refait par attachBoard
       syncStateWithPresets(); render();
     });
   }
@@ -1408,7 +1502,8 @@ document.addEventListener("DOMContentLoaded", function(){
     return dbPasswords.once("value").then(s => {
       const v = s.val() || {};
       return { admin: v.admin || "hockey", marqueur: v.marqueur || "buts",
-               categories: (v.categories && typeof v.categories === "object") ? v.categories : {} };
+               categories: (v.categories && typeof v.categories === "object") ? v.categories : {},
+               teams: (v.teams && typeof v.teams === "object") ? v.teams : {} };
     });
   }
 
@@ -1426,17 +1521,27 @@ document.addEventListener("DOMContentLoaded", function(){
     const btn = $("loginSubmit"); btn.disabled = true;
     loadPasswords().then(passwords => {
       if((u === "admin" || u === "yanduch") && p === passwords.admin){
-        currentRole = "admin"; isAdminGlobal = true; assignedCat = null; assignedOrg = null;
+        currentRole = "admin"; isAdminGlobal = true; assignedCat = null; assignedOrg = null; assignedTeam = "";
         store.set(localStorage, "ohmtro_admin_auth", "true"); store.set(sessionStorage, "ohmtro_role", "admin");
       } else if(u === "marqueur"){
-        let matchCatKey = null;
-        if(p === passwords.marqueur || passwords.categories[currentCat] === p) matchCatKey = currentCat;
-        else Object.keys(passwords.categories).some(k => { if(passwords.categories[k] === p){ matchCatKey = k; return true; } return false; });
-        if(!matchCatKey){ notify("Mot de passe marqueur incorrect.", "error"); return; }
-        currentRole = "marqueur"; isAdminGlobal = false; assignedCat = matchCatKey; assignedOrg = currentOrg;
+        // Le mot de passe détermine la catégorie et, s'il y a lieu, l'équipe (tableau) du marqueur
+        let target = null;
+        const teamOk = k => passwords.teams[k] === p && presets[k] && presets[k].own;
+        if(p === passwords.marqueur) target = { cat: currentCat, team: boardTeam };
+        else if(boardTeam && teamOk(boardTeam)) target = { cat: currentCat, team: boardTeam };
+        else {
+          const tk = Object.keys(passwords.teams).filter(teamOk)[0];
+          if(tk){ const c = presets[tk].category || currentCat; target = { cat: c, team: boardFor(c, tk) }; }
+          else if(passwords.categories[currentCat] === p) target = { cat: currentCat, team: boardTeam };
+          else Object.keys(passwords.categories).some(k => { if(passwords.categories[k] === p){ target = { cat: k, team: boardFor(k, "") }; return true; } return false; });
+        }
+        if(!target){ notify("Mot de passe marqueur incorrect.", "error"); return; }
+        currentRole = "marqueur"; isAdminGlobal = false; assignedCat = target.cat; assignedOrg = currentOrg; assignedTeam = target.team;
         store.set(sessionStorage, "ohmtro_role", "marqueur");
-        store.set(sessionStorage, "ohmtro_assigned_cat", matchCatKey); store.set(sessionStorage, "ohmtro_assigned_org", currentOrg);
-        if(matchCatKey !== currentCat) switchOrganization(currentOrg, matchCatKey);
+        store.set(sessionStorage, "ohmtro_assigned_cat", target.cat); store.set(sessionStorage, "ohmtro_assigned_org", currentOrg);
+        store.set(sessionStorage, "ohmtro_assigned_team", target.team);
+        if(target.cat !== currentCat) switchOrganization(currentOrg, target.cat, undefined, target.team);
+        else if(target.team !== boardTeam) switchBoard(target.team);
       } else { notify("Identifiants incorrects.", "error"); return; }
       $("loginPass").value = "";
       if(archiveKey) exitArchive();
@@ -1736,6 +1841,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const label = document.createDocumentFragment(), dot = el("span", "color-dot");
       dot.style.background = hex(team.color, DEF_A);
       label.appendChild(dot); label.appendChild(el("strong", null, team.name || key));
+      if(team.own){ const tag = el("span", "own-tag", "Notre équipe"); label.appendChild(tag); }
       if(!manageTeamCatKey && team.category){ const sm = el("small", null, " " + String(team.category).toUpperCase()); sm.style.color = "var(--muted)"; label.appendChild(sm); }
       list.appendChild(manageItem("team-manage-item", label, [
         btn("btn-edit", "✏️ Éditer", () => openTeamEditor(key)),
@@ -1759,6 +1865,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const cats = catItems(), cat = team.category || "";
     if(cat && !cats.some(c => c.value === cat)) cats.push({ value: cat, label: String(cat).toUpperCase() });
     fillSelect($("editTeamCatSelect"), cats, cat, "Toutes les catégories");
+    $("editTeamOwn").checked = !!team.own;
     updateLogoPreview();
     const roster = toArr(team.roster), staff = toArr(team.staff);
     $("rosterForm").textContent = ""; roster.forEach(p => addRosterRow(p.no, p.name, p.pos)); if(!roster.length) addRosterRow("","","A");
@@ -1817,7 +1924,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const save = () => {
       ref(manageOrgKey + "/teams_presets/" + key).set({
         name: teamName, msg: (existing && existing.msg) || "", logo: $("teamLogoInput").value.trim(),
-        color: $("presetTeamColor").value, category: category, roster: roster, staff: staff
+        color: $("presetTeamColor").value, category: category, own: $("editTeamOwn").checked, roster: roster, staff: staff
       });
       notify("Équipe enregistrée !"); swapDlg("rosterSheet", "orgDetailSheet");
     };
@@ -1826,17 +1933,22 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   /* ============ Gestion : mots de passe ============ */
+  let pwdLoaded = null;
   on("btnOpenPasswords", "click", () => {
     if(!isAdmin()) return;
     loadPasswords().then(passwords => {
       closeDlg("settingsSheet"); $("pwdAdminInput").value = passwords.admin;
       const container = $("catPasswordsContainer"); container.textContent = "";
-      container.dataset.marqueur = passwords.marqueur;
-      categoriesList.forEach(cat => {
-        const group = el("div", "field-group"), label = el("label", null, "Marqueur - " + cat.toUpperCase() + " :");
-        const input = el("input", "cat-pwd-input"); input.type = "password"; input.dataset.cat = cat;
-        input.value = passwords.categories[cat] || passwords.marqueur;
+      container.dataset.marqueur = passwords.marqueur; pwdLoaded = passwords;
+      const field = (text, cls, key, val) => {
+        const group = el("div", "field-group"), label = el("label", null, text), input = el("input", "cat-pwd-input " + cls);
+        input.type = "password"; input.dataset.key = key; input.value = val;
         group.appendChild(label); group.appendChild(input); container.appendChild(group);
+      };
+      categoriesList.forEach(cat => {
+        const teams = boardTeams(cat), catPwd = passwords.categories[cat] || passwords.marqueur;
+        if(teams.length < 2) field("Marqueur - " + cat.toUpperCase() + " :", "pwd-cat", cat, catPwd);
+        else teams.forEach(k => field("Marqueur - " + cat.toUpperCase() + " - " + presets[k].name + " :", "pwd-team", k, passwords.teams[k] || catPwd));
       });
       openDlg("passwordsSheet");
     }).catch(() => notify("Impossible de charger les mots de passe.", "error"));
@@ -1844,8 +1956,11 @@ document.addEventListener("DOMContentLoaded", function(){
   on("pwdCancel", "click", () => closeDlg("passwordsSheet"));
   on("pwdSave", "click", () => {
     if(!isAdmin()) return;
-    const newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: $("catPasswordsContainer").dataset.marqueur || "buts", categories: {} };
-    document.querySelectorAll(".cat-pwd-input").forEach(inp => { newP.categories[inp.dataset.cat] = inp.value.trim() || "buts"; });
+    const old = pwdLoaded || { categories: {}, teams: {} };
+    const newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: $("catPasswordsContainer").dataset.marqueur || "buts",
+                   categories: Object.assign({}, old.categories), teams: Object.assign({}, old.teams) };
+    document.querySelectorAll(".pwd-cat").forEach(inp => { newP.categories[inp.dataset.key] = inp.value.trim() || "buts"; });
+    document.querySelectorAll(".pwd-team").forEach(inp => { newP.teams[inp.dataset.key] = inp.value.trim() || "buts"; });
     dbPasswords.set(newP); closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
   });
 
@@ -2366,6 +2481,10 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!isAdmin()) return;
     populateWizTeamSelect("wizTeamA", state.names.a); populateWizTeamSelect("wizTeamB", state.names.b);
     $("wizColorA").value = state.colors.a; $("wizColorB").value = state.colors.b;
+    // Tableau d'équipe : l'équipe du tableau est proposée d'office comme équipe locale
+    if(boardTeam && presets[boardTeam] && $("wizTeamA").value !== boardTeam && $("wizTeamB").value !== boardTeam){
+      $("wizTeamA").value = boardTeam; wizSyncColor("a");
+    }
     renderPresenceList("a", $("wizTeamA").value); renderPresenceList("b", $("wizTeamB").value);
     openDlg("newGameWizard");
   });
@@ -2377,7 +2496,26 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!isAdmin()) return;
     const keys = { a: $("wizTeamA").value, b: $("wizTeamB").value };
     if(keys.a && keys.a === keys.b){ notify("Choisissez deux équipes différentes.", "info"); return; }
-    state = blank(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
+    // Confrontation entre deux équipes de l'organisation : une seule partie, affichée sur les deux tableaux
+    let other = "";
+    if(boardTeam && (keys.a === boardTeam || keys.b === boardTeam)){
+      const o = keys.a === boardTeam ? keys.b : keys.a;
+      if(o && boardTeams(currentCat).indexOf(o) !== -1) other = o;
+    }
+    if(!other){ startGame(keys, ""); return; }
+    ref(catBase() + "/boards/" + other).once("value").then(snap => {
+      const v = snap.val() || {}, s = v.match ? sanitize(v.match) : null;
+      const mine = v.link && v.link.team === boardTeam;      // son tableau affiche déjà une de nos parties
+      if(s && !mine && isStarted(s) && !s.finished){
+        notify(presets[other].name + " a déjà une partie en cours sur son tableau.\nTerminez-la avant de lancer cette confrontation.", "error"); return;
+      }
+      startGame(keys, other);
+    }, () => startGame(keys, other));
+  });
+
+  function startGame(keys, other){
+    const wasLinked = isLinked();
+    state = blank(); state.id = uid(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
     ["a","b"].forEach(t => {
       const p = presets[keys[t]]; if(!p) return;
       const full = toArr(p.roster).map(normPlayer), present = [];
@@ -2388,8 +2526,15 @@ document.addEventListener("DOMContentLoaded", function(){
       state.staff[t] = toArr(p.staff).map(normStaff);
     });
     state.colors.a = hex($("wizColorA").value, DEF_A); state.colors.b = hex($("wizColorB").value, DEF_B);
+    if(boardTeam){
+      // La nouvelle partie appartient à ce tableau : on quitte une éventuelle confrontation précédente
+      const hadLink = !!boardLink; boardLink = null; linkStale = false;
+      if(hadLink) ref(boardBase + "/link").remove();
+      if(wasLinked) watchMatch();
+    }
     commit(); closeDlg("newGameWizard");
-  });
+    if(other) ref(catBase() + "/boards/" + other + "/link").set({ team: boardTeam, id: state.id });
+  }
 
   /* ============ Buts ============ */
   let curGoal = null, goalPickStep = "scorer";
@@ -2617,7 +2762,7 @@ document.addEventListener("DOMContentLoaded", function(){
     else if(!snap.exists() && isAdmin()) dbOrgs.set(organizationsList);
     renderOrgsDropdownTop(); renderOrgManageList(); updateBrand(); updateTickerDisplay();
   });
-  switchOrganization(currentOrg, currentCat, "init");
+  switchOrganization(currentOrg, currentCat, "init", wantedTeam);
 });
 </script>
 </body>
