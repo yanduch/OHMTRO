@@ -222,9 +222,10 @@ td.cur,th.cur{background:var(--crease)}
 }
 .btn-new-game-pastel:active{transform:translateY(1px);filter:brightness(.95)}
 
-.btn-stop-game{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:0;background:var(--red);color:#FFF;font-weight:700;font-size:1.1rem}
+/* Bouton Arrêter la partie */
+.btn-stop-game{margin-top:1.2rem;width:100%;min-height:3.6rem;border-radius:12px;border:0;background:var(--red);color:#FFF;font-family:var(--display);font-weight:700;font-size:1.35rem;letter-spacing:.02em;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
 
-/* Style épuré et doux du sélecteur de couleur (supprime le cadre gras) */
+/* Style épuré du sélecteur de couleur */
 .color-picker-row{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
 .color-picker-row label{font-size:.85rem;font-weight:600;margin:0;}
 input[type="color"]{
@@ -494,9 +495,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <!-- Bouton Démarrer sous Historique -->
+  <!-- Alternance entre Commencer et Arrêter la partie -->
   <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
-  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
+  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
 
   <div class="export-box">
     <button type="button" class="export-btn" id="btnExportPDF">📄 Imprimer / PDF</button>
@@ -529,7 +530,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <small style="color:var(--muted);font-size:.75rem;display:block;margin-top:.3rem;">Laissez vide pour masquer le bandeau.</small>
     </div>
 
-    <!-- Réglage du Temps de Période (Sélection + Saisie Manuelle) -->
+    <!-- Réglage du Temps de Période -->
     <div class="field-group" style="margin-top:1rem;">
       <label>Temps de période par défaut (minutes) pour <span id="lblConfigOrgName">cette organisation</span> :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
@@ -552,15 +553,15 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Organisations -->
+<!-- Modale Gestion des Organisations (Interface nettoyée et harmonisée) -->
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
-    <p class="ctx">Gérez et éditez les organisations enregistrées.</p>
+    <p class="ctx">Gérez les organisations enregistrées dans le système.</p>
     
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
       <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-      <input type="text" id="newOrgNameInput" placeholder="Nom complet (ex: Lions de Chavigny)" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="newOrgNameInput" placeholder="Nom (ex: Lions de Chavigny)" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
       <button type="button" class="act-1" id="btnAddOrg" style="padding:.4rem .8rem;font-size:.9rem;">➕</button>
     </div>
     
@@ -573,7 +574,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Catégories -->
+<!-- Modale Gestion des Catégories (Interface nettoyée et harmonisée) -->
 <dialog id="categoriesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Catégories</h2>
@@ -620,7 +621,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="team-manage-list" id="teamManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="teamManageBack">⬅️ Retour</button>
+      <button type="button" class="act-2" id="teamManageBack">⬅️️ Retour</button>
       <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
     </div>
   </div>
@@ -1240,17 +1241,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       
       var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
 
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
-      btnEdit.textContent = "✏️ Éditer";
-      btnEdit.addEventListener("click", function(){
-        var newName = prompt("Nouveau nom pour l'organisation :", o.name);
-        if(newName && newName.trim()){
-          o.name = newName.trim();
-          dbOrgs.set(organizationsList);
-        }
-      });
-      ctrls.appendChild(btnEdit);
-
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
       btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
@@ -1318,26 +1308,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function renderCategoriesManageList(){
     var list = $("catManageList"); if(!list) return;
     list.textContent = "";
-    manageCategoriesList.forEach(function(cat, index){
+    manageCategoriesList.forEach(function(cat){
       var li = document.createElement("li"); li.className = "cat-manage-item";
       li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
       
       var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
-
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
-      btnEdit.textContent = "✏️ Éditer";
-      btnEdit.addEventListener("click", function(){
-        var newCatName = prompt("Nouveau nom pour la catégorie :", cat.toUpperCase());
-        if(newCatName && newCatName.trim()){
-          var cleanKey = newCatName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-          if(cleanKey){
-            manageCategoriesList[index] = cleanKey;
-            firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-            renderCategoriesManageList();
-          }
-        }
-      });
-      ctrls.appendChild(btnEdit);
 
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
       btnDel.textContent = "🗑 Supprimer";
@@ -1844,7 +1819,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var isStopped = state.events && state.events.some(function(e){ return e.type === "sys" && e.text && e.text.indexOf("ARRÊTÉE") !== -1; });
     var isGameActive = !isStopped && (state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0));
     
-    $("btnStopGame").style.display = isGameActive ? "block" : "none";
+    // Alternance exacte des boutons :
+    if(isGameActive){
+      $("btnStopGame").style.display = "block";
+      $("newGame").style.display = "none";
+    } else {
+      $("btnStopGame").style.display = "none";
+      $("newGame").style.display = "block";
+    }
 
     Array.prototype.forEach.call($("seg").children, function(b){
       b.setAttribute("aria-pressed", String(Number(b.dataset.p) === state.period));
