@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Firebase (Database uniquement) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -42,7 +41,6 @@ button:disabled{cursor:not-allowed;opacity:.4}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
-/* En-tête */
 .top{display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.6rem;flex-wrap:nowrap;width:100%;}
 .brand{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;min-width:0;flex:1 1 auto;overflow:hidden;}
 .brand img{height:1.8rem;width:auto;object-fit:contain;flex-shrink:0;}
@@ -53,19 +51,14 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
 
-/* Bandeau d'annonce défilant */
 .ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
 .ticker-wrap.active{display:flex;}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
 .ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;}
 .ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker linear infinite;}
 .ticker-text:hover{animation-play-state:paused;}
-@keyframes ticker {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
-}
+@keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
 
-/* Tableau de pointage - Noms des équipes */
 .board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .3rem 1rem;gap:.2rem;}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden;}
 .team-header{display:flex;align-items:center;justify-content:center;gap:.2rem;width:100%;overflow:hidden;}
@@ -77,14 +70,12 @@ button:disabled{cursor:not-allowed;opacity:.4}
 body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
 
-.score{display:block;font-family:var(--display);font-weight:700;font-size:clamp(4.5rem,24vw,7rem);line-height:.95;
-  font-variant-numeric:tabular-nums;margin-top:.15rem}
+.score{display:block;font-family:var(--display);font-weight:700;font-size:clamp(4.5rem,24vw,7rem);line-height:.95;font-variant-numeric:tabular-nums;margin-top:.15rem}
 .shots{margin:.1rem 0 0;font-size:.95rem;color:var(--muted)}
 .shots b{font-family:var(--display);font-weight:600;font-size:1.75rem;color:var(--ink);font-variant-numeric:tabular-nums;margin-right:.25rem}
 
-/* Chronomètre central */
 .center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
-.timer-display{font-family:var(--display);font-weight:700;font-size:1.6rem;background:var(--ice);padding:.2rem .4rem;border-radius:8px;font-variant-numeric:tabular-nums;cursor:pointer;border:1px solid var(--line)}
+.timer-display{font-family:var(--display);font-weight:700;font-size:1.5rem;background:var(--ice);padding:.2rem .4rem;border-radius:8px;font-variant-numeric:tabular-nums;cursor:pointer;border:1px solid var(--line);text-align:center;}
 .timer-ctrls{display:flex;flex-direction:column;align-items:center;gap:.3rem;width:100%}
 .btn-timer-toggle{width:100%;font-size:1.5rem;padding:.4rem 0;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:bold;line-height:1}
 .btn-timer-reset{width:75%;font-size:1.1rem;padding:.25rem 0;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1}
@@ -92,7 +83,6 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .circle{position:relative;width:2.5rem;height:2.5rem;border-radius:50%;border:3px solid var(--blue);background:var(--surface);
   display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1rem}
 
-/* Période & Inversion */
 .periods{display:flex;align-items:center;gap:.4rem;margin:.75rem 0}
 .periods span{font-size:.85rem;color:var(--muted)}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);flex:1;background:var(--surface);border-radius:10px;padding:3px;gap:3px}
@@ -100,11 +90,9 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
-/* Masquage automatique spectateur */
 body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
-/* Clavier de saisie */
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .padcol{display:grid;gap:.4rem}
 .btn{border-radius:12px;font-family:var(--display);font-weight:700;letter-spacing:.01em}
@@ -116,7 +104,6 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .btn.minus-goal{min-height:2.2rem;font-family:var(--body);font-weight:600;font-size:.8rem;background:rgba(196,32,46,0.08);border:1px solid var(--red);color:var(--red)}
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 
-/* Carte Statistiques d'équipe */
 .stats-card{background:var(--surface);border-radius:14px;padding:.8rem;border:1px solid var(--line)}
 .stats-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;gap:.5rem}
 .stats-card-header h3{margin:0;font-size:1rem;font-family:var(--display);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
@@ -128,13 +115,11 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .stat-item .val{font-family:var(--display);font-weight:700;font-size:1.3rem}
 .stat-item .val.v{color:var(--ok)} .stat-item .val.d{color:var(--red)} .stat-item .val.blue{color:var(--blue)}
 
-/* Section Exportation */
 .export-box{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.2rem}
 .export-btn{padding:.7rem .5rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:.4rem}
 
 .btn-login-bottom{margin-top:1.2rem;width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:.9rem;}
 
-/* Titres Dépliables (Accordéon) */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
 .toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;margin:1.2rem 0 .4rem}
 .toggle-title::after{content:"▼";font-size:.8rem;color:var(--muted);transition:transform .2s}
@@ -143,19 +128,24 @@ h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 
 .toggle-block{transition:all .2s;overflow:hidden}
 .toggle-block.hidden{display:none !important}
 
-/* Alignements et Fiche Joueur Interactive */
 .roster-container{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:.4rem}
 .roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem;cursor:pointer;transition:background .15s;}
 .roster-item:hover, .roster-item.active{background:var(--crease);border:1px solid var(--blue);}
 .roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
 
-.player-card-drawer{background:var(--surface);border:1.5px solid var(--blue);border-radius:10px;padding:.6rem .8rem;margin-top:.6rem;animation:fadeIn .2s linear;}
-.player-card-drawer h4{margin:0 0 .4rem;font-size:.9rem;font-family:var(--display);color:var(--blue);display:flex;align-items:center;justify-content:space-between;}
-.player-card-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.2rem;text-align:center;}
-.player-card-grid .p-stat{display:flex;flex-direction:column;align-items:center;}
-.player-card-grid .p-stat .p-lbl{font-size:.65rem;color:var(--muted);font-weight:bold;}
-.player-card-grid .p-stat .p-val{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--ink);}
+/* Fiche joueur directement insérée sous la ligne */
+.player-card-inline{background:var(--surface);border:1.5px solid var(--blue);border-radius:8px;padding:.5rem;margin:.2rem 0 .4rem;animation:fadeIn .15s linear;}
+.player-card-inline h4{margin:0 0 .3rem;font-size:.85rem;font-family:var(--display);color:var(--blue);display:flex;justify-content:space-between;}
+.player-card-inline .p-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.2rem;text-align:center;}
+.player-card-inline .p-grid .p-stat{display:flex;flex-direction:column;align-items:center;}
+.player-card-inline .p-grid .p-stat .p-lbl{font-size:.6rem;color:var(--muted);font-weight:bold;}
+.player-card-inline .p-grid .p-stat .p-val{font-family:var(--display);font-weight:700;font-size:1.1rem;color:var(--ink);}
+
+.roster-controls{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem;background:var(--surface);padding:.5rem;border-radius:8px;border:1px solid var(--line);}
+.roster-scope-btn-group{display:flex;gap:.2rem;margin-bottom:.3rem;}
+.roster-scope-btn-group button{flex:1;padding:.3rem;font-size:.8rem;border-radius:6px;border:1px solid var(--line);background:var(--ice);font-weight:600;}
+.roster-scope-btn-group button.active{background:var(--ink);color:var(--surface);}
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
 
@@ -177,7 +167,6 @@ tbody th{text-align:left;font-weight:600;max-width:9rem;overflow:hidden;text-ove
 td.tot{font-weight:600}
 td.cur,th.cur{background:var(--crease)}
 
-/* Fil du Match pas à pas */
 .feed-header{display:flex;align-items:center;justify-content:space-between;margin:1.6rem 0 .5rem}
 .feed-header h2{margin:0}
 .feed-filter{padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:.85rem;max-width:11rem}
@@ -192,7 +181,6 @@ td.cur,th.cur{background:var(--crease)}
 .event-row .info span{display:block;font-size:.85rem;color:var(--muted)}
 .event-row .per{font-size:.85rem;color:var(--muted);white-space:nowrap}
 
-/* Liste Historique, Équipes, Catégories, Organisations */
 .history-list, .team-manage-list, .cat-manage-list, .org-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
 .history-item, .team-manage-item, .cat-manage-item, .org-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
 .history-ctrls, .team-ctrls, .cat-ctrls, .org-ctrls{display:flex;gap:.3rem;align-items:center}
@@ -203,7 +191,6 @@ td.cur,th.cur{background:var(--crease)}
 
 .quiet{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 
-/* Bouton Commencer une nouvelle partie vert pastel */
 .btn-new-game-pastel{
   margin-top:1.2rem;
   width:100%;
@@ -221,30 +208,19 @@ td.cur,th.cur{background:var(--crease)}
 }
 .btn-new-game-pastel:active{transform:translateY(1px);filter:brightness(.95)}
 
-/* Bouton Arrêter la partie */
 .btn-stop-game{margin-top:1.2rem;width:100%;min-height:3.6rem;border-radius:12px;border:0;background:var(--red);color:#FFF;font-family:var(--display);font-weight:700;font-size:1.35rem;letter-spacing:.02em;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
 
-/* Style épuré du sélecteur de couleur */
 .color-picker-row{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
 .color-picker-row label{font-size:.85rem;font-weight:600;margin:0;}
 input[type="color"]{
-  -webkit-appearance:none;
-  -moz-appearance:none;
-  appearance:none;
-  width:2.6rem;
-  height:2.2rem;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:transparent;
-  cursor:pointer;
-  padding:2px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  -webkit-appearance:none; -moz-appearance:none; appearance:none;
+  width:2.6rem; height:2.2rem; border:1px solid var(--line); border-radius:8px;
+  background:transparent; cursor:pointer; padding:2px; box-shadow:0 1px 3px rgba(0,0,0,0.08);
 }
 input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
 input[type="color"]::-webkit-color-swatch{border:0;border-radius:6px;}
 input[type="color"]::-moz-color-swatch{border:0;border-radius:6px;}
 
-/* Dialogues */
 dialog{border:0;padding:0;color:var(--ink);background:var(--surface);width:100%;max-width:30rem;margin:auto auto 0;
   border-radius:18px 18px 0 0}
 dialog::backdrop{background:rgba(6,16,26,.6)}
@@ -262,7 +238,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   -webkit-text-fill-color: #0F2236 !important;
 }
 
-/* Style de sélection tactile des joueurs */
 .player-pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:35vh;overflow-y:auto;margin:.8rem 0;padding:.2rem}
 .btn-player{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:.9rem;text-align:left;color:var(--ink)}
 .btn-player span{color:var(--ink)}
@@ -299,12 +274,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .staff-row{display:grid;grid-template-columns:1fr 6rem auto;gap:.3rem;align-items:center}
 .roster-row input, .roster-row select, .staff-row input, .staff-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
 
-/* Presence Checkbox List dans le Wizard */
 .presence-list{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;max-height:25vh;overflow-y:auto;background:var(--surface);padding:.5rem;border-radius:8px;border:1px solid var(--line);margin-top:.4rem;}
 .presence-item{display:flex;align-items:center;gap:.4rem;font-size:.85rem;}
 .presence-item input[type="checkbox"]{width:1.1rem;height:1.1rem;}
 
-/* Preview de logo */
 .logo-upload-box{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;}
 .logo-preview-img{max-height:3.5rem;width:auto;object-fit:contain;border-radius:6px;margin-top:.3rem;}
 
@@ -324,12 +297,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <header class="top">
     <div class="brand">
       <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo" onerror="this.style.display='none'">
-      <select id="orgSelectTop" class="select-top">
-        <!-- Rempli dynamiquement -->
-      </select>
-      <select id="catSelectTop" class="select-top">
-        <!-- Rempli dynamiquement -->
-      </select>
+      <select id="orgSelectTop" class="select-top"></select>
+      <select id="catSelectTop" class="select-top"></select>
     </div>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
   </header>
@@ -422,8 +391,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   <ul class="events-list" id="eventsList"></ul>
 
   <!-- SECTIONS DÉPLIABLES -->
-
-  <!-- 1. Résumé Statistiques -->
   <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
   <div class="toggle-block hidden" id="statsBlock">
     <section class="stats-card">
@@ -454,14 +421,24 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </section>
   </div>
 
-  <!-- 2. Alignements -->
+  <!-- Alignements -->
   <h2 class="toggle-title collapsed" id="toggleRosterBtn">Alignements</h2>
   <div class="toggle-block hidden" id="rosterBlock">
+    <div class="roster-controls">
+      <div class="roster-scope-btn-group">
+        <button type="button" id="btnScopeMatch" class="active">Ce match</button>
+        <button type="button" id="btnScopeAll">Tout (Saison)</button>
+      </div>
+      <div id="rosterTeamPickers" style="display:flex;gap:.4rem;">
+        <select id="rosterSelectTeamA" style="flex:1;padding:.3rem;font-size:.8rem;border-radius:6px;border:1px solid var(--line);"></select>
+        <select id="rosterSelectTeamB" style="flex:1;padding:.3rem;font-size:.8rem;border-radius:6px;border:1px solid var(--line);"></select>
+      </div>
+    </div>
+
     <div class="roster-container">
       <div>
         <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
         <ul class="roster-list" id="rosterA"></ul>
-        <div id="playerCardBoxA"></div>
         <div class="staff-section" id="staffBoxA" style="display:none;">
           <div class="staff-title">Entraîneurs / Staff</div>
           <ul class="roster-list" id="staffA"></ul>
@@ -470,7 +447,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <div>
         <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
         <ul class="roster-list" id="rosterB"></ul>
-        <div id="playerCardBoxB"></div>
         <div class="staff-section" id="staffBoxB" style="display:none;">
           <div class="staff-title">Entraîneurs / Staff</div>
           <ul class="roster-list" id="staffB"></ul>
@@ -479,7 +455,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </div>
   </div>
 
-  <!-- 3. Arrêts des gardiens -->
   <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">Arrêts des gardiens</h2>
   <div class="toggle-block hidden" id="goaliesBlock">
     <section class="goalies">
@@ -488,13 +463,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </section>
   </div>
 
-  <!-- 4. Historique des parties -->
   <h2 class="toggle-title collapsed" id="toggleHistoryBtn">Historique des parties</h2>
   <div class="toggle-block hidden" id="historyBlock">
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <!-- Alternance entre Commencer et Arrêter la partie -->
   <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
 
@@ -504,8 +477,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️ Gestion</button>
-
-  <!-- Connexion tout en bas -->
   <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
 </div>
 
@@ -515,16 +486,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <h2>Gestion</h2>
     <p class="ctx">Paramètres généraux, messages, organisations, catégories et sécurité.</p>
 
-    <!-- Nouveau bouton de Gestion des Messages -->
     <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
-    
     <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Gestion des Organisations</button>
     <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
     <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
 
-    <!-- Configuration du temps de période -->
     <div class="field-group" style="margin-top:1.2rem;">
-      <label>Temps de période par défaut (minutes) pour <span id="lblConfigOrgName">cette organisation</span> :</label>
+      <label>Temps de période par défaut (minutes) :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
         <option value="10">10 minutes</option>
         <option value="12">12 minutes</option>
@@ -533,7 +501,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <option value="20" selected>20 minutes</option>
         <option value="custom">Personnalisé...</option>
       </select>
-      <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes (ex: 17)" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <button type="button" class="act-2" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
@@ -545,26 +513,54 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Messages (Séparée et sécurisée) -->
+<!-- Modale Exportation Avancée (PDF/CSV) -->
+<dialog id="exportSheet">
+  <div class="sheet-in">
+    <h2>Options d'Exportation</h2>
+    <p class="ctx">Configurez le rapport à générer.</p>
+
+    <div class="field-group" style="margin-top:0;">
+      <label>Type de rapport :</label>
+      <select id="exportReportType" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+        <option value="history_detailed">Historique des parties (Détaillé)</option>
+        <option value="history_summary">Historique des parties (Résumé)</option>
+        <option value="player_stats">Statistiques des joueurs</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>Portée des données :</label>
+      <select id="exportScope" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+        <option value="current">Ce match uniquement</option>
+        <option value="all">Toutes les parties (Historique)</option>
+      </select>
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="exportCancel">Annuler</button>
+      <button type="button" class="act-1" id="exportConfirm">Générer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modale Gestion des Messages -->
 <dialog id="messagesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Messages</h2>
     <p class="ctx">Configurez les messages affichés dans le bandeau défilant.</p>
 
-    <!-- Section Organisation (Modifiable seulement par Admin) -->
     <div class="preset-box" id="msgOrgBox">
       <label style="font-weight:700;">1. Organisation :</label>
       <select id="msgOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
       <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message général de l'organisation :</label>
-      <input type="text" id="msgOrgInput" placeholder="Ex: Bienvenue à l'aréna Chavigny !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="msgOrgInput" placeholder="Ex: Bienvenue à l'aréna !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
-    <!-- Section Équipe (Modifiable par Admin et Marqueur) -->
     <div class="preset-box" id="msgTeamBox" style="margin-top:1rem;">
       <label style="font-weight:700;">2. Équipe :</label>
       <select id="msgTeamSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
       <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message personnalisé de l'équipe :</label>
-      <input type="text" id="msgTeamInput" placeholder="Ex: Encourager les Lions au prochain tournoi !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="msgTeamInput" placeholder="Ex: Bon match à tous !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -578,14 +574,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
-    <p class="ctx">Gérez les organisations enregistrées dans le système.</p>
+    <p class="ctx">Gérez les organisations enregistrées.</p>
     
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
-      <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-      <input type="text" id="newOrgNameInput" placeholder="Nom (ex: Lions de Chavigny)" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+      <input type="text" id="newOrgNameInput" placeholder="Nom complet" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
       <button type="button" class="act-1" id="btnAddOrg" style="padding:.4rem .8rem;font-size:.9rem;">➕</button>
     </div>
-    
     <ul class="org-manage-list" id="orgManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -599,13 +594,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="editOrgSheet">
   <div class="sheet-in">
     <h2>Éditer l'Organisation</h2>
-    <p class="ctx">Saisissez le nouveau nom pour l'organisation.</p>
-
     <div class="field-group" style="margin-top:0;">
       <label>Nom de l'organisation :</label>
-      <input type="text" id="editOrgNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="editOrgNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
-
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="editOrgCancel">Annuler</button>
       <button type="button" class="act-1" id="editOrgSave">Enregistrer</button>
@@ -617,20 +609,15 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="categoriesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Catégories</h2>
-    <p class="ctx">Sélectionnez l'organisation puis gérez ses catégories.</p>
-    
     <div class="field-group" style="margin-top:0;margin-bottom:.8rem;">
       <label>Organisation :</label>
-      <select id="catManageOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;"></select>
+      <select id="catManageOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;"></select>
     </div>
-
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
-      <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C..." style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C..." style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
       <button type="button" class="act-1" id="btnAddCat" style="padding:.4rem .8rem;font-size:.9rem;">➕ Ajouter</button>
     </div>
-    
     <ul class="cat-manage-list" id="catManageList"></ul>
-
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="catManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
@@ -638,17 +625,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale d'Édition de Catégorie -->
 <dialog id="editCatSheet">
   <div class="sheet-in">
     <h2>Éditer la Catégorie</h2>
-    <p class="ctx">Saisissez le nouveau nom de la catégorie.</p>
-
     <div class="field-group" style="margin-top:0;">
       <label>Nom de la catégorie :</label>
-      <input type="text" id="editCatNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="editCatNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
-
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="editCatCancel">Annuler</button>
       <button type="button" class="act-1" id="editCatSave">Enregistrer</button>
@@ -660,23 +643,18 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="teamsManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Équipes</h2>
-    <p class="ctx">Sélectionnez l'organisation et la catégorie pour gérer les équipes.</p>
-    
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem;">
       <div>
         <label style="display:block;font-size:.75rem;font-weight:600;">Organisation :</label>
-        <select id="teamManageOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;"></select>
+        <select id="teamManageOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;"></select>
       </div>
       <div>
         <label style="display:block;font-size:.75rem;font-weight:600;">Catégorie :</label>
-        <select id="teamManageCatSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;"></select>
+        <select id="teamManageCatSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;"></select>
       </div>
     </div>
-
     <button type="button" class="act-1" id="btnAddNewTeam" style="width:100%;min-height:2.6rem;margin-bottom:.8rem;font-size:.9rem;">➕ Créer une nouvelle équipe</button>
-    
     <ul class="team-manage-list" id="teamManageList"></ul>
-
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="teamManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
@@ -688,19 +666,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
-    <p class="ctx">Définissez le mot de passe Administrateur et les accès des marqueurs par catégorie.</p>
-    
     <div class="field-group">
-      <label>Mot de passe Administrateur (Global) :</label>
-      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label>Mot de passe Administrateur :</label>
+      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
-
     <hr style="border:0;border-top:1px solid var(--line);margin:1.2rem 0;">
-    <h3 style="font-size:1rem;margin:0 0 .4rem;">Mots de passe Marqueurs par Catégorie</h3>
-    <p class="ctx" style="margin-bottom:.6rem;">Chaque marqueur accède uniquement à sa catégorie avec son mot de passe :</p>
-    
+    <h3 style="font-size:1rem;margin:0 0 .4rem;">Mots de passe Marqueurs</h3>
     <div id="catPasswordsContainer"></div>
-
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="pwdCancel">Annuler</button>
       <button type="button" class="act-1" id="pwdSave">Enregistrer</button>
@@ -711,10 +683,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="saveHistorySheet">
   <div class="sheet-in">
     <h2>Sauvegarder le Match ?</h2>
-    <p class="ctx">Voulez-vous ajouter cette partie à l'historique et remettre le tableau à zéro ?</p>
+    <p class="ctx">Voulez-vous ajouter cette partie à l'historique ? Le tableau restera modifiable.</p>
     <div class="actions">
       <button type="button" class="act-2" id="saveHistoryNo">Non, ignorer</button>
-      <button type="button" class="act-1" id="saveHistoryYes">Enregistrer et remettre à zéro</button>
+      <button type="button" class="act-1" id="saveHistoryYes">Enregistrer l'historique</button>
     </div>
   </div>
 </dialog>
@@ -722,7 +694,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="timerSheet">
   <div class="sheet-in">
     <h2>Réglage du Compteur de Temps</h2>
-    <p class="ctx">Ajustez les minutes et secondes restantes pour la période.</p>
     <div style="display:flex;gap:.5rem;align-items:center;justify-content:center;margin:1rem 0;">
       <input type="number" id="timerMin" min="0" max="99" value="20" style="width:4rem;padding:.5rem;font-size:1.5rem;text-align:center;border-radius:8px;border:1px solid var(--line);">
       <span style="font-size:1.5rem;font-weight:bold;">:</span>
@@ -738,10 +709,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="loginSheet">
   <div class="sheet-in">
     <h2>Connexion</h2>
-    <p class="ctx">Entrez vos identifiants pour débloquer les droits d'accès.</p>
-
-    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     <div class="actions">
       <button type="button" class="act-2" id="loginCancel">Annuler</button>
       <button type="button" class="act-1" id="loginSubmit">Se connecter</button>
@@ -752,8 +721,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="newGameWizard">
   <div class="sheet-in">
     <h2>Nouvelle Partie</h2>
-    <p class="ctx">Sélectionnez les équipes, les couleurs et les joueurs présents.</p>
-    
     <div class="preset-box">
       <label>1. Équipe Visiteuse :</label>
       <select id="wizTeamB"><option value="">-- Choisir Équipe Visiteuse --</option></select>
@@ -761,7 +728,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <label>Couleur :</label>
         <input type="color" id="wizColorB" value="#F2707A">
       </div>
-      <label style="margin-top:.6rem;display:block;">Joueurs présents (Visiteur) :</label>
+      <label style="margin-top:.6rem;display:block;">Joueurs présents :</label>
       <div class="presence-list" id="wizPresenceListB"></div>
     </div>
 
@@ -772,7 +739,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <label>Couleur :</label>
         <input type="color" id="wizColorA" value="#6FA2EE">
       </div>
-      <label style="margin-top:.6rem;display:block;">Joueurs présents (Local) :</label>
+      <label style="margin-top:.6rem;display:block;">Joueurs présents :</label>
       <div class="presence-list" id="wizPresenceListA"></div>
     </div>
 
@@ -783,35 +750,29 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Édition d'Équipe -->
 <dialog id="rosterSheet">
   <div class="sheet-in">
     <h2 id="rsTitle">Édition d'Équipe</h2>
-    <p class="ctx">Configurez l'équipe et sa formation.</p>
-
     <div class="field-group" style="margin-top:0;">
-      <label style="font-size:.8rem;font-weight:600;">Nom de l'équipe :</label>
-      <input type="text" id="editTeamNameInput" maxlength="18" placeholder="Ex: Lions Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label>Nom de l'équipe :</label>
+      <input type="text" id="editTeamNameInput" maxlength="18" placeholder="Ex: Lions Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
-
     <div class="color-picker-row" style="margin:.6rem 0;">
-      <label style="font-size:.85rem;font-weight:600;">Couleur par défaut :</label>
+      <label>Couleur par défaut :</label>
       <input type="color" id="presetTeamColor" value="#6FA2EE">
     </div>
-
     <div class="logo-upload-box">
-      <label style="font-size:.8rem;font-weight:600;">URL du Logo d'équipe :</label>
-      <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label>URL du Logo :</label>
+      <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
       <img id="logoPreview" class="logo-preview-img" src="" alt="Aperçu logo" style="display:none;">
     </div>
-    
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Joueurs :</label>
     <div class="roster-grid" id="rosterForm"></div>
     <button type="button" class="act-2" id="addPlayerBtn" style="width:100%;min-height:2.2rem;margin-bottom:.8rem;font-size:.85rem;">+ Ajouter un joueur</button>
 
-    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Entraîneurs / Personnel (Staff) :</label>
+    <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Staff :</label>
     <div class="roster-grid" id="staffForm"></div>
-    <button type="button" class="act-2" id="addStaffBtn" style="width:100%;min-height:2.2rem;margin-bottom:.8rem;font-size:.85rem;">+ Ajouter un membre du staff</button>
+    <button type="button" class="act-2" id="addStaffBtn" style="width:100%;min-height:2.2rem;margin-bottom:.8rem;font-size:.85rem;">+ Ajouter un membre</button>
     
     <div class="actions">
       <button type="button" class="act-2" id="rsCancel">Annuler</button>
@@ -820,23 +781,26 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
+<!-- Modale Saisie Buts Dynamique -->
 <dialog id="goalSheet">
   <div class="sheet-in">
     <h2 id="gsTitle">But</h2>
     <p class="ctx" id="gsCtx"></p>
-    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;">Toucher un joueur pour lui attribuer un rôle :</div>
+    <div id="goalSequenceStatus" style="font-weight:bold;color:var(--blue);margin-bottom:.4rem;font-size:.9rem;">1. Sélectionnez le BUTEUR</div>
     <div class="player-pick-grid" id="playerPickGrid"></div>
+    
     <div style="background:var(--ice);padding:.6rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
-      <small style="display:block;font-weight:600;margin-bottom:.3rem;color:#0F2236;">Joueur manquant (Ajout rapide) :</small>
+      <small style="display:block;font-weight:600;margin-bottom:.3rem;color:#0F2236;">Joueur manquant :</small>
       <div style="display:flex;gap:.3rem;">
         <input type="text" id="quickNo" placeholder="#" style="width:2.8rem;padding:.4rem;border:1px solid var(--line);border-radius:6px;">
         <input type="text" id="quickName" placeholder="Nom du joueur" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;">
         <button type="button" class="act-2" id="quickAddBtn" style="padding:.4rem .7rem;">Ajouter</button>
       </div>
     </div>
+    
     <div class="actions" style="margin-top:1rem;">
-      <button type="button" class="act-2" id="gsSkip">Passer</button>
-      <button type="button" class="act-1" id="gsSave">Enregistrer</button>
+      <button type="button" class="act-2" id="gsResetSeq">Réinitialiser</button>
+      <button type="button" class="act-1" id="gsSave">Terminer / Enregistrer</button>
     </div>
     <button type="button" class="danger" id="gsDelete" hidden>Supprimer ce but</button>
   </div>
@@ -888,7 +852,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   var $ = function(id){ return document.getElementById(id); };
 
-  // Config Firebase Realtime Database
   var firebaseConfig = {
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
@@ -920,8 +883,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var timerInterval = null;
   var passwords = { admin: "hockey", marqueur: "buts", categories: {} };
 
-  var selectedPlayerA = null;
-  var selectedPlayerB = null;
+  var openPlayerCardId = null; 
+  var rosterScope = "match"; 
 
   var isAdminGlobal = localStorage.getItem("ohmtro_admin_auth") === "true";
   var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
@@ -930,12 +893,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var currentEditingOrgObj = null;
   var currentEditingCatIndex = -1;
 
-  // Variables internes pour le module Gestion des Messages
   var msgSelectedOrgKey = currentOrg;
   var msgSelectedTeamKey = "";
   var msgTempTeams = {};
 
-  // Gestion du temps personnalisé
+  var exportTypeToRun = "pdf";
+
   $("defaultPeriodMinInput").addEventListener("change", function(){
     if($("defaultPeriodMinInput").value === "custom"){
       $("customPeriodMinInput").style.display = "block";
@@ -945,7 +908,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   });
 
-  // Écoute des organisations globales dans Firebase
   dbOrgs = firebase.database().ref("global/organizations");
   dbOrgs.on("value", function(snap){
     var val = snap.val();
@@ -970,13 +932,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
 
   function switchOrganization(orgKey, catKey){
-    if(db) db.off();
-    if(dbHistory) dbHistory.off();
-    if(dbPresets) dbPresets.off();
-    if(dbPasswords) dbPasswords.off();
-    if(dbConfig) dbConfig.off();
-    if(dbPresence) dbPresence.off();
-    if(dbCategories) dbCategories.off();
+    if(db) db.off(); if(dbHistory) dbHistory.off(); if(dbPresets) dbPresets.off();
+    if(dbPasswords) dbPasswords.off(); if(dbConfig) dbConfig.off(); if(dbPresence) dbPresence.off(); if(dbCategories) dbCategories.off();
 
     currentOrg = orgKey;
     sessionStorage.setItem("ohmtro_org", orgKey);
@@ -1008,10 +965,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     myPresenceRef.onDisconnect().remove();
     myPresenceRef.set(true);
 
-    var matchedOrgObj = organizationsList.find(function(o){ return o.id === currentOrg; });
-    var orgDisplayName = matchedOrgObj ? matchedOrgObj.name : currentOrg.toUpperCase();
-    if($("lblConfigOrgName")) $("lblConfigOrgName").textContent = orgDisplayName;
-
     if(currentOrg === "lions"){
       $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png";
       document.title = "Feuille de match - Lions de Chavigny (" + currentCat.toUpperCase() + ")";
@@ -1028,27 +981,15 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     attachListeners();
   }
 
-  $("orgSelectTop").addEventListener("change", function(){
-    switchOrganization($("orgSelectTop").value, currentCat);
-  });
-
-  $("catSelectTop").addEventListener("change", function(){
-    switchOrganization(currentOrg, $("catSelectTop").value);
-  });
+  $("orgSelectTop").addEventListener("change", function(){ switchOrganization($("orgSelectTop").value, currentCat); });
+  $("catSelectTop").addEventListener("change", function(){ switchOrganization(currentOrg, $("catSelectTop").value); });
 
   function attachListeners(){
-    dbPresence.on("value", function(snap) {
-      onlineCount = snap.numChildren() || 1;
-      updateStatusDisplay();
-    });
+    dbPresence.on("value", function(snap) { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
 
     dbCategories.on("value", function(snap){
       var val = snap.val();
-      if(val && Array.isArray(val)){
-        categoriesList = val;
-      } else {
-        categoriesList = ["m13", "m15", "m17"];
-      }
+      categoriesList = (val && Array.isArray(val)) ? val : ["m13", "m15", "m17"];
       renderCategoriesDropdownTop();
       renderCategoriesManageList();
     });
@@ -1058,9 +999,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       if(cfg.defaultPeriodMin){
         var mVal = String(cfg.defaultPeriodMin);
         defaultPeriodSec = Number(mVal) * 60;
-        
-        var presetOpts = ["10", "12", "15", "18", "20"];
-        if(presetOpts.indexOf(mVal) !== -1){
+        if(["10","12","15","18","20"].indexOf(mVal) !== -1){
           $("defaultPeriodMinInput").value = mVal;
           $("customPeriodMinInput").style.display = "none";
         } else {
@@ -1103,13 +1042,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // Mettre à jour l'affichage dynamique du bandeau
   function updateTickerDisplay(){
     var matchedOrg = organizationsList.find(function(o){ return o.id === currentOrg; });
     var orgMsg = (matchedOrg && matchedOrg.msg) ? matchedOrg.msg.trim() : "";
-
-    var teamAMsg = "";
-    var teamBMsg = "";
+    var teamAMsg = "", teamBMsg = "";
 
     if(presets && typeof presets === "object"){
       Object.keys(presets).forEach(function(k){
@@ -1124,20 +1060,15 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(teamAMsg) messages.push(state.names.a + ": " + teamAMsg);
     if(teamBMsg) messages.push(state.names.b + ": " + teamBMsg);
 
-    var wrap = $("tickerWrap");
-    var text = $("tickerText");
-
+    var wrap = $("tickerWrap"); var text = $("tickerText");
     if(messages.length > 0){
       var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
       var fullMsg = messages.join(spaces) + spaces;
       text.textContent = fullMsg + fullMsg;
       wrap.classList.add("active");
-
       setTimeout(function(){
         var width = text.offsetWidth / 2;
-        var pxPerSec = 40; 
-        var duration = width / pxPerSec;
-        text.style.animationDuration = duration + "s";
+        text.style.animationDuration = (width / 40) + "s";
       }, 50);
     } else {
       wrap.classList.remove("active");
@@ -1154,35 +1085,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         var p = presets[k];
         if(p && p.name === teamName){
           if(!state.rosters[side] || state.rosters[side].length === 0){
-            if(p.roster && p.roster.length > 0){
-              state.rosters[side] = JSON.parse(JSON.stringify(p.roster));
-              changed = true;
-            }
+            if(p.roster && p.roster.length > 0){ state.rosters[side] = JSON.parse(JSON.stringify(p.roster)); changed = true; }
           }
           if(!state.staff[side] || state.staff[side].length === 0){
-            if(p.staff && p.staff.length > 0){
-              state.staff[side] = JSON.parse(JSON.stringify(p.staff));
-              changed = true;
-            }
+            if(p.staff && p.staff.length > 0){ state.staff[side] = JSON.parse(JSON.stringify(p.staff)); changed = true; }
           }
-          if(!state.logos[side] && p.logo){
-            state.logos[side] = p.logo;
-            changed = true;
-          }
+          if(!state.logos[side] && p.logo){ state.logos[side] = p.logo; changed = true; }
         }
       });
     });
-    if(changed){
-      render();
-    }
+    if(changed) render();
   }
 
   function renderCategoriesDropdownTop(){
     var sel = $("catSelectTop"); sel.innerHTML = "";
     categoriesList.forEach(function(cat){
-      var opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat.toUpperCase();
+      var opt = document.createElement("option"); opt.value = cat; opt.textContent = cat.toUpperCase();
       if(cat === currentCat) opt.selected = true;
       sel.appendChild(opt);
     });
@@ -1196,24 +1114,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
 
   function updateRoleUI(){
-    document.body.className = "";
-    document.body.classList.add("role-" + currentRole);
-    var btnL = $("btnLogin");
-    btnL.textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
+    document.body.className = "role-" + currentRole;
+    $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
     updateStatusDisplay();
   }
 
   $("btnLogin").addEventListener("click", function(){
     if(currentRole !== "viewer"){
-      currentRole = "viewer";
-      isAdminGlobal = false;
-      localStorage.removeItem("ohmtro_admin_auth");
-      sessionStorage.removeItem("ohmtro_role");
-      sessionStorage.removeItem("ohmtro_assigned_cat");
-      assignedCat = null;
-      updateRoleUI();
-      render();
-      alert("Vous êtes déconnecté.");
+      currentRole = "viewer"; isAdminGlobal = false;
+      localStorage.removeItem("ohmtro_admin_auth"); sessionStorage.removeItem("ohmtro_role"); sessionStorage.removeItem("ohmtro_assigned_cat");
+      assignedCat = null; updateRoleUI(); render(); alert("Vous êtes déconnecté.");
     } else {
       $("loginSheet").showModal();
       setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
@@ -1221,18 +1131,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   });
 
   $("loginCancel").addEventListener("click", function(){ $("loginSheet").close(); });
-  
   $("loginSubmit").addEventListener("click", function(){
-    var u = $("loginUser").value.trim().toLowerCase();
-    var p = $("loginPass").value.trim();
-
+    var u = $("loginUser").value.trim().toLowerCase(); var p = $("loginPass").value.trim();
     if((u === "admin" || u === "yanduch") && p === (passwords.admin || "hockey")){
-      currentRole = "admin";
-      isAdminGlobal = true;
-      localStorage.setItem("ohmtro_admin_auth", "true");
-      sessionStorage.setItem("ohmtro_role", "admin");
-    }
-    else if(u === "marqueur"){
+      currentRole = "admin"; isAdminGlobal = true;
+      localStorage.setItem("ohmtro_admin_auth", "true"); sessionStorage.setItem("ohmtro_role", "admin");
+    } else if(u === "marqueur"){
       var matchCatKey = null;
       if(p === (passwords.marqueur || "buts")){ matchCatKey = currentCat; }
       else {
@@ -1240,461 +1144,296 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
           if(passwords.categories[catKey] === p) matchCatKey = catKey;
         });
       }
-
       if(matchCatKey){
-        currentRole = "marqueur";
-        isAdminGlobal = false;
-        assignedCat = matchCatKey;
-        sessionStorage.setItem("ohmtro_role", "marqueur");
-        sessionStorage.setItem("ohmtro_assigned_cat", matchCatKey);
+        currentRole = "marqueur"; isAdminGlobal = false; assignedCat = matchCatKey;
+        sessionStorage.setItem("ohmtro_role", "marqueur"); sessionStorage.setItem("ohmtro_assigned_cat", matchCatKey);
         if(matchCatKey !== currentCat){ switchOrganization(currentOrg, matchCatKey); }
-      } else {
-        alert("Mot de passe marqueur incorrect pour cette catégorie."); return;
-      }
-    } else {
-      alert("Identifiants incorrects."); return;
-    }
-
-    updateRoleUI();
-    render();
-    $("loginSheet").close();
+      } else { alert("Mot de passe marqueur incorrect."); return; }
+    } else { alert("Identifiants incorrects."); return; }
+    updateRoleUI(); render(); $("loginSheet").close();
   });
 
   $("btnManageSettings").addEventListener("click", function(){ $("settingsSheet").showModal(); });
   $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
   $("settingsSave").addEventListener("click", function(){
     var selVal = $("defaultPeriodMinInput").value;
-    var min = 20;
-    if(selVal === "custom"){
-      min = Number($("customPeriodMinInput").value) || 20;
-    } else {
-      min = Number(selVal);
-    }
-    
+    var min = selVal === "custom" ? (Number($("customPeriodMinInput").value) || 20) : Number(selVal);
     dbConfig.child("defaultPeriodMin").set(min);
-    
-    alert("Paramètres enregistrés !");
-    $("settingsSheet").close();
+    alert("Paramètres enregistrés !"); $("settingsSheet").close();
   });
 
-  // --- MODULE : GESTION DES MESSAGES ---
-  $("btnOpenMessagesManage").addEventListener("click", function(){
-    $("settingsSheet").close();
-    openMessagesManageModal();
+  // Exportation PDF / CSV
+  function openExportModal(type){
+    exportTypeToRun = type;
+    $("exportSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+  }
+  $("btnExportPDF").addEventListener("click", function(){ openExportModal("pdf"); });
+  $("btnExportCSV").addEventListener("click", function(){ openExportModal("csv"); });
+  $("exportCancel").addEventListener("click", function(){ $("exportSheet").close(); });
+
+  $("exportConfirm").addEventListener("click", function(){
+    var reportType = $("exportReportType").value;
+    var scope = $("exportScope").value;
+    $("exportSheet").close();
+
+    if(exportTypeToRun === "pdf"){
+      window.print();
+    } else {
+      var csv = "Type,Temps,Periode,Equipe,Joueur,Aide1,Aide2,Detail\n";
+      var sourceEvents = (scope === "current") ? state.events : [];
+      if(scope === "all"){
+        Object.keys(historyData).forEach(function(k){
+          if(historyData[k].events) sourceEvents = sourceEvents.concat(historyData[k].events);
+        });
+      }
+
+      sourceEvents.forEach(function(e){
+        var teamName = state.names[e.team] || "Equipe";
+        var pName = PLABEL[e.period] || "";
+        if(e.type === "goal"){
+          csv += "But," + e.time + "," + pName + "," + teamName + "," + getPlayerName(e.team, e.scorer) + "," + getPlayerName(e.team, e.a1) + "," + getPlayerName(e.team, e.a2) + ",\n";
+        } else if(e.type === "pen"){
+          csv += "Punition," + e.time + "," + pName + "," + teamName + "," + getPlayerName(e.team, e.player) + ",,," + (e.min||2) + " min - " + (e.reason||"") + "\n";
+        }
+      });
+
+      var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a"); a.href = url;
+      a.download = "Rapport_" + reportType + "_" + scope + ".csv";
+      a.click();
+    }
   });
 
+  // --- MESSAGES ---
+  $("btnOpenMessagesManage").addEventListener("click", function(){ $("settingsSheet").close(); openMessagesManageModal(); });
   function openMessagesManageModal(){
     var selOrg = $("msgOrgSelect");
-    var inputOrg = $("msgOrgInput");
-    var selTeam = $("msgTeamSelect");
-    var inputTeam = $("msgTeamInput");
-
-    selOrg.innerHTML = "";
-    selOrg.disabled = (currentRole !== "admin");
-    inputOrg.disabled = (currentRole !== "admin");
-
+    selOrg.innerHTML = ""; selOrg.disabled = (currentRole !== "admin"); $("msgOrgInput").disabled = (currentRole !== "admin");
     organizationsList.forEach(function(o){
       var opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name;
-      if(o.id === currentOrg) opt.selected = true;
-      selOrg.appendChild(opt);
+      if(o.id === currentOrg) opt.selected = true; selOrg.appendChild(opt);
     });
-
     msgSelectedOrgKey = selOrg.value || currentOrg;
     loadOrgMessageData(msgSelectedOrgKey);
-
     $("messagesManageSheet").showModal();
     setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   }
-
-  $("msgOrgSelect").addEventListener("change", function(){
-    msgSelectedOrgKey = $("msgOrgSelect").value;
-    loadOrgMessageData(msgSelectedOrgKey);
-  });
-
+  $("msgOrgSelect").addEventListener("change", function(){ msgSelectedOrgKey = $("msgOrgSelect").value; loadOrgMessageData(msgSelectedOrgKey); });
   function loadOrgMessageData(orgKey){
     var matchedOrg = organizationsList.find(function(o){ return o.id === orgKey; });
     $("msgOrgInput").value = (matchedOrg && matchedOrg.msg) ? matchedOrg.msg : "";
-
+    $("msgTeamSelect").innerHTML = '<option value="">Chargement...</option>';
+    $("msgTeamInput").value = "";
     firebase.database().ref(orgKey + "/teams_presets").once("value", function(snap){
-      msgTempTeams = snap.val() || {};
-      populateMsgTeamsSelect();
+      msgTempTeams = snap.val() || {}; populateMsgTeamsSelect();
     });
   }
-
   function populateMsgTeamsSelect(){
-    var selTeam = $("msgTeamSelect");
-    selTeam.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
-    
+    var selTeam = $("msgTeamSelect"); selTeam.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
     var keys = Object.keys(msgTempTeams);
-    keys.forEach(function(k){
-      var team = msgTempTeams[k];
-      if(!team.category || team.category === "" || team.category === currentCat){
-        var opt = document.createElement("option"); opt.value = k; opt.textContent = team.name;
-        selTeam.appendChild(opt);
-      }
-    });
-
     if(keys.length > 0){
-      selTeam.selectedIndex = 1;
-      msgSelectedTeamKey = selTeam.value;
+      keys.forEach(function(k){
+        var team = msgTempTeams[k];
+        if(team && team.name){
+          var opt = document.createElement("option"); opt.value = k; opt.textContent = team.name; selTeam.appendChild(opt);
+        }
+      });
+      selTeam.selectedIndex = 1; msgSelectedTeamKey = selTeam.value;
       $("msgTeamInput").value = (msgTempTeams[msgSelectedTeamKey] && msgTempTeams[msgSelectedTeamKey].msg) ? msgTempTeams[msgSelectedTeamKey].msg : "";
     } else {
-      msgSelectedTeamKey = "";
-      $("msgTeamInput").value = "";
+      msgSelectedTeamKey = ""; selTeam.innerHTML = '<option value="">Aucune équipe</option>'; $("msgTeamInput").value = "";
     }
   }
-
   $("msgTeamSelect").addEventListener("change", function(){
     msgSelectedTeamKey = $("msgTeamSelect").value;
-    if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
-      $("msgTeamInput").value = msgTempTeams[msgSelectedTeamKey].msg || "";
-    } else {
-      $("msgTeamInput").value = "";
-    }
+    $("msgTeamInput").value = (msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]) ? (msgTempTeams[msgSelectedTeamKey].msg || "") : "";
   });
-
-  $("msgManageBack").addEventListener("click", function(){
-    $("messagesManageSheet").close();
-    $("settingsSheet").showModal();
-  });
-
+  $("msgManageBack").addEventListener("click", function(){ $("messagesManageSheet").close(); $("settingsSheet").showModal(); });
   $("msgManageSave").addEventListener("click", function(){
     if(currentRole === "admin"){
       var matchedOrg = organizationsList.find(function(o){ return o.id === msgSelectedOrgKey; });
-      if(matchedOrg){
-        matchedOrg.msg = $("msgOrgInput").value.trim();
-        dbOrgs.set(organizationsList);
-      }
+      if(matchedOrg){ matchedOrg.msg = $("msgOrgInput").value.trim(); dbOrgs.set(organizationsList); }
     }
-
     if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
-      var newTeamMsg = $("msgTeamInput").value.trim();
-      firebase.database().ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set(newTeamMsg);
+      firebase.database().ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set($("msgTeamInput").value.trim());
     }
-
-    alert("Messages enregistrés avec succès !");
-    updateTickerDisplay();
-    $("messagesManageSheet").close();
-    $("settingsSheet").showModal();
+    alert("Messages enregistrés !"); updateTickerDisplay(); $("messagesManageSheet").close(); $("settingsSheet").showModal();
   });
 
-  // --- 1. GESTION DES ORGANISATIONS ---
-  $("btnOpenOrgManage").addEventListener("click", function(){
-    $("settingsSheet").close();
-    renderOrgManageList();
-    $("orgManageSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
-  });
+  // ORGANISATIONS
+  $("btnOpenOrgManage").addEventListener("click", function(){ $("settingsSheet").close(); renderOrgManageList(); $("orgManageSheet").showModal(); });
   $("orgManageClose").addEventListener("click", function(){ $("orgManageSheet").close(); });
-  $("orgManageBack").addEventListener("click", function(){
-    $("orgManageSheet").close();
-    $("settingsSheet").showModal();
-  });
-
+  $("orgManageBack").addEventListener("click", function(){ $("orgManageSheet").close(); $("settingsSheet").showModal(); });
   $("btnAddOrg").addEventListener("click", function(){
     var id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
     var name = $("newOrgNameInput").value.trim();
     if(!id || !name) return;
-
     if(!organizationsList.some(function(o){ return o.id === id; })){
-      organizationsList.push({ id: id, name: name, msg: "" });
-      dbOrgs.set(organizationsList);
+      organizationsList.push({ id: id, name: name, msg: "" }); dbOrgs.set(organizationsList);
       $("newOrgIdInput").value = ""; $("newOrgNameInput").value = "";
     }
   });
-
   function renderOrgManageList(){
-    var list = $("orgManageList"); if(!list) return;
-    list.textContent = "";
+    var list = $("orgManageList"); if(!list) return; list.textContent = "";
     organizationsList.forEach(function(o){
       var li = document.createElement("li"); li.className = "org-manage-item";
       li.innerHTML = "<div><strong>" + o.name + "</strong> <small style='color:var(--muted);'>(" + o.id + ")</small></div>";
-      
       var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
-
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
-      btnEdit.textContent = "✏️ Éditer";
+      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
-        currentEditingOrgObj = o;
-        $("editOrgNameInput").value = o.name;
-        $("orgManageSheet").close();
-        $("editOrgSheet").showModal();
-        setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+        currentEditingOrgObj = o; $("editOrgNameInput").value = o.name; $("orgManageSheet").close(); $("editOrgSheet").showModal();
       });
       ctrls.appendChild(btnEdit);
-
-      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
-      btnDel.textContent = "🗑 Supprimer";
+      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
-        if(organizationsList.length <= 1){ alert("Vous devez conserver au moins une organisation."); return; }
-        if(confirm("Supprimer l'organisation '" + o.name + "' ?")){
-          organizationsList = organizationsList.filter(function(x){ return x.id !== o.id; });
-          dbOrgs.set(organizationsList);
+        if(organizationsList.length <= 1){ alert("Conserver au moins une organisation."); return; }
+        if(confirm("Supprimer " + o.name + " ?")){
+          organizationsList = organizationsList.filter(function(x){ return x.id !== o.id; }); dbOrgs.set(organizationsList);
         }
       });
       ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
     });
   }
-
-  $("editOrgCancel").addEventListener("click", function(){
-    $("editOrgSheet").close();
-    $("orgManageSheet").showModal();
-  });
-
+  $("editOrgCancel").addEventListener("click", function(){ $("editOrgSheet").close(); $("orgManageSheet").showModal(); });
   $("editOrgSave").addEventListener("click", function(){
-    var newName = $("editOrgNameInput").value.trim();
-    if(newName && currentEditingOrgObj){
-      currentEditingOrgObj.name = newName;
-      dbOrgs.set(organizationsList);
+    if($("editOrgNameInput").value.trim() && currentEditingOrgObj){
+      currentEditingOrgObj.name = $("editOrgNameInput").value.trim(); dbOrgs.set(organizationsList);
     }
-    $("editOrgSheet").close();
-    renderOrgManageList();
-    $("orgManageSheet").showModal();
+    $("editOrgSheet").close(); renderOrgManageList(); $("orgManageSheet").showModal();
   });
 
-  // --- 2. GESTION DES CATÉGORIES ---
+  // CATÉGORIES
   var manageCatOrgKey = currentOrg;
-
   $("btnOpenCategoriesManage").addEventListener("click", function(){
-    $("settingsSheet").close();
-    manageCatOrgKey = currentOrg;
-    populateOrgSelect("catManageOrgSelect", manageCatOrgKey);
-    loadCategoriesForOrg(manageCatOrgKey);
-    $("categoriesManageSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+    $("settingsSheet").close(); manageCatOrgKey = currentOrg;
+    populateOrgSelect("catManageOrgSelect", manageCatOrgKey); loadCategoriesForOrg(manageCatOrgKey); $("categoriesManageSheet").showModal();
   });
   $("categoriesManageClose").addEventListener("click", function(){ $("categoriesManageSheet").close(); });
-  $("catManageBack").addEventListener("click", function(){
-    $("categoriesManageSheet").close();
-    $("settingsSheet").showModal();
-  });
-
-  $("catManageOrgSelect").addEventListener("change", function(){
-    manageCatOrgKey = $("catManageOrgSelect").value;
-    loadCategoriesForOrg(manageCatOrgKey);
-  });
-
+  $("catManageBack").addEventListener("click", function(){ $("categoriesManageSheet").close(); $("settingsSheet").showModal(); });
+  $("catManageOrgSelect").addEventListener("change", function(){ manageCatOrgKey = $("catManageOrgSelect").value; loadCategoriesForOrg(manageCatOrgKey); });
   function populateOrgSelect(selectId, selectedValue){
     var sel = $(selectId); sel.innerHTML = "";
     organizationsList.forEach(function(o){
       var opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name;
-      if(o.id === selectedValue) opt.selected = true;
-      sel.appendChild(opt);
+      if(o.id === selectedValue) opt.selected = true; sel.appendChild(opt);
     });
   }
-
   var manageCategoriesList = [];
   function loadCategoriesForOrg(orgKey){
     firebase.database().ref(orgKey + "/categories").once("value", function(snap){
-      var val = snap.val();
-      manageCategoriesList = (val && Array.isArray(val)) ? val : ["m13", "m15", "m17"];
-      renderCategoriesManageList();
+      var val = snap.val(); manageCategoriesList = (val && Array.isArray(val)) ? val : ["m13", "m15", "m17"]; renderCategoriesManageList();
     });
   }
-
   $("btnAddCat").addEventListener("click", function(){
-    var val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-    if(!val) return;
+    var val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""); if(!val) return;
     if(manageCategoriesList.indexOf(val) === -1){
-      manageCategoriesList.push(val);
-      firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-      $("newCatInput").value = "";
-      renderCategoriesManageList();
+      manageCategoriesList.push(val); firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
+      $("newCatInput").value = ""; renderCategoriesManageList();
     }
   });
-
   function renderCategoriesManageList(){
-    var list = $("catManageList"); if(!list) return;
-    list.textContent = "";
+    var list = $("catManageList"); if(!list) return; list.textContent = "";
     manageCategoriesList.forEach(function(cat, index){
       var li = document.createElement("li"); li.className = "cat-manage-item";
       li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
-      
       var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
-
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
-      btnEdit.textContent = "✏️ Éditer";
+      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏️️ Éditer";
       btnEdit.addEventListener("click", function(){
-        currentEditingCatIndex = index;
-        $("editCatNameInput").value = cat.toUpperCase();
-        $("categoriesManageSheet").close();
-        $("editCatSheet").showModal();
-        setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+        currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); $("categoriesManageSheet").close(); $("editCatSheet").showModal();
       });
       ctrls.appendChild(btnEdit);
-
-      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
-      btnDel.textContent = "🗑 Supprimer";
+      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
-        if(manageCategoriesList.length <= 1){ alert("Vous devez conserver au moins une catégorie."); return; }
-        if(confirm("Supprimer la catégorie '" + cat.toUpperCase() + "' ?")){
+        if(manageCategoriesList.length <= 1){ alert("Conserver au moins une catégorie."); return; }
+        if(confirm("Supprimer la catégorie ?")){
           manageCategoriesList = manageCategoriesList.filter(function(c){ return c !== cat; });
-          firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-          renderCategoriesManageList();
+          firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList); renderCategoriesManageList();
         }
       });
       ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
     });
   }
-
-  $("editCatCancel").addEventListener("click", function(){
-    $("editCatSheet").close();
-    $("categoriesManageSheet").showModal();
-  });
-
+  $("editCatCancel").addEventListener("click", function(){ $("editCatSheet").close(); $("categoriesManageSheet").showModal(); });
   $("editCatSave").addEventListener("click", function(){
     var newCatName = $("editCatNameInput").value.trim();
     if(newCatName && currentEditingCatIndex >= 0){
       var cleanKey = newCatName.toLowerCase().replace(/[^a-z0-9]/g, "");
-      if(cleanKey){
-        manageCategoriesList[currentEditingCatIndex] = cleanKey;
-        firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-      }
+      if(cleanKey){ manageCategoriesList[currentEditingCatIndex] = cleanKey; firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList); }
     }
-    $("editCatSheet").close();
-    renderCategoriesManageList();
-    $("categoriesManageSheet").showModal();
+    $("editCatSheet").close(); renderCategoriesManageList(); $("categoriesManageSheet").showModal();
   });
 
-  // --- 3. GESTION DES ÉQUIPES ---
-  var manageTeamOrgKey = currentOrg;
-  var manageTeamCatKey = currentCat;
-  var manageTeamPresets = {};
-
+  // ÉQUIPES
+  var manageTeamOrgKey = currentOrg, manageTeamCatKey = currentCat, manageTeamPresets = {};
   $("btnOpenTeamsManage").addEventListener("click", function(){
-    $("settingsSheet").close();
-    manageTeamOrgKey = currentOrg;
-    manageTeamCatKey = currentCat;
-    
-    populateOrgSelect("teamManageOrgSelect", manageTeamOrgKey);
-    populateCatSelectForTeams(manageTeamOrgKey, manageTeamCatKey);
-    
-    loadTeamsForManage(manageTeamOrgKey);
-    $("teamsManageSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+    $("settingsSheet").close(); manageTeamOrgKey = currentOrg; manageTeamCatKey = currentCat;
+    populateOrgSelect("teamManageOrgSelect", manageTeamOrgKey); populateCatSelectForTeams(manageTeamOrgKey, manageTeamCatKey);
+    loadTeamsForManage(manageTeamOrgKey); $("teamsManageSheet").showModal();
   });
   $("teamsManageClose").addEventListener("click", function(){ $("teamsManageSheet").close(); });
-  $("teamManageBack").addEventListener("click", function(){
-    $("teamsManageSheet").close();
-    $("settingsSheet").showModal();
-  });
-
+  $("teamManageBack").addEventListener("click", function(){ $("teamsManageSheet").close(); $("settingsSheet").showModal(); });
   $("teamManageOrgSelect").addEventListener("change", function(){
-    manageTeamOrgKey = $("teamManageOrgSelect").value;
-    populateCatSelectForTeams(manageTeamOrgKey, "");
-    loadTeamsForManage(manageTeamOrgKey);
+    manageTeamOrgKey = $("teamManageOrgSelect").value; populateCatSelectForTeams(manageTeamOrgKey, ""); loadTeamsForManage(manageTeamOrgKey);
   });
-
-  $("teamManageCatSelect").addEventListener("change", function(){
-    manageTeamCatKey = $("teamManageCatSelect").value;
-    renderTeamsManageList();
-  });
-
+  $("teamManageCatSelect").addEventListener("change", function(){ manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList(); });
   function populateCatSelectForTeams(orgKey, selectedCatKey){
     firebase.database().ref(orgKey + "/categories").once("value", function(snap){
       var cats = snap.val() || ["m13", "m15", "m17"];
       var sel = $("teamManageCatSelect"); sel.innerHTML = '<option value="">Toutes les catégories</option>';
       cats.forEach(function(c){
         var opt = document.createElement("option"); opt.value = c; opt.textContent = c.toUpperCase();
-        if(c === selectedCatKey) opt.selected = true;
-        sel.appendChild(opt);
+        if(c === selectedCatKey) opt.selected = true; sel.appendChild(opt);
       });
     });
   }
-
   function loadTeamsForManage(orgKey){
     firebase.database().ref(orgKey + "/teams_presets").on("value", function(snap){
-      manageTeamPresets = snap.val() || {};
-      renderTeamsManageList();
+      manageTeamPresets = snap.val() || {}; renderTeamsManageList();
     });
   }
-
   function renderTeamsManageList(){
-    var list = $("teamManageList"); if(!list) return;
-    list.textContent = "";
+    var list = $("teamManageList"); if(!list) return; list.textContent = "";
     var keys = Object.keys(manageTeamPresets);
-
     var filteredKeys = keys.filter(function(k){
-      var team = manageTeamPresets[k];
-      return !manageTeamCatKey || !team.category || team.category === "" || team.category === manageTeamCatKey;
+      var team = manageTeamPresets[k]; return !manageTeamCatKey || !team.category || team.category === "" || team.category === manageTeamCatKey;
     });
-
-    if(!filteredKeys.length){
-      var empty = document.createElement("li"); empty.style.fontSize=".85rem"; empty.style.color="var(--muted)";
-      empty.textContent = "Aucune équipe enregistrée pour cette sélection.";
-      list.appendChild(empty);
-      return;
-    }
-
+    if(!filteredKeys.length){ list.innerHTML = "<li style='font-size:.85rem;color:var(--muted);'>Aucune équipe.</li>"; return; }
     filteredKeys.forEach(function(key){
-      var team = manageTeamPresets[key];
-      var li = document.createElement("li"); li.className = "team-manage-item";
-      
-      var info = document.createElement("div");
+      var team = manageTeamPresets[key]; var li = document.createElement("li"); li.className = "team-manage-item";
       var colorDot = "<span style='display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:" + (team.color || "#6FA2EE") + ";margin-right:.4rem;'></span>";
-      var rosterCount = team.roster ? team.roster.length : 0;
-      var catTag = team.category ? " [" + team.category.toUpperCase() + "]" : " [Toutes]";
-      info.innerHTML = "<div>" + colorDot + "<strong>" + team.name + catTag + "</strong><br><small style='color:var(--muted);'>" + rosterCount + " joueur(s)</small></div>";
-
+      li.innerHTML = "<div>" + colorDot + "<strong>" + team.name + "</strong></div>";
       var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
-
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
-      btnEdit.textContent = "✏️ Éditer";
-      btnEdit.addEventListener("click", function(){
-        openTeamEditor(key);
-      });
+      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏️ Éditer";
+      btnEdit.addEventListener("click", function(){ openTeamEditor(key); });
       ctrls.appendChild(btnEdit);
-
-      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
-      btnDel.textContent = "🗑 Supprimer";
+      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
-        if(confirm("Voulez-vous vraiment supprimer l'équipe '" + team.name + "' ?")){
-          firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).remove();
-        }
+        if(confirm("Supprimer " + team.name + " ?")){ firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).remove(); }
       });
-      ctrls.appendChild(btnDel);
-
-      li.appendChild(info); li.appendChild(ctrls);
-      list.appendChild(li);
+      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
     });
   }
 
-  // --- MOTS DE PASSE ---
+  // MOTS DE PASSE
   $("btnOpenPasswords").addEventListener("click", function(){
-    $("settingsSheet").close();
-    $("pwdAdminInput").value = passwords.admin || "hockey";
-    
+    $("settingsSheet").close(); $("pwdAdminInput").value = passwords.admin || "hockey";
     var container = $("catPasswordsContainer"); container.textContent = "";
     categoriesList.forEach(function(cat){
       var group = document.createElement("div"); group.className = "field-group";
       var label = document.createElement("label"); label.textContent = "Marqueur - " + cat.toUpperCase() + " :";
-      var input = document.createElement("input"); input.type = "password"; input.className = "cat-pwd-input";
-      input.dataset.cat = cat;
+      var input = document.createElement("input"); input.type = "password"; input.className = "cat-pwd-input"; input.dataset.cat = cat;
       input.value = (passwords.categories && passwords.categories[cat]) || passwords.marqueur || "buts";
-      input.style.cssText = "width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;";
-      
       group.appendChild(label); group.appendChild(input); container.appendChild(group);
     });
-
     $("passwordsSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("pwdCancel").addEventListener("click", function(){ $("passwordsSheet").close(); });
   $("pwdSave").addEventListener("click", function(){
-    var newP = {
-      admin: $("pwdAdminInput").value.trim() || "hockey",
-      marqueur: passwords.marqueur || "buts",
-      categories: {}
-    };
-
-    var catInputs = document.querySelectorAll(".cat-pwd-input");
-    catInputs.forEach(function(inp){
-      newP.categories[inp.dataset.cat] = inp.value.trim() || "buts";
-    });
-
-    dbPasswords.set(newP);
-    alert("Mots de passe enregistrés !");
-    $("passwordsSheet").close();
+    var newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: passwords.marqueur || "buts", categories: {} };
+    document.querySelectorAll(".cat-pwd-input").forEach(function(inp){ newP.categories[inp.dataset.cat] = inp.value.trim() || "buts"; });
+    dbPasswords.set(newP); alert("Mots de passe enregistrés !"); $("passwordsSheet").close();
   });
 
   var PLABEL = ["P1","P2","P3","Prol."];
@@ -1712,153 +1451,128 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function no(v){ return String(v == null ? "" : v).replace(/\D/g,"").slice(0,2); }
 
   function sanitize(d){
-    var s = blank();
-    if(!d || typeof d !== "object") return s;
+    var s = blank(); if(!d || typeof d !== "object") return s;
     if(d.names && typeof d.names === "object"){ s.names.a = str(d.names.a,"Local"); s.names.b = str(d.names.b,"Visiteur"); }
     if(d.logos && typeof d.logos === "object"){ s.logos.a = d.logos.a || ""; s.logos.b = d.logos.b || ""; }
     if(d.colors && typeof d.colors === "object"){ s.colors.a = d.colors.a || "#6FA2EE"; s.colors.b = d.colors.b || "#F2707A"; }
-    
     if(d.rosters && typeof d.rosters === "object"){
       s.rosters.a = Array.isArray(d.rosters.a) ? JSON.parse(JSON.stringify(d.rosters.a)) : [];
       s.rosters.b = Array.isArray(d.rosters.b) ? JSON.parse(JSON.stringify(d.rosters.b)) : [];
     }
-
     if(d.staff && typeof d.staff === "object"){
       s.staff.a = Array.isArray(d.staff.a) ? JSON.parse(JSON.stringify(d.staff.a)) : [];
       s.staff.b = Array.isArray(d.staff.b) ? JSON.parse(JSON.stringify(d.staff.b)) : [];
     }
-
     s.period = int(d.period,0,3);
-    ["a","b"].forEach(function(t){
-      for(var i=0;i<4;i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999);
-    });
-
+    ["a","b"].forEach(function(t){ for(var i=0;i<4;i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999); });
     if(Array.isArray(d.events)){ s.events = JSON.parse(JSON.stringify(d.events)); }
-    else if(Array.isArray(d.goals)){
-      s.events = d.goals.map(function(g){
-        return { id:g.id, type:"goal", team:g.team, period:g.period, time:"--:--", scorer:g.scorer, a1:g.a1, a2:g.a2, t:g.t };
-      });
-    }
-
     if(d.timer && typeof d.timer === "object"){
-      s.timer.sec = int(d.timer.sec, 0, 5999);
-      s.timer.running = !!d.timer.running;
-      s.timer.lastUpdate = Number(d.timer.lastUpdate) || 0;
+      s.timer.sec = int(d.timer.sec, 0, 5999); s.timer.running = !!d.timer.running; s.timer.lastUpdate = Number(d.timer.lastUpdate) || 0;
     }
-    s.updatedAt = Number(d.updatedAt) || 0;
-    return s;
+    s.updatedAt = Number(d.updatedAt) || 0; return s;
   }
 
   function commit(){
     if (currentRole === "viewer") return;
-    state.updatedAt = Date.now();
-    db.set(state);
-    render();
+    state.updatedAt = Date.now(); db.set(state); render();
   }
 
   function sum(a){ return a[0]+a[1]+a[2]+a[3]; }
-  function goalsOf(t,p){
-    return state.events.filter(function(e){ return e.type === "goal" && e.team === t && (p == null || e.period === p); }).length;
-  }
+  function goalsOf(t,p){ return state.events.filter(function(e){ return e.type === "goal" && e.team === t && (p == null || e.period === p); }).length; }
   function pct(saves,shots){ return (saves/shots*100).toFixed(1).replace(".",",") + " %"; }
-
-  function formatTime(s){
-    var m = Math.floor(s / 60);
-    var sec = s % 60;
-    return (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec;
-  }
+  function formatTime(s){ var m = Math.floor(s / 60), sec = s % 60; return (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec; }
 
   function getCurrentTimerSec(){
     if(!state.timer.running) return state.timer.sec;
     var elapsed = Math.floor((Date.now() - state.timer.lastUpdate) / 1000);
-    return Math.max(0, state.timer.sec - elapsed);
+    var remaining = Math.max(0, state.timer.sec - elapsed);
+    if(remaining === 0 && state.timer.running){
+      handleTimerEnd();
+    }
+    return remaining;
+  }
+
+  // Passer automatiquement à la période suivante à 00:00
+  function handleTimerEnd(){
+    state.timer.running = false;
+    state.timer.sec = defaultPeriodSec;
+
+    var gA = goalsOf("a"), gB = goalsOf("b");
+    if(state.period < 2){
+      state.period++;
+    } else if(state.period === 2){
+      if(gA === gB){
+        if(confirm("Égalité à la fin du temps régulier ! Voulez-vous aller en prolongation ?")){
+          state.period = 3;
+        } else {
+          promptSaveHistory();
+        }
+      } else {
+        promptSaveHistory();
+      }
+    } else {
+      promptSaveHistory();
+    }
+    commit();
+  }
+
+  function promptSaveHistory(){
+    if(currentRole !== "viewer"){
+      $("saveHistorySheet").showModal();
+    }
   }
 
   function getPlayerName(team, pId){
     if(!pId) return "";
     var roster = state.rosters[team] || [];
     for(var i=0; i<roster.length; i++){
-      var p = roster[i];
-      var id = p.no || ("p_" + i);
-      if(id === pId || p.no === pId){
-        return (p.no ? "#" + p.no + " " : "") + p.name;
-      }
+      var p = roster[i]; var id = p.no || ("p_" + i);
+      if(id === pId || p.no === pId) return (p.no ? "#" + p.no + " " : "") + p.name;
     }
     return "#" + pId;
   }
 
   clearInterval(timerInterval);
   timerInterval = setInterval(function(){
-    if(state.timer.running){
-      var curSec = getCurrentTimerSec();
+    var curSec = getCurrentTimerSec();
+    if(currentRole === "viewer" && curSec === 0 && state.period >= 2){
+      $("timerDisplay").textContent = "FIN DE PARTIE";
+    } else {
       $("timerDisplay").textContent = formatTime(curSec);
     }
   }, 500);
 
   function setText(id,v,bump){
     var el = $(id); v = String(v);
-    if(el.textContent !== v){
-      el.textContent = v;
-      if(bump){ el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
-    }
+    if(el.textContent !== v){ el.textContent = v; if(bump){ el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } }
   }
 
   function calculateTeamStats(){
     var targetTeamKey = $("statsTeamSelect").value;
     var targetTeamName = state.names[targetTeamKey];
-
-    var pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0;
-    var last10 = [];
-    var totalShotsAgainst = 0;
+    var pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, last10 = [], totalShotsAgainst = 0;
 
     Object.keys(historyData).forEach(function(key){
-      var m = historyData[key];
-      if(!m || !m.names) return;
-
-      var side = null;
-      if(m.names.a === targetTeamName) side = "a";
-      else if(m.names.b === targetTeamName) side = "b";
-
+      var m = historyData[key]; if(!m || !m.names) return;
+      var side = (m.names.a === targetTeamName) ? "a" : ((m.names.b === targetTeamName) ? "b" : null);
       if(side){
-        pj++;
-        var opp = side === "a" ? "b" : "a";
+        pj++; var opp = side === "a" ? "b" : "a";
         var gFor = m.events ? m.events.filter(function(e){ return e.type === "goal" && e.team === side; }).length : 0;
         var gAgainst = m.events ? m.events.filter(function(e){ return e.type === "goal" && e.team === opp; }).length : 0;
         var sAgainst = m.shots && m.shots[opp] ? sum(m.shots[opp]) : 0;
-
-        bp += gFor; bc += gAgainst;
-        totalShotsAgainst += sAgainst;
-
-        if(gFor > gAgainst){ v++; last10.push("V"); }
-        else if(gFor < gAgainst){ d++; last10.push("D"); }
-        else { ega++; last10.push("N"); }
+        bp += gFor; bc += gAgainst; totalShotsAgainst += sAgainst;
+        if(gFor > gAgainst){ v++; last10.push("V"); } else if(gFor < gAgainst){ d++; last10.push("D"); } else { ega++; last10.push("N"); }
       }
     });
 
-    $("stPJ").textContent = pj;
-    $("stV").textContent = v;
-    $("stD").textContent = d;
-    $("stEGA").textContent = ega;
-    $("stBP").textContent = bp;
-    $("stBC").textContent = bc;
-    
-    var diff = bp - bc;
-    $("stDIF").textContent = (diff > 0 ? "+" : "") + diff;
-
-    var l10V = last10.slice(-10).filter(function(x){ return x==="V"; }).length;
-    var l10D = last10.slice(-10).filter(function(x){ return x==="D"; }).length;
-    var l10N = last10.slice(-10).filter(function(x){ return x==="N"; }).length;
-    $("st10D").textContent = l10V + "-" + l10D + "-" + l10N;
-
-    var lastRes = last10.length ? last10[last10.length-1] : "-";
-    $("stSEQ").textContent = lastRes;
-
-    var gaa = pj > 0 ? (bc / pj).toFixed(2) : "0.00";
-    $("stGAA").textContent = gaa;
-
+    $("stPJ").textContent = pj; $("stV").textContent = v; $("stD").textContent = d; $("stEGA").textContent = ega;
+    $("stBP").textContent = bp; $("stBC").textContent = bc;
+    var diff = bp - bc; $("stDIF").textContent = (diff > 0 ? "+" : "") + diff;
+    $("st10D").textContent = last10.slice(-10).filter(function(x){ return x==="V"; }).length + "-" + last10.slice(-10).filter(function(x){ return x==="D"; }).length + "-" + last10.slice(-10).filter(function(x){ return x==="N"; }).length;
+    $("stSEQ").textContent = last10.length ? last10[last10.length-1] : "-";
+    $("stGAA").textContent = pj > 0 ? (bc / pj).toFixed(2) : "0.00";
     var saves = Math.max(0, totalShotsAgainst - bc);
-    var svPct = totalShotsAgainst > 0 ? Math.round((saves / totalShotsAgainst) * 100) + "%" : "0%";
-    $("stSV").textContent = svPct;
+    $("stSV").textContent = totalShotsAgainst > 0 ? Math.round((saves / totalShotsAgainst) * 100) + "%" : "0%";
   }
 
   $("statsTeamSelect").addEventListener("change", calculateTeamStats);
@@ -1866,132 +1580,60 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function renderHistory(){
     var list = $("historyList"); list.textContent = "";
     var keys = Object.keys(historyData);
-
-    if(!keys.length){
-      var empty = document.createElement("li"); empty.className = "empty";
-      empty.textContent = "Aucun match dans l'historique (" + currentCat.toUpperCase() + ").";
-      list.appendChild(empty);
-      return;
-    }
-
+    if(!keys.length){ list.innerHTML = "<li class='empty'>Aucun match enregistré.</li>"; return; }
     keys.slice().reverse().forEach(function(key){
-      var m = historyData[key];
-      var li = document.createElement("li"); li.className = "history-item";
+      var m = historyData[key]; var li = document.createElement("li"); li.className = "history-item";
       var gA = m.events ? m.events.filter(function(e){ return e.type==="goal" && e.team==="a"; }).length : 0;
       var gB = m.events ? m.events.filter(function(e){ return e.type==="goal" && e.team==="b"; }).length : 0;
-      
       var dateStr = new Date(m.updatedAt || Date.now()).toLocaleDateString("fr-CA");
       li.innerHTML = "<div><strong>" + m.names.a + " " + gA + " - " + gB + " " + m.names.b + "</strong><br><small style='color:var(--muted);'>" + dateStr + "</small></div>";
-      
       var ctrls = document.createElement("div"); ctrls.className = "history-ctrls";
-
-      var btnCons = document.createElement("button"); btnCons.type = "button"; btnCons.className = "btn-edit";
-      btnCons.textContent = "Consulter";
-      btnCons.addEventListener("click", function(){
-        state = sanitize(m);
-        commit();
-        alert("Partie chargée depuis l'historique.");
-      });
+      var btnCons = document.createElement("button"); btnCons.className = "btn-edit"; btnCons.textContent = "Consulter";
+      btnCons.addEventListener("click", function(){ state = sanitize(m); commit(); alert("Partie chargée."); });
       ctrls.appendChild(btnCons);
-
-      var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
-      btnDel.textContent = "🗑 Supprimer";
+      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
         if(currentRole === "viewer") return;
-        if(confirm("Voulez-vous vraiment supprimer ce match de l'historique ? Cela recalculera toutes les statistiques.")){
-          dbHistory.child(key).remove();
-        }
+        if(confirm("Supprimer ce match de l'historique ?")){ dbHistory.child(key).remove(); }
       });
-      ctrls.appendChild(btnDel);
-
-      li.appendChild(ctrls); list.appendChild(li);
+      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
     });
   }
 
-  $("btnExportPDF").addEventListener("click", function(){ window.print(); });
-  $("btnExportCSV").addEventListener("click", function(){
-    var csv = "Temps,Periode,Equipe,Type,Joueur,Passes,Detail\n";
-    state.events.forEach(function(e){
-      var teamName = state.names[e.team] || "Systeme";
-      var pName = PLABEL[e.period] || "";
-      if(e.type === "goal"){
-        csv += e.time + "," + pName + "," + teamName + ",But," + getPlayerName(e.team, e.scorer) + "," + [e.a1, e.a2].filter(Boolean).map(function(p){ return getPlayerName(e.team, p); }).join(";") + ",\n";
-      } else if(e.type === "pen"){
-        csv += e.time + "," + pName + "," + teamName + ",Punition," + getPlayerName(e.team, e.player) + ",," + (e.min||2) + " min - " + (e.reason||"") + "\n";
-      } else if(e.type === "shot"){
-        csv += e.time + "," + pName + "," + teamName + ",Lancer,,,\n";
-      }
-    });
-
-    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = "Match_" + currentCat.toUpperCase() + "_" + state.names.a + "_vs_" + state.names.b + ".csv";
-    a.click();
-  });
-
   $("btnTimerToggle").addEventListener("click", function(){
     if(currentRole === "viewer") return;
-    if(state.timer.running){
-      state.timer.sec = getCurrentTimerSec();
-      state.timer.running = false;
-    } else {
-      state.timer.running = true;
-      state.timer.lastUpdate = Date.now();
-    }
+    if(state.timer.running){ state.timer.sec = getCurrentTimerSec(); state.timer.running = false; }
+    else { state.timer.running = true; state.timer.lastUpdate = Date.now(); }
     commit();
   });
 
   $("btnTimerReset").addEventListener("click", function(){
     if(currentRole === "viewer") return;
-    state.timer.running = false;
-    state.timer.sec = defaultPeriodSec;
-    commit();
+    state.timer.running = false; state.timer.sec = defaultPeriodSec; commit();
   });
 
   $("timerDisplay").addEventListener("click", function(){
     if(currentRole === "viewer") return;
-    var cur = getCurrentTimerSec();
-    $("timerMin").value = Math.floor(cur / 60);
-    $("timerSec").value = cur % 60;
+    var cur = getCurrentTimerSec(); $("timerMin").value = Math.floor(cur / 60); $("timerSec").value = cur % 60;
     $("timerSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("timerCancel").addEventListener("click", function(){ $("timerSheet").close(); });
   $("timerSave").addEventListener("click", function(){
-    var m = int($("timerMin").value, 0, 99);
-    var s = int($("timerSec").value, 0, 59);
-    state.timer.sec = (m * 60) + s;
-    state.timer.lastUpdate = Date.now();
-    commit();
-    $("timerSheet").close();
+    state.timer.sec = (int($("timerMin").value,0,99) * 60) + int($("timerSec").value,0,59);
+    state.timer.lastUpdate = Date.now(); commit(); $("timerSheet").close();
   });
 
   $("btnStopGame").addEventListener("click", function(){
     if(currentRole === "viewer") return;
-    state.timer.running = false;
-    state.timer.sec = 0;
-    state.events.push({
-      id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: "FIN DU MATCH / PARTIE ARRÊTÉE", t: Date.now()
-    });
-    commit();
-
-    $("saveHistorySheet").showModal();
+    state.timer.running = false; state.timer.sec = 0;
+    state.events.push({ id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: "FIN DU MATCH", t: Date.now() });
+    commit(); $("saveHistorySheet").showModal();
   });
 
   $("saveHistoryNo").addEventListener("click", function(){ $("saveHistorySheet").close(); });
-  
   $("saveHistoryYes").addEventListener("click", function(){
-    var hKey = Date.now().toString();
-    dbHistory.child(hKey).set(state, function(error){
-      if(!error){
-        state = blank();
-        commit();
-        alert("Partie enregistrée dans l'historique (" + currentCat.toUpperCase() + ") et tableau réinitialisé à zéro !");
-      } else {
-        alert("Erreur lors de la sauvegarde : " + error.message);
-      }
+    dbHistory.child(Date.now().toString()).set(state, function(err){
+      if(!err){ alert("Partie sauvegardée dans l'historique ! Le tableau reste modifiable à l'écran."); }
     });
     $("saveHistorySheet").close();
   });
@@ -2004,9 +1646,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var tmpR = state.rosters.a; state.rosters.a = state.rosters.b; state.rosters.b = tmpR;
     var tmpSt = state.staff.a; state.staff.a = state.staff.b; state.staff.b = tmpSt;
     var tmpS = state.shots.a; state.shots.a = state.shots.b; state.shots.b = tmpS;
-    state.events.forEach(function(e){
-      if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a";
-    });
+    state.events.forEach(function(e){ if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a"; });
     commit();
   });
 
@@ -2014,59 +1654,45 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var n = state.names;
     if(document.activeElement !== $("nameA")) $("nameA").value = n.a;
     if(document.activeElement !== $("nameB")) $("nameB").value = n.b;
-    
-    $("logoA").src = state.logos.a || "";
-    $("logoB").src = state.logos.b || "";
+    $("logoA").src = state.logos.a || ""; $("logoB").src = state.logos.b || "";
 
     document.documentElement.style.setProperty('--team-a-color', state.colors.a || '#6FA2EE');
     document.documentElement.style.setProperty('--team-b-color', state.colors.b || '#F2707A');
 
-    $("optTeamA").textContent = n.a || "Équipe Locale";
-    $("optTeamB").textContent = n.b || "Équipe Visiteuse";
-
-    $("stOptA").textContent = (n.a || "Équipe Locale") + " (Local)";
-    $("stOptB").textContent = (n.b || "Équipe Visiteuse") + " (Visiteur)";
+    $("optTeamA").textContent = n.a || "Équipe Locale"; $("optTeamB").textContent = n.b || "Équipe Visiteuse";
+    $("stOptA").textContent = (n.a || "Équipe Locale") + " (Local)"; $("stOptB").textContent = (n.b || "Équipe Visiteuse") + " (Visiteur)";
 
     var gA = goalsOf("a"), gB = goalsOf("b"), sA = sum(state.shots.a), sB = sum(state.shots.b);
-    
-    var isTied = (gA === gB);
-    var otBtn = $("btnOt");
-    if(!isTied){ otBtn.disabled = true; if(state.period === 3) state.period = 2; }
-    else { otBtn.disabled = false; }
+    $("btnOt").disabled = (gA !== gB);
 
     setText("scoreA", gA, true); setText("scoreB", gB, true);
     setText("shotsA", sA, true); setText("shotsB", sB, true);
-    
     $("lblShotsA").textContent = sA > 1 ? " lancers" : " lancer";
     $("lblShotsB").textContent = sB > 1 ? " lancers" : " lancer";
 
     setText("periodMark", PLABEL[state.period]);
-    $("timerDisplay").textContent = formatTime(getCurrentTimerSec());
+
+    var curSec = getCurrentTimerSec();
+    if(currentRole === "viewer" && curSec === 0 && state.period >= 2){
+      $("timerDisplay").textContent = "FIN DE PARTIE";
+    } else {
+      $("timerDisplay").textContent = formatTime(curSec);
+    }
     $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
 
-    var isStopped = state.events && state.events.some(function(e){ return e.type === "sys" && e.text && e.text.indexOf("ARRÊTÉE") !== -1; });
-    var isGameActive = !isStopped && (state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0));
-    
-    if(isGameActive){
-      $("btnStopGame").style.display = "block";
-      $("newGame").style.display = "none";
-    } else {
-      $("btnStopGame").style.display = "none";
-      $("newGame").style.display = "block";
-    }
+    var isGameActive = state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0);
+    $("btnStopGame").style.display = isGameActive ? "block" : "none";
+    $("newGame").style.display = isGameActive ? "none" : "block";
 
-    Array.prototype.forEach.call($("seg").children, function(b){
-      b.setAttribute("aria-pressed", String(Number(b.dataset.p) === state.period));
-    });
+    Array.prototype.forEach.call($("seg").children, function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.p) === state.period)); });
 
-    $("gNameA").textContent = "Gardien, " + n.a;
-    $("gNameB").textContent = "Gardien, " + n.b;
+    $("gNameA").textContent = "Gardien, " + n.a; $("gNameB").textContent = "Gardien, " + n.b;
     goalie("A", sB, gB); goalie("B", sA, gA);
 
-    $("rosterTitleA").textContent = n.a;
-    $("rosterTitleB").textContent = n.b;
-    renderRosterList("rosterA", state.rosters.a, "a");
-    renderRosterList("rosterB", state.rosters.b, "b");
+    // Alignements interactifs & Sélecteurs hors match
+    renderRosterPickers(isGameActive);
+    renderRosterList("rosterA", getActiveRosterForSide("a"), "a");
+    renderRosterList("rosterB", getActiveRosterForSide("b"), "b");
 
     renderStaffList("staffA", "staffBoxA", state.staff ? state.staff.a : []);
     renderStaffList("staffB", "staffBoxB", state.staff ? state.staff.b : []);
@@ -2084,179 +1710,168 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
 
     renderEvents();
-    
-    if(!$("statsTeamSelect").dataset.userTouched){
-      $("statsTeamSelect").value = "a";
-    }
-    calculateTeamStats();
-    updateTickerDisplay();
+    if(!$("statsTeamSelect").dataset.userTouched) $("statsTeamSelect").value = "a";
+    calculateTeamStats(); updateTickerDisplay();
   }
 
-  $("statsTeamSelect").addEventListener("change", function(){
-    $("statsTeamSelect").dataset.userTouched = "true";
+  // Permettre de choisir les équipes dans "Alignements" quand aucune partie n'est démarrée
+  function renderRosterPickers(isGameActive){
+    var pickersBox = $("rosterTeamPickers");
+    if(isGameActive){
+      pickersBox.style.display = "none";
+      $("rosterTitleA").textContent = state.names.a;
+      $("rosterTitleB").textContent = state.names.b;
+    } else {
+      pickersBox.style.display = "flex";
+      populatePresetPicker("rosterSelectTeamA", state.names.a);
+      populatePresetPicker("rosterSelectTeamB", state.names.b);
+      $("rosterTitleA").textContent = $("rosterSelectTeamA").selectedOptions[0] ? $("rosterSelectTeamA").selectedOptions[0].text : state.names.a;
+      $("rosterTitleB").textContent = $("rosterSelectTeamB").selectedOptions[0] ? $("rosterSelectTeamB").selectedOptions[0].text : state.names.b;
+    }
+  }
+
+  function populatePresetPicker(selectId, currentName){
+    var sel = $(selectId);
+    if(sel.dataset.initialized === "true") return;
+    sel.innerHTML = "";
+    Object.keys(presets).forEach(function(k){
+      var p = presets[k];
+      if(!p.category || p.category === "" || p.category === currentCat){
+        var opt = document.createElement("option"); opt.value = k; opt.textContent = p.name;
+        if(p.name === currentName) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    });
+    sel.dataset.initialized = "true";
+    sel.addEventListener("change", function(){ render(); });
+  }
+
+  function getActiveRosterForSide(side){
+    var isGameActive = state.timer.running || (state.timer.sec < defaultPeriodSec) || sum(state.shots.a) > 0 || sum(state.shots.b) > 0 || state.events.length > 0;
+    if(isGameActive){
+      return state.rosters[side] || [];
+    } else {
+      var selId = side === "a" ? "rosterSelectTeamA" : "rosterSelectTeamB";
+      var key = $(selId).value;
+      return (presets[key] && presets[key].roster) ? presets[key].roster : (state.rosters[side] || []);
+    }
+  }
+
+  // Filtre Ce match VS Tout
+  $("btnScopeMatch").addEventListener("click", function(){
+    rosterScope = "match"; $("btnScopeMatch").classList.add("active"); $("btnScopeAll").classList.remove("active"); render();
   });
+  $("btnScopeAll").addEventListener("click", function(){
+    rosterScope = "all"; $("btnScopeAll").classList.add("active"); $("btnScopeMatch").classList.remove("active"); render();
+  });
+
+  function renderRosterList(id, list, side){
+    var ul = $(id); ul.textContent = "";
+    if(!list || !list.length){ ul.innerHTML = "<li style='font-size:.8rem;color:var(--muted);'>Aucun joueur</li>"; return; }
+
+    list.forEach(function(p, idx){
+      var pId = p.no || ("p_" + idx);
+      var li = document.createElement("li"); li.className = "roster-item" + (openPlayerCardId === pId ? " active" : "");
+      li.innerHTML = "<span>" + (p.no ? "<b>#" + p.no + "</b> " : "") + p.name + "</span><span class='pos'>" + p.pos + "</span>";
+
+      li.addEventListener("click", function(){
+        openPlayerCardId = (openPlayerCardId === pId) ? null : pId;
+        render();
+      });
+
+      ul.appendChild(li);
+
+      // Insertion de la fiche joueur immédiatement EN DESSOUS
+      if(openPlayerCardId === pId){
+        var cardBox = document.createElement("div"); cardBox.className = "player-card-inline";
+        var stats = getPlayerStatsCalculated(side, pId, rosterScope);
+        cardBox.innerHTML = "<h4><span>👤 " + (p.no ? "#" + p.no + " " : "") + p.name + "</span><small>(" + (rosterScope === "match" ? "Ce match" : "Saison") + ")</small></h4>" +
+                            "<div class='p-grid'>" +
+                            "<div class='p-stat'><span class='p-lbl'>PJ</span><span class='p-val'>" + stats.pj + "</span></div>" +
+                            "<div class='p-stat'><span class='p-lbl'>B</span><span class='p-val'>" + stats.b + "</span></div>" +
+                            "<div class='p-stat'><span class='p-lbl'>A</span><span class='p-val'>" + stats.a + "</span></div>" +
+                            "<div class='p-stat'><span class='p-lbl'>PTS</span><span class='p-val'>" + (stats.b + stats.a) + "</span></div>" +
+                            "<div class='p-stat'><span class='p-lbl'>PUN</span><span class='p-val'>" + stats.pun + "m</span></div>" +
+                            "</div>";
+        ul.appendChild(cardBox);
+      }
+    });
+  }
+
+  function getPlayerStatsCalculated(side, pId, scope){
+    var b = 0, a = 0, pun = 0, pj = (scope === "match" ? 1 : 0);
+    var teamName = state.names[side];
+
+    var processEvent = function(e, matchSide){
+      if(e.team === matchSide){
+        if(e.type === "goal"){
+          if(e.scorer === pId) b++;
+          if(e.a1 === pId || e.a2 === pId) a++;
+        } else if(e.type === "pen" && e.player === pId){
+          pun += Number(e.min || 2);
+        }
+      }
+    };
+
+    if(scope === "match"){
+      state.events.forEach(function(e){ processEvent(e, side); });
+    } else {
+      Object.keys(historyData).forEach(function(k){
+        var m = historyData[k]; if(!m || !m.names) return;
+        var matchSide = (m.names.a === teamName) ? "a" : ((m.names.b === teamName) ? "b" : null);
+        if(matchSide){
+          pj++;
+          if(m.events) m.events.forEach(function(e){ processEvent(e, matchSide); });
+        }
+      });
+      state.events.forEach(function(e){ processEvent(e, side); });
+    }
+
+    return { pj: pj, b: b, a: a, pun: pun };
+  }
 
   function renderEvents(){
     var list = $("eventsList"); list.textContent = "";
-    var filter = $("feedFilter").value;
-
-    if(filter === "none"){ return; }
-
+    var filter = $("feedFilter").value; if(filter === "none") return;
     var filtered = state.events.filter(function(e){
       if(filter === "all") return true;
       if(filter === "team_a") return e.team === "a";
       if(filter === "team_b") return e.team === "b";
       return e.type === filter;
     });
-
-    if(!filtered.length){
-      var p = document.createElement("li"); p.className = "empty";
-      p.textContent = "Aucun événement à afficher.";
-      list.appendChild(p);
-      return;
-    }
-
+    if(!filtered.length){ list.innerHTML = "<li class='empty'>Aucun événement.</li>"; return; }
     filtered.slice().reverse().forEach(function(e){
       var li = document.createElement("li");
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "event-row " + e.team; b.dataset.id = e.id;
-      
-      var timeSpan = document.createElement("span"); timeSpan.className = "time"; timeSpan.textContent = e.time || "--:--";
-      var infoSpan = document.createElement("span"); infoSpan.className = "info";
-      var st = document.createElement("strong");
-      var sub = document.createElement("span");
-
+      var b = document.createElement("button"); b.type = "button"; b.className = "event-row " + e.team; b.dataset.id = e.id;
+      var st = document.createElement("strong"), sub = document.createElement("span");
       if(e.type === "goal"){
-        var scorerName = getPlayerName(e.team, e.scorer);
-        st.textContent = "BUT - " + (state.names[e.team] || "") + (scorerName ? " (" + scorerName + ")" : "");
+        st.textContent = "BUT - " + (state.names[e.team] || "") + " (" + getPlayerName(e.team, e.scorer) + ")";
         var as = [e.a1, e.a2].filter(Boolean).map(function(pId){ return getPlayerName(e.team, pId); });
         sub.textContent = as.length ? "Passes : " + as.join(", ") : "Sans aide";
       } else if(e.type === "pen"){
-        var penName = getPlayerName(e.team, e.player);
-        st.textContent = "PUNITION - " + (state.names[e.team] || "") + (penName ? " (" + penName + ")" : "");
+        st.textContent = "PUNITION - " + (state.names[e.team] || "") + " (" + getPlayerName(e.team, e.player) + ")";
         sub.textContent = (e.min || 2) + " min - " + (e.reason || "Infraction");
       } else if(e.type === "shot"){
-        st.textContent = "LANCER - " + (state.names[e.team] || "");
-        sub.textContent = "Lancer au but enregistré";
+        st.textContent = "LANCER - " + (state.names[e.team] || ""); sub.textContent = "Lancer au but";
       } else if(e.type === "sys"){
-        st.textContent = e.text;
-        sub.textContent = "Info match";
+        st.textContent = e.text; sub.textContent = "Info match";
       }
-
-      infoSpan.appendChild(st); infoSpan.appendChild(sub);
+      var infoSpan = document.createElement("span"); infoSpan.className = "info"; infoSpan.appendChild(st); infoSpan.appendChild(sub);
+      var timeSpan = document.createElement("span"); timeSpan.className = "time"; timeSpan.textContent = e.time || "--:--";
       var perSpan = document.createElement("span"); perSpan.className = "per"; perSpan.textContent = PLABEL[e.period];
-
-      b.appendChild(timeSpan); b.appendChild(infoSpan); b.appendChild(perSpan);
-      li.appendChild(b); list.appendChild(li);
+      b.appendChild(timeSpan); b.appendChild(infoSpan); b.appendChild(perSpan); li.appendChild(b); list.appendChild(li);
     });
   }
 
   $("feedFilter").addEventListener("change", renderEvents);
 
-  function renderRosterList(id, list, side){
-    var ul = $(id); ul.textContent = "";
-    var drawerBox = $(side === "a" ? "playerCardBoxA" : "playerCardBoxB");
-    drawerBox.textContent = "";
-
-    if(!list || !list.length){
-      var empty = document.createElement("li"); empty.style.fontSize=".8rem"; empty.style.color="var(--muted)";
-      empty.textContent = "Aucun joueur"; ul.appendChild(empty); return;
-    }
-
-    var selectedId = side === "a" ? selectedPlayerA : selectedPlayerB;
-
-    list.forEach(function(p, idx){
-      var pId = p.no || ("p_" + idx);
-      var li = document.createElement("li"); li.className = "roster-item" + (selectedId === pId ? " active" : "");
-      var numLabel = p.no ? "<b>#" + p.no + "</b> " : "";
-      li.innerHTML = "<span>" + numLabel + p.name + "</span><span class='pos'>" + p.pos + "</span>";
-      
-      li.addEventListener("click", function(){
-        if(side === "a"){
-          selectedPlayerA = (selectedPlayerA === pId) ? null : pId;
-        } else {
-          selectedPlayerB = (selectedPlayerB === pId) ? null : pId;
-        }
-        renderRosterList(id, list, side);
-      });
-
-      ul.appendChild(li);
-    });
-
-    if(selectedId){
-      var pObj = list.find(function(p, idx){ return (p.no || ("p_" + idx)) === selectedId; });
-      if(pObj){
-        var stats = getSinglePlayerStats(side, selectedId);
-        var drawer = document.createElement("div"); drawer.className = "player-card-drawer";
-        drawer.innerHTML = "<h4><span>👤 " + (pObj.no ? "#" + pObj.no + " " : "") + pObj.name + "</span> <small style='font-size:.7rem;color:var(--muted);'>Fiche Joueur</small></h4>" +
-                           "<div class='player-card-grid'>" +
-                           "<div class='p-stat'><span class='p-lbl'>PJ</span><span class='p-val'>" + stats.pj + "</span></div>" +
-                           "<div class='p-stat'><span class='p-lbl'>B</span><span class='p-val'>" + stats.b + "</span></div>" +
-                           "<div class='p-stat'><span class='p-lbl'>A</span><span class='p-val'>" + stats.a + "</span></div>" +
-                           "<div class='p-stat'><span class='p-lbl'>PTS</span><span class='p-val'>" + (stats.b + stats.a) + "</span></div>" +
-                           "<div class='p-stat'><span class='p-lbl'>PUN</span><span class='p-val'>" + stats.pun + "m</span></div>" +
-                           "</div>";
-        drawerBox.appendChild(drawer);
-      }
-    }
-  }
-
-  function getSinglePlayerStats(side, pId){
-    var teamName = state.names[side];
-    var pj = 0, b = 0, a = 0, pun = 0;
-
-    Object.keys(historyData).forEach(function(key){
-      var m = historyData[key];
-      if(!m || !m.names) return;
-
-      var matchSide = null;
-      if(m.names.a === teamName) matchSide = "a";
-      else if(m.names.b === teamName) matchSide = "b";
-
-      if(matchSide){
-        var inRoster = m.rosters && m.rosters[matchSide] && m.rosters[matchSide].some(function(p, idx){ return (p.no || ("p_" + idx)) === pId || p.no === pId; });
-        if(inRoster){
-          pj++;
-          if(m.events && Array.isArray(m.events)){
-            m.events.forEach(function(e){
-              if(e.team === matchSide){
-                if(e.type === "goal"){
-                  if(e.scorer === pId) b++;
-                  if(e.a1 === pId || e.a2 === pId) a++;
-                } else if(e.type === "pen" && e.player === pId){
-                  pun += Number(e.min || 2);
-                }
-              }
-            });
-          }
-        }
-      }
-    });
-
-    if(state.events && Array.isArray(state.events)){
-      state.events.forEach(function(e){
-        if(e.team === side){
-          if(e.type === "goal"){
-            if(e.scorer === pId) b++;
-            if(e.a1 === pId || e.a2 === pId) a++;
-          } else if(e.type === "pen" && e.player === pId){
-            pun += Number(e.min || 2);
-          }
-        }
-      });
-    }
-
-    return { pj: pj, b: b, a: a, pun: pun };
-  }
-
   function renderStaffList(ulId, boxId, list){
-    var ul = $(ulId); var box = $(boxId); ul.textContent = "";
+    var ul = $(ulId), box = $(boxId); ul.textContent = "";
     if(!list || !list.length){ box.style.display = "none"; return; }
     box.style.display = "block";
     list.forEach(function(s){
       var li = document.createElement("li"); li.className = "roster-item"; li.style.cursor = "default";
-      li.innerHTML = "<span>" + s.name + "</span><span class='pos'>" + s.role + "</span>";
-      ul.appendChild(li);
+      li.innerHTML = "<span>" + s.name + "</span><span class='pos'>" + s.role + "</span>"; ul.appendChild(li);
     });
   }
 
@@ -2264,170 +1879,74 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(!shotsAgainst){ setText("sv"+side, "–"); setText("svSub"+side, "Aucun lancer reçu"); return; }
     var saves = Math.max(0, shotsAgainst - goalsAgainst);
     setText("sv"+side, pct(saves, shotsAgainst));
-    setText("svSub"+side, saves + (saves > 1 ? " arrêts" : " arrêt") + " sur " + shotsAgainst + (shotsAgainst > 1 ? " lancers" : " lancer"));
+    setText("svSub"+side, saves + " arrêts / " + shotsAgainst + " lancers");
   }
 
   function setupToggle(btnId, blockId){
-    $(btnId).addEventListener("click", function(){
-      $(blockId).classList.toggle("hidden");
-      $(btnId).classList.toggle("collapsed");
-    });
+    $(btnId).addEventListener("click", function(){ $(blockId).classList.toggle("hidden"); $(btnId).classList.toggle("collapsed"); });
   }
-  setupToggle("toggleStatsBtn", "statsBlock");
-  setupToggle("toggleRosterBtn", "rosterBlock");
-  setupToggle("toggleGoaliesBtn", "goaliesBlock");
-  setupToggle("toggleHistoryBtn", "historyBlock");
+  setupToggle("toggleStatsBtn", "statsBlock"); setupToggle("toggleRosterBtn", "rosterBlock");
+  setupToggle("toggleGoaliesBtn", "goaliesBlock"); setupToggle("toggleHistoryBtn", "historyBlock");
 
-  // --- NOUVELLE PARTIE WIZARD & PRÉSENCE DES JOUEURS ---
+  // NOUVELLE PARTIE
   $("newGame").addEventListener("click", function(){
     if(currentRole !== "admin") return;
-    $("wizColorA").value = state.colors.a || "#6FA2EE";
-    $("wizColorB").value = state.colors.b || "#F2707A";
+    $("wizColorA").value = state.colors.a || "#6FA2EE"; $("wizColorB").value = state.colors.b || "#F2707A";
     $("newGameWizard").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
 
-  function getTeamColor(teamKey){
-    if(!teamKey || !presets[teamKey]) return null;
-    var name = (presets[teamKey].name || "").toLowerCase();
-    if(name.indexOf("aigles") !== -1) return "#6FA2EE";
-    return presets[teamKey].color || null;
-  }
-
   function renderPresenceList(side, teamKey){
-    var listContainer = $(side === "a" ? "wizPresenceListA" : "wizPresenceListB");
-    listContainer.textContent = "";
+    var listContainer = $(side === "a" ? "wizPresenceListA" : "wizPresenceListB"); listContainer.textContent = "";
     if(!teamKey || !presets[teamKey] || !presets[teamKey].roster || !presets[teamKey].roster.length){
-      listContainer.innerHTML = "<small style='color:var(--muted);grid-column:1/-1;'>Aucun joueur prédéfini</small>";
-      return;
+      listContainer.innerHTML = "<small style='color:var(--muted);grid-column:1/-1;'>Aucun joueur prédéfini</small>"; return;
     }
     presets[teamKey].roster.forEach(function(p, idx){
       var label = document.createElement("label"); label.className = "presence-item";
-      var chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = true;
-      chk.dataset.idx = idx; chk.className = "chk-presence-" + side;
-      label.appendChild(chk);
-      label.appendChild(document.createTextNode((p.no ? "#" + p.no + " " : "") + p.name));
-      listContainer.appendChild(label);
+      var chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = true; chk.dataset.idx = idx; chk.className = "chk-presence-" + side;
+      label.appendChild(chk); label.appendChild(document.createTextNode((p.no ? "#" + p.no + " " : "") + p.name)); listContainer.appendChild(label);
     });
   }
 
-  $("wizTeamA").addEventListener("change", function(){
-    var keyA = $("wizTeamA").value;
-    var colorA = getTeamColor(keyA);
-    if(colorA) $("wizColorA").value = colorA;
-    renderPresenceList("a", keyA);
-  });
-
-  $("wizTeamB").addEventListener("change", function(){
-    var keyB = $("wizTeamB").value;
-    var colorB = getTeamColor(keyB);
-    if(colorB) $("wizColorB").value = colorB;
-    renderPresenceList("b", keyB);
-  });
+  $("wizTeamA").addEventListener("change", function(){ renderPresenceList("a", $("wizTeamA").value); });
+  $("wizTeamB").addEventListener("change", function(){ renderPresenceList("b", $("wizTeamB").value); });
 
   $("wizStart").addEventListener("click", function(){
-    var keyB = $("wizTeamB").value; var keyA = $("wizTeamA").value;
-    state = blank();
-    delete $("statsTeamSelect").dataset.userTouched;
-    
+    var keyB = $("wizTeamB").value, keyA = $("wizTeamA").value;
+    state = blank(); delete $("statsTeamSelect").dataset.userTouched;
     if(keyB && presets[keyB]){
-      state.names.b = str(presets[keyB].name, "Visiteur");
-      state.logos.b = presets[keyB].logo || "";
-      var fullRosterB = JSON.parse(JSON.stringify(presets[keyB].roster || []));
-      var presentRosterB = [];
-      document.querySelectorAll(".chk-presence-b").forEach(function(chk){
-        if(chk.checked){ presentRosterB.push(fullRosterB[Number(chk.dataset.idx)]); }
-      });
+      state.names.b = str(presets[keyB].name, "Visiteur"); state.logos.b = presets[keyB].logo || "";
+      var fullRosterB = JSON.parse(JSON.stringify(presets[keyB].roster || [])); var presentRosterB = [];
+      document.querySelectorAll(".chk-presence-b").forEach(function(chk){ if(chk.checked) presentRosterB.push(fullRosterB[Number(chk.dataset.idx)]); });
       state.rosters.b = presentRosterB.length ? presentRosterB : fullRosterB;
       state.staff.b = JSON.parse(JSON.stringify(presets[keyB].staff || []));
     }
-
     if(keyA && presets[keyA]){
-      state.names.a = str(presets[keyA].name, "Local");
-      state.logos.a = presets[keyA].logo || "";
-      var fullRosterA = JSON.parse(JSON.stringify(presets[keyA].roster || []));
-      var presentRosterA = [];
-      document.querySelectorAll(".chk-presence-a").forEach(function(chk){
-        if(chk.checked){ presentRosterA.push(fullRosterA[Number(chk.dataset.idx)]); }
-      });
+      state.names.a = str(presets[keyA].name, "Local"); state.logos.a = presets[keyA].logo || "";
+      var fullRosterA = JSON.parse(JSON.stringify(presets[keyA].roster || [])); var presentRosterA = [];
+      document.querySelectorAll(".chk-presence-a").forEach(function(chk){ if(chk.checked) presentRosterA.push(fullRosterA[Number(chk.dataset.idx)]); });
       state.rosters.a = presentRosterA.length ? presentRosterA : fullRosterA;
       state.staff.a = JSON.parse(JSON.stringify(presets[keyA].staff || []));
     }
-    
-    state.colors.a = $("wizColorA").value;
-    state.colors.b = $("wizColorB").value;
-
-    commit();
-    $("newGameWizard").close();
+    state.colors.a = $("wizColorA").value; state.colors.b = $("wizColorB").value;
+    commit(); $("newGameWizard").close();
   });
 
+  // Édition d'équipe
   var editingTeamKey = null;
-
-  $("btnAddNewTeam").addEventListener("click", function(){
-    openTeamEditor(null);
-  });
-
+  $("btnAddNewTeam").addEventListener("click", function(){ openTeamEditor(null); });
   function openTeamEditor(key){
     editingTeamKey = key;
     var team = key && manageTeamPresets[key] ? manageTeamPresets[key] : { name: "", logo: "", color: "#6FA2EE", category: manageTeamCatKey || currentCat, roster: [], staff: [] };
-    
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
-    $("editTeamNameInput").value = team.name || "";
-    $("teamLogoInput").value = team.logo || "";
-    $("presetTeamColor").value = team.color || "#6FA2EE";
-
-    updateLogoPreview(team.logo || "");
-
-    buildRosterForm(team.roster || []);
-    buildStaffForm(team.staff || []);
-    $("teamsManageSheet").close();
-    $("rosterSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+    $("editTeamNameInput").value = team.name || ""; $("teamLogoInput").value = team.logo || ""; $("presetTeamColor").value = team.color || "#6FA2EE";
+    buildRosterForm(team.roster || []); buildStaffForm(team.staff || []);
+    $("teamsManageSheet").close(); $("rosterSheet").showModal();
   }
-
-  function updateLogoPreview(url){
-    var img = $("logoPreview");
-    if(url){
-      img.src = url;
-      img.style.display = "block";
-    } else {
-      img.src = "";
-      img.style.display = "none";
-    }
-  }
-
-  $("teamLogoInput").addEventListener("input", function(){
-    updateLogoPreview($("teamLogoInput").value.trim());
-  });
-
-  $("editTeamNameInput").addEventListener("input", function(){
-    var nm = $("editTeamNameInput").value.trim().toLowerCase();
-    if(nm.indexOf("aigles") !== -1){
-      $("presetTeamColor").value = "#6FA2EE";
-    }
-  });
-
-  function updatePresetDropdowns(){
-    var selS = [$("wizTeamA"), $("wizTeamB")];
-    selS.forEach(function(sel){
-      if(!sel) return;
-      sel.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
-      Object.keys(presets).forEach(function(key){
-        var team = presets[key];
-        if(!team.category || team.category === "" || team.category === currentCat){
-          var opt = document.createElement("option"); opt.value = key; opt.textContent = team.name; sel.appendChild(opt);
-        }
-      });
-    });
-  }
-
   function buildRosterForm(list){
-    var form = $("rosterForm"); form.textContent = "";
-    list.forEach(function(p){ addRosterRow(p.no, p.name, p.pos); });
-    if(!list.length){ addRosterRow("","","A"); }
+    $("rosterForm").textContent = ""; list.forEach(function(p){ addRosterRow(p.no, p.name, p.pos); });
+    if(!list.length) addRosterRow("","","A");
   }
-
   function addRosterRow(no, name, pos){
     var div = document.createElement("div"); div.className = "roster-row";
     div.innerHTML = "<input type='text' maxlength='2' placeholder='#' value='" + (no||"") + "' class='r-no'>" +
@@ -2438,87 +1957,49 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     div.querySelector("button").addEventListener("click", function(){ div.remove(); });
     $("rosterForm").appendChild(div);
   }
-
-  function buildStaffForm(list){
-    var form = $("staffForm"); form.textContent = "";
-    list.forEach(function(s){ addStaffRow(s.name, s.role); });
-  }
-
+  function buildStaffForm(list){ $("staffForm").textContent = ""; list.forEach(function(s){ addStaffRow(s.name, s.role); }); }
   function addStaffRow(name, role){
     var div = document.createElement("div"); div.className = "staff-row";
-    div.innerHTML = "<input type='text' placeholder='Nom (Entraîneur, Gérant...)' value='" + (name||"") + "' class='s-name'>" +
-                    "<select class='s-role'><option value='Entraîneur-chef'>Chef</option><option value='Adjoint'>Adjoint</option><option value='Gérant'>Gérant</option><option value='Soigneur'>Soigneur</option></select>" +
+    div.innerHTML = "<input type='text' placeholder='Nom' value='" + (name||"") + "' class='s-name'>" +
+                    "<select class='s-role'><option value='Entraîneur-chef'>Chef</option><option value='Adjoint'>Adjoint</option><option value='Gérant'>Gérant</option></select>" +
                     "<button type='button' style='border:0;background:transparent;color:var(--red);font-weight:bold;'>✕</button>";
     if(role) div.querySelector(".s-role").value = role;
     div.querySelector("button").addEventListener("click", function(){ div.remove(); });
     $("staffForm").appendChild(div);
   }
-
-  function getFormRoster(){
-    var rows = $("rosterForm").querySelectorAll(".roster-row");
-    var list = [];
-    rows.forEach(function(r){
-      var num = no(r.querySelector(".r-no").value);
-      var nm = r.querySelector(".r-name").value.trim();
-      var ps = r.querySelector(".r-pos").value;
-      if(num || nm){ list.push({no:num, name:nm, pos:ps}); }
-    });
-    return list;
-  }
-
-  function getFormStaff(){
-    var rows = $("staffForm").querySelectorAll(".staff-row");
-    var list = [];
-    rows.forEach(function(r){
-      var nm = r.querySelector(".s-name").value.trim();
-      var rl = r.querySelector(".s-role").value;
-      if(nm){ list.push({name:nm, role:rl}); }
-    });
-    return list;
-  }
-
   $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
   $("addStaffBtn").addEventListener("click", function(){ addStaffRow("","Entraîneur-chef"); });
-
-  $("rsCancel").addEventListener("click", function(){
-    $("rosterSheet").close();
-    $("teamsManageSheet").showModal();
-  });
-
+  $("rsCancel").addEventListener("click", function(){ $("rosterSheet").close(); $("teamsManageSheet").showModal(); });
   $("rsSave").addEventListener("click", function(){
     if(currentRole !== "admin") return;
-    var teamName = str($("editTeamNameInput").value, "");
-    if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
-
-    var logoUrl = $("teamLogoInput").value.trim();
+    var teamName = str($("editTeamNameInput").value, ""); if(!teamName){ alert("Nom obligatoire."); return; }
     var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    var color = $("presetTeamColor").value;
-    var category = manageTeamCatKey || currentCat;
-    var roster = getFormRoster();
-    var staff = getFormStaff();
-
-    var existingMsg = (manageTeamPresets[key] && manageTeamPresets[key].msg) ? manageTeamPresets[key].msg : "";
-
-    firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).set({
-      name: teamName, msg: existingMsg, logo: logoUrl, color: color, category: category, roster: roster, staff: staff
+    var roster = []; $("rosterForm").querySelectorAll(".roster-row").forEach(function(r){
+      var n = no(r.querySelector(".r-no").value), nm = r.querySelector(".r-name").value.trim(), ps = r.querySelector(".r-pos").value;
+      if(n || nm) roster.push({no:n, name:nm, pos:ps});
     });
-    
-    alert("Équipe '" + teamName + "' enregistrée avec succès !");
-    $("rosterSheet").close();
-    $("teamsManageSheet").showModal();
+    var staff = []; $("staffForm").querySelectorAll(".staff-row").forEach(function(r){
+      var nm = r.querySelector(".s-name").value.trim(), rl = r.querySelector(".s-role").value;
+      if(nm) staff.push({name:nm, role:rl});
+    });
+    firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).set({
+      name: teamName, msg: (manageTeamPresets[key] && manageTeamPresets[key].msg) || "", logo: $("teamLogoInput").value.trim(), color: $("presetTeamColor").value, category: manageTeamCatKey || currentCat, roster: roster, staff: staff
+    });
+    alert("Équipe enregistrée !"); $("rosterSheet").close(); $("teamsManageSheet").showModal();
   });
 
-  var sheetGoal = $("goalSheet"), curGoal = null;
+  // --- SAISIE BUTEUR / PASSEURS INTUITIVE (SÉQUENTIELLE) ---
+  var sheetGoal = $("goalSheet"), curGoal = null, goalPickStep = "scorer"; 
+
   function openGoal(id, isNew){
     var g = state.events.filter(function(x){ return x.id === id; })[0]; if(!g) return;
-    curGoal = { id:id, isNew:isNew, team:g.team, scorer:g.scorer, a1:g.a1, a2:g.a2 };
+    curGoal = { id:id, isNew:isNew, team:g.team, scorer:g.scorer||"", a1:g.a1||"", a2:g.a2||"" };
+    goalPickStep = "scorer";
     $("gsTitle").textContent = (isNew ? "But de " : "But, ") + state.names[g.team];
     $("gsCtx").textContent = PLONG[g.period] + " (" + g.time + ")";
-    $("gsSkip").textContent = isNew ? "Passer" : "Annuler";
     $("gsDelete").hidden = isNew;
     renderPlayerPickGrid();
     sheetGoal.showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   }
 
   function renderPlayerPickGrid(){
@@ -2526,42 +2007,48 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var roster = state.rosters[curGoal.team] || [];
     if(!roster.length){ grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur dans l'alignement.</p>"; return; }
 
+    var statusEl = $("goalSequenceStatus");
+    if(goalPickStep === "scorer") statusEl.textContent = "1. Sélectionnez le BUTEUR";
+    else if(goalPickStep === "a1") statusEl.textContent = "2. Sélectionnez la PASSE 1 (Optionnel)";
+    else if(goalPickStep === "a2") statusEl.textContent = "3. Sélectionnez la PASSE 2 (Optionnel)";
+    else statusEl.textContent = "✅ Sélection terminée. Cliquez sur Terminer.";
+
     roster.forEach(function(p, idx){
       var pId = p.no || ("p_" + idx);
       var b = document.createElement("button"); b.type = "button"; b.className = "btn-player";
-      var roleTag = "";
-      if(curGoal.scorer === pId || curGoal.scorer === p.no){ b.classList.add("buteur"); roleTag = "<span class='role-tag'>🟢 Buteur</span>"; }
-      else if(curGoal.a1 === pId || curGoal.a1 === p.no){ b.classList.add("passe1"); roleTag = "<span class='role-tag'>🔵 Passe 1</span>"; }
-      else if(curGoal.a2 === pId || curGoal.a2 === p.no){ b.classList.add("passe2"); roleTag = "<span class='role-tag'>🟣 Passe 2</span>"; }
-      else { roleTag = "<span class='role-tag' style='color:var(--muted);'>⚪ Aucun</span>"; }
+      var roleTag = "<span class='role-tag' style='color:var(--muted);'>⚪ Aucun</span>";
 
-      var numDisplay = p.no ? "<b>#" + p.no + "</b> " : "";
-      b.innerHTML = "<span>" + numDisplay + (p.name || "Joueur") + "</span>" + roleTag;
+      var targetVal = p.no || pId;
+      if(curGoal.scorer === targetVal || curGoal.scorer === pId){ b.classList.add("buteur"); roleTag = "<span class='role-tag'>🟢 Buteur</span>"; }
+      else if(curGoal.a1 === targetVal || curGoal.a1 === pId){ b.classList.add("passe1"); roleTag = "<span class='role-tag'>🔵 Passe 1</span>"; }
+      else if(curGoal.a2 === targetVal || curGoal.a2 === pId){ b.classList.add("passe2"); roleTag = "<span class='role-tag'>🟣 Passe 2</span>"; }
+
+      b.innerHTML = "<span>" + (p.no ? "<b>#" + p.no + "</b> " : "") + (p.name || "Joueur") + "</span>" + roleTag;
+
       b.addEventListener("click", function(){
-        var targetVal = p.no || pId;
-        if(curGoal.scorer === targetVal || curGoal.scorer === pId) curGoal.scorer = "";
-        else if(curGoal.a1 === targetVal || curGoal.a1 === pId) curGoal.a1 = "";
-        else if(curGoal.a2 === targetVal || curGoal.a2 === pId) curGoal.a2 = "";
-        else {
-          if(!curGoal.scorer) curGoal.scorer = targetVal;
-          else if(!curGoal.a1) curGoal.a1 = targetVal;
-          else if(!curGoal.a2) curGoal.a2 = targetVal;
+        if(goalPickStep === "scorer"){
+          curGoal.scorer = targetVal; goalPickStep = "a1";
+        } else if(goalPickStep === "a1"){
+          if(curGoal.scorer !== targetVal){ curGoal.a1 = targetVal; goalPickStep = "a2"; }
+        } else if(goalPickStep === "a2"){
+          if(curGoal.scorer !== targetVal && curGoal.a1 !== targetVal){ curGoal.a2 = targetVal; goalPickStep = "done"; }
         }
         renderPlayerPickGrid();
       });
+
       grid.appendChild(b);
     });
   }
 
+  $("gsResetSeq").addEventListener("click", function(){
+    curGoal.scorer = ""; curGoal.a1 = ""; curGoal.a2 = ""; goalPickStep = "scorer"; renderPlayerPickGrid();
+  });
+
   $("quickAddBtn").addEventListener("click", function(){
     if(currentRole !== "admin") return;
-    var qNo = no($("quickNo").value); var qNm = $("quickName").value.trim();
-    if(!qNo && !qNm) return;
-    var roster = state.rosters[curGoal.team] || [];
-    roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
-    state.rosters[curGoal.team] = roster;
-    $("quickNo").value = ""; $("quickName").value = "";
-    renderPlayerPickGrid();
+    var qNo = no($("quickNo").value), qNm = $("quickName").value.trim(); if(!qNo && !qNm) return;
+    var roster = state.rosters[curGoal.team] || []; roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
+    state.rosters[curGoal.team] = roster; $("quickNo").value = ""; $("quickName").value = ""; renderPlayerPickGrid();
   });
 
   $("gsSave").addEventListener("click", function(){
@@ -2570,7 +2057,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(g){ g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2; commit(); }
     sheetGoal.close();
   });
-  $("gsSkip").addEventListener("click", function(){ sheetGoal.close(); });
+
   $("gsDelete").addEventListener("click", function(){
     if(!curGoal || currentRole === "viewer") return;
     var g = state.events.filter(function(x){ return x.id === curGoal.id; })[0];
@@ -2582,89 +2069,57 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     sheetGoal.close();
   });
 
+  // PUNITIONS
   var sheetPen = $("penSheet"), curPen = null;
   function openPen(team){
     curPen = { id: uid(), team: team, period: state.period, time: formatTime(getCurrentTimerSec()), player: "", min: 2, reason: "Accrochage" };
-    $("penTitle").textContent = "Punition - " + state.names[team];
-    $("penCtx").textContent = PLONG[state.period] + " (" + curPen.time + ")";
-    renderPenPlayerGrid();
-    sheetPen.showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+    $("penTitle").textContent = "Punition - " + state.names[team]; $("penCtx").textContent = PLONG[state.period] + " (" + curPen.time + ")";
+    renderPenPlayerGrid(); sheetPen.showModal();
   }
-
   function renderPenPlayerGrid(){
     var grid = $("penPlayerGrid"); grid.textContent = "";
-    var roster = state.rosters[curPen.team] || [];
-    if(!roster.length){ grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur dans l'alignement.</p>"; return; }
-
+    var roster = state.rosters[curPen.team] || []; if(!roster.length){ grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur</p>"; return; }
     roster.forEach(function(p, idx){
-      var pId = p.no || ("p_" + idx);
+      var pId = p.no || ("p_" + idx), targetVal = p.no || pId;
       var b = document.createElement("button"); b.type = "button"; b.className = "btn-player";
-      if(curPen.player === pId || curPen.player === p.no){ b.classList.add("penalized"); }
-
-      var numDisplay = p.no ? "<b>#" + p.no + "</b> " : "";
-      b.innerHTML = "<span>" + numDisplay + (p.name || "Joueur") + "</span>";
-      b.addEventListener("click", function(){
-        var targetVal = p.no || pId;
-        curPen.player = (curPen.player === targetVal || curPen.player === pId) ? "" : targetVal;
-        renderPenPlayerGrid();
-      });
+      if(curPen.player === targetVal || curPen.player === pId) b.classList.add("penalized");
+      b.innerHTML = "<span>" + (p.no ? "<b>#" + p.no + "</b> " : "") + (p.name || "Joueur") + "</span>";
+      b.addEventListener("click", function(){ curPen.player = (curPen.player === targetVal) ? "" : targetVal; renderPenPlayerGrid(); });
       grid.appendChild(b);
     });
   }
-
   $("penCancel").addEventListener("click", function(){ sheetPen.close(); });
   $("penSave").addEventListener("click", function(){
     if(!curPen || currentRole === "viewer") return;
-    curPen.min = Number($("penMin").value);
-    curPen.reason = $("penReason").value;
-    curPen.type = "pen";
-    curPen.t = Date.now();
-    state.events.push(curPen);
-    commit();
-    sheetPen.close();
+    curPen.min = Number($("penMin").value); curPen.reason = $("penReason").value; curPen.type = "pen"; curPen.t = Date.now();
+    state.events.push(curPen); commit(); sheetPen.close();
   });
 
+  // ACTIONS BOUTONS TACTILES
   $("pad").addEventListener("click", function(e){
     if(currentRole === "viewer") return;
     var b = e.target.closest("button[data-act]"); if(!b) return;
-    var t = b.dataset.team, p = state.period, act = b.dataset.act;
-    var curTime = formatTime(getCurrentTimerSec());
+    var t = b.dataset.team, p = state.period, act = b.dataset.act, curTime = formatTime(getCurrentTimerSec());
 
     if(act === "shot"){
       state.shots[t][p] = Math.min(999, state.shots[t][p] + 1);
-      state.events.push({ id: uid(), type: "shot", team: t, period: p, time: curTime, t: Date.now() });
-      commit();
-    }
-    else if(act === "unshot"){
+      state.events.push({ id: uid(), type: "shot", team: t, period: p, time: curTime, t: Date.now() }); commit();
+    } else if(act === "unshot"){
       if(state.shots[t][p] > goalsOf(t,p)){ state.shots[t][p]--; commit(); }
-    }
-    else if(act === "goal"){
+    } else if(act === "goal"){
       var g = { id: uid(), type: "goal", team: t, period: p, time: curTime, scorer: "", a1: "", a2: "", t: Date.now() };
-      state.events.push(g);
-      state.shots[t][p] = Math.min(999, state.shots[t][p] + 1);
-      commit();
-      openGoal(g.id, true);
-    }
-    else if(act === "ungoal"){
+      state.events.push(g); state.shots[t][p] = Math.min(999, state.shots[t][p] + 1); commit(); openGoal(g.id, true);
+    } else if(act === "ungoal"){
       var lastGoalIndex = -1;
       for(var i = state.events.length - 1; i >= 0; i--){
-        if(state.events[i].type === "goal" && state.events[i].team === t){
-          lastGoalIndex = i;
-          break;
-        }
+        if(state.events[i].type === "goal" && state.events[i].team === t){ lastGoalIndex = i; break; }
       }
       if(lastGoalIndex !== -1){
         var removedGoal = state.events.splice(lastGoalIndex, 1)[0];
-        if(state.shots[t][removedGoal.period] > 0){
-          state.shots[t][removedGoal.period]--;
-        }
+        if(state.shots[t][removedGoal.period] > 0) state.shots[t][removedGoal.period]--;
         commit();
-      } else {
-        alert("Aucun but enregistré à retirer pour cette équipe.");
-      }
-    }
-    else if(act === "pen"){
+      } else { alert("Aucun but à retirer."); }
+    } else if(act === "pen"){
       openPen(t);
     }
   });
@@ -2679,8 +2134,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var el = $(t === "a" ? "nameA" : "nameB");
     el.addEventListener("change", function(){
       if(currentRole !== "admin") return;
-      var v = str(el.value, t === "a" ? "Local" : "Visiteur");
-      el.value = v; if(v !== state.names[t]){ state.names[t] = v; commit(); }
+      var v = str(el.value, t === "a" ? "Local" : "Visiteur"); el.value = v;
+      if(v !== state.names[t]){ state.names[t] = v; commit(); }
     });
     el.addEventListener("keydown", function(e){ if(e.key === "Enter") el.blur(); });
   });
@@ -2694,7 +2149,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   });
 
-  // Initialisation au chargement de la page
   switchOrganization(currentOrg, currentCat);
 
 })();
