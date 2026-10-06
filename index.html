@@ -134,7 +134,6 @@ h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 
 .roster-item:hover, .roster-item.active{background:var(--crease);border:1px solid var(--blue);}
 .roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
 
-/* Fiche joueur directement insérée sous la ligne */
 .player-card-inline{background:var(--surface);border:1.5px solid var(--blue);border-radius:8px;padding:.5rem;margin:.2rem 0 .4rem;animation:fadeIn .15s linear;}
 .player-card-inline h4{margin:0 0 .3rem;font-size:.85rem;font-family:var(--display);color:var(--blue);display:flex;justify-content:space-between;}
 .player-card-inline .p-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.2rem;text-align:center;}
@@ -303,7 +302,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
   </header>
 
-  <!-- Bandeau Défilant de Message Personnalisé -->
   <div class="ticker-wrap" id="tickerWrap">
     <span class="ticker-icon">📢</span>
     <div class="ticker-content">
@@ -390,7 +388,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
   <ul class="events-list" id="eventsList"></ul>
 
-  <!-- SECTIONS DÉPLIABLES -->
   <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
   <div class="toggle-block hidden" id="statsBlock">
     <section class="stats-card">
@@ -421,7 +418,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     </section>
   </div>
 
-  <!-- Alignements -->
   <h2 class="toggle-title collapsed" id="toggleRosterBtn">Alignements</h2>
   <div class="toggle-block hidden" id="rosterBlock">
     <div class="roster-controls">
@@ -476,11 +472,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
-  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️ Gestion</button>
+  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️️ Gestion</button>
   <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
 </div>
 
-<!-- Dialogue Gestion Principale -->
+<!-- Modale d'invitation à la Prolongation -->
+<dialog id="overtimeSheet">
+  <div class="sheet-in">
+    <h2>Prolongation ?</h2>
+    <p class="ctx">Égalité à la fin du temps réglementaire ! Souhaitez-vous jouer la prolongation ?</p>
+    <div class="actions">
+      <button type="button" class="act-2" id="overtimeNo">Non (Fin du match)</button>
+      <button type="button" class="act-1" id="overtimeYes">Oui (Aller en prol.)</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="settingsSheet">
   <div class="sheet-in">
     <h2>Gestion</h2>
@@ -513,7 +520,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Exportation Avancée (PDF/CSV) -->
 <dialog id="exportSheet">
   <div class="sheet-in">
     <h2>Options d'Exportation</h2>
@@ -543,7 +549,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Messages -->
 <dialog id="messagesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Messages</h2>
@@ -570,7 +575,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Organisations -->
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
@@ -590,7 +594,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale d'Édition d'Organisation -->
 <dialog id="editOrgSheet">
   <div class="sheet-in">
     <h2>Éditer l'Organisation</h2>
@@ -605,7 +608,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Catégories -->
 <dialog id="categoriesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Catégories</h2>
@@ -639,7 +641,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Équipes -->
 <dialog id="teamsManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Équipes</h2>
@@ -662,7 +663,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Mot de passe -->
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
@@ -781,7 +781,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Saisie Buts Dynamique -->
 <dialog id="goalSheet">
   <div class="sheet-in">
     <h2 id="gsTitle">But</h2>
@@ -1162,7 +1161,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     alert("Paramètres enregistrés !"); $("settingsSheet").close();
   });
 
-  // Exportation PDF / CSV
   function openExportModal(type){
     exportTypeToRun = type;
     $("exportSheet").showModal();
@@ -1206,7 +1204,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   });
 
-  // --- MESSAGES ---
   $("btnOpenMessagesManage").addEventListener("click", function(){ $("settingsSheet").close(); openMessagesManageModal(); });
   function openMessagesManageModal(){
     var selOrg = $("msgOrgSelect");
@@ -1262,7 +1259,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     alert("Messages enregistrés !"); updateTickerDisplay(); $("messagesManageSheet").close(); $("settingsSheet").showModal();
   });
 
-  // ORGANISATIONS
   $("btnOpenOrgManage").addEventListener("click", function(){ $("settingsSheet").close(); renderOrgManageList(); $("orgManageSheet").showModal(); });
   $("orgManageClose").addEventListener("click", function(){ $("orgManageSheet").close(); });
   $("orgManageBack").addEventListener("click", function(){ $("orgManageSheet").close(); $("settingsSheet").showModal(); });
@@ -1304,7 +1300,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("editOrgSheet").close(); renderOrgManageList(); $("orgManageSheet").showModal();
   });
 
-  // CATÉGORIES
   var manageCatOrgKey = currentOrg;
   $("btnOpenCategoriesManage").addEventListener("click", function(){
     $("settingsSheet").close(); manageCatOrgKey = currentOrg;
@@ -1339,7 +1334,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var li = document.createElement("li"); li.className = "cat-manage-item";
       li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
       var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
-      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏️️ Éditer";
+      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏ Éditer";
       btnEdit.addEventListener("click", function(){
         currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); $("categoriesManageSheet").close(); $("editCatSheet").showModal();
       });
@@ -1365,7 +1360,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("editCatSheet").close(); renderCategoriesManageList(); $("categoriesManageSheet").showModal();
   });
 
-  // ÉQUIPES
   var manageTeamOrgKey = currentOrg, manageTeamCatKey = currentCat, manageTeamPresets = {};
   $("btnOpenTeamsManage").addEventListener("click", function(){
     $("settingsSheet").close(); manageTeamOrgKey = currentOrg; manageTeamCatKey = currentCat;
@@ -1416,7 +1410,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // MOTS DE PASSE
   $("btnOpenPasswords").addEventListener("click", function(){
     $("settingsSheet").close(); $("pwdAdminInput").value = passwords.admin || "hockey";
     var container = $("catPasswordsContainer"); container.textContent = "";
@@ -1439,11 +1432,21 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var PLABEL = ["P1","P2","P3","Prol."];
   var PLONG = ["1re période","2e période","3e période","Prolongation"];
 
+  // Correction : "Visiteur" explicite au lieu du nom de rôle
   function blank(names){
-    return { v:1, names: names || {a:"Local", b:"Visiteur"}, period:0,
-             logos:{a:"", b:""}, colors:{a:"#6FA2EE", b:"#F2707A"}, rosters:{a:[], b:[]}, staff:{a:[], b:[]},
-             shots:{a:[0,0,0,0], b:[0,0,0,0]}, events:[],
-             timer:{sec:defaultPeriodSec, running:false, lastUpdate:0}, updatedAt:0 };
+    return { 
+      v: 1, 
+      names: names || { a: "Local", b: "Visiteur" }, 
+      period: 0,
+      logos: { a: "", b: "" }, 
+      colors: { a: "#6FA2EE", b: "#F2707A" }, 
+      rosters: { a: [], b: [] }, 
+      staff: { a: [], b: [] },
+      shots: { a: [0,0,0,0], b: [0,0,0,0] }, 
+      events: [],
+      timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 }, 
+      updatedAt: 0 
+    };
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function int(v,min,max){ v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); }
@@ -1492,7 +1495,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     return remaining;
   }
 
-  // Passer automatiquement à la période suivante à 00:00
+  // Remplacement des popups confirm par des Modales
   function handleTimerEnd(){
     state.timer.running = false;
     state.timer.sec = defaultPeriodSec;
@@ -1502,11 +1505,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       state.period++;
     } else if(state.period === 2){
       if(gA === gB){
-        if(confirm("Égalité à la fin du temps régulier ! Voulez-vous aller en prolongation ?")){
-          state.period = 3;
-        } else {
-          promptSaveHistory();
-        }
+        $("overtimeSheet").showModal();
       } else {
         promptSaveHistory();
       }
@@ -1515,6 +1514,17 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
     commit();
   }
+
+  $("overtimeYes").addEventListener("click", function(){
+    state.period = 3;
+    commit();
+    $("overtimeSheet").close();
+  });
+
+  $("overtimeNo").addEventListener("click", function(){
+    $("overtimeSheet").close();
+    promptSaveHistory();
+  });
 
   function promptSaveHistory(){
     if(currentRole !== "viewer"){
@@ -1680,7 +1690,13 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
     $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
 
-    var isGameActive = state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0);
+    // Modifié : Masquer le bouton de nouvelle partie si la période est > 0 ou match actif
+    var isGameActive = state.timer.running || 
+                       (state.timer.sec < defaultPeriodSec) || 
+                       (state.period > 0) || 
+                       (sA > 0) || (sB > 0) || 
+                       (state.events && state.events.length > 0);
+
     $("btnStopGame").style.display = isGameActive ? "block" : "none";
     $("newGame").style.display = isGameActive ? "none" : "block";
 
@@ -1689,7 +1705,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("gNameA").textContent = "Gardien, " + n.a; $("gNameB").textContent = "Gardien, " + n.b;
     goalie("A", sB, gB); goalie("B", sA, gA);
 
-    // Alignements interactifs & Sélecteurs hors match
     renderRosterPickers(isGameActive);
     renderRosterList("rosterA", getActiveRosterForSide("a"), "a");
     renderRosterList("rosterB", getActiveRosterForSide("b"), "b");
@@ -1714,7 +1729,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     calculateTeamStats(); updateTickerDisplay();
   }
 
-  // Permettre de choisir les équipes dans "Alignements" quand aucune partie n'est démarrée
   function renderRosterPickers(isGameActive){
     var pickersBox = $("rosterTeamPickers");
     if(isGameActive){
@@ -1747,7 +1761,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
 
   function getActiveRosterForSide(side){
-    var isGameActive = state.timer.running || (state.timer.sec < defaultPeriodSec) || sum(state.shots.a) > 0 || sum(state.shots.b) > 0 || state.events.length > 0;
+    var isGameActive = state.timer.running || (state.timer.sec < defaultPeriodSec) || (state.period > 0) || sum(state.shots.a) > 0 || sum(state.shots.b) > 0 || state.events.length > 0;
     if(isGameActive){
       return state.rosters[side] || [];
     } else {
@@ -1757,7 +1771,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
   }
 
-  // Filtre Ce match VS Tout
   $("btnScopeMatch").addEventListener("click", function(){
     rosterScope = "match"; $("btnScopeMatch").classList.add("active"); $("btnScopeAll").classList.remove("active"); render();
   });
@@ -1781,7 +1794,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
       ul.appendChild(li);
 
-      // Insertion de la fiche joueur immédiatement EN DESSOUS
       if(openPlayerCardId === pId){
         var cardBox = document.createElement("div"); cardBox.className = "player-card-inline";
         var stats = getPlayerStatsCalculated(side, pId, rosterScope);
@@ -1888,10 +1900,32 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   setupToggle("toggleStatsBtn", "statsBlock"); setupToggle("toggleRosterBtn", "rosterBlock");
   setupToggle("toggleGoaliesBtn", "goaliesBlock"); setupToggle("toggleHistoryBtn", "historyBlock");
 
-  // NOUVELLE PARTIE
+  // NOUVELLE PARTIE : Peuplage garanti des équipes
+  function populateWizTeamSelect(selectId, currentName){
+    var sel = $(selectId);
+    sel.innerHTML = '<option value="">-- Choisir une équipe --</option>';
+    if(presets && typeof presets === "object"){
+      Object.keys(presets).forEach(function(k){
+        var p = presets[k];
+        if(p && p.name){
+          var opt = document.createElement("option");
+          opt.value = k;
+          opt.textContent = p.name + (p.category ? " (" + p.category.toUpperCase() + ")" : "");
+          if(p.name === currentName) opt.selected = true;
+          sel.appendChild(opt);
+        }
+      });
+    }
+  }
+
   $("newGame").addEventListener("click", function(){
     if(currentRole !== "admin") return;
-    $("wizColorA").value = state.colors.a || "#6FA2EE"; $("wizColorB").value = state.colors.b || "#F2707A";
+    populateWizTeamSelect("wizTeamA", state.names.a);
+    populateWizTeamSelect("wizTeamB", state.names.b);
+    $("wizColorA").value = state.colors.a || "#6FA2EE";
+    $("wizColorB").value = state.colors.b || "#F2707A";
+    renderPresenceList("a", $("wizTeamA").value);
+    renderPresenceList("b", $("wizTeamB").value);
     $("newGameWizard").showModal();
   });
   $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
@@ -1932,7 +1966,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     commit(); $("newGameWizard").close();
   });
 
-  // Édition d'équipe
   var editingTeamKey = null;
   $("btnAddNewTeam").addEventListener("click", function(){ openTeamEditor(null); });
   function openTeamEditor(key){
@@ -1988,7 +2021,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     alert("Équipe enregistrée !"); $("rosterSheet").close(); $("teamsManageSheet").showModal();
   });
 
-  // --- SAISIE BUTEUR / PASSEURS INTUITIVE (SÉQUENTIELLE) ---
   var sheetGoal = $("goalSheet"), curGoal = null, goalPickStep = "scorer"; 
 
   function openGoal(id, isNew){
@@ -2069,7 +2101,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     sheetGoal.close();
   });
 
-  // PUNITIONS
   var sheetPen = $("penSheet"), curPen = null;
   function openPen(team){
     curPen = { id: uid(), team: team, period: state.period, time: formatTime(getCurrentTimerSec()), player: "", min: 2, reason: "Accrochage" };
@@ -2095,7 +2126,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     state.events.push(curPen); commit(); sheetPen.close();
   });
 
-  // ACTIONS BOUTONS TACTILES
   $("pad").addEventListener("click", function(e){
     if(currentRole === "viewer") return;
     var b = e.target.closest("button[data-act]"); if(!b) return;
