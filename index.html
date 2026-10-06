@@ -102,7 +102,6 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 
 /* Masquage automatique spectateur */
 body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
-body:not(.role-admin) #newGame, body:not(.role-admin) #btnManageSettings{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
 /* Clavier de saisie */
@@ -514,9 +513,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="settingsSheet">
   <div class="sheet-in">
     <h2>Gestion</h2>
-    <p class="ctx">Paramètres généraux, organisations, catégories et sécurité.</p>
+    <p class="ctx">Paramètres généraux, messages, organisations, catégories et sécurité.</p>
 
-    <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;">🏢 Gestion des Organisations</button>
+    <!-- Nouveau bouton de Gestion des Messages -->
+    <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
+    
+    <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Gestion des Organisations</button>
     <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
     <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
 
@@ -543,6 +545,35 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
+<!-- Modale Gestion des Messages (Séparée et sécurisée) -->
+<dialog id="messagesManageSheet">
+  <div class="sheet-in">
+    <h2>Gestion des Messages</h2>
+    <p class="ctx">Configurez les messages affichés dans le bandeau défilant.</p>
+
+    <!-- Section Organisation (Modifiable seulement par Admin) -->
+    <div class="preset-box" id="msgOrgBox">
+      <label style="font-weight:700;">1. Organisation :</label>
+      <select id="msgOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message général de l'organisation :</label>
+      <input type="text" id="msgOrgInput" placeholder="Ex: Bienvenue à l'aréna Chavigny !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <!-- Section Équipe (Modifiable par Admin et Marqueur) -->
+    <div class="preset-box" id="msgTeamBox" style="margin-top:1rem;">
+      <label style="font-weight:700;">2. Équipe :</label>
+      <select id="msgTeamSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message personnalisé de l'équipe :</label>
+      <input type="text" id="msgTeamInput" placeholder="Ex: Encourager les Lions au prochain tournoi !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="msgManageBack">⬅️ Retour</button>
+      <button type="button" class="act-1" id="msgManageSave">Enregistrer les messages</button>
+    </div>
+  </div>
+</dialog>
+
 <!-- Modale Gestion des Organisations -->
 <dialog id="orgManageSheet">
   <div class="sheet-in">
@@ -564,21 +595,15 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale d'Édition d'Organisation (Inclut le Message Général) -->
+<!-- Modale d'Édition d'Organisation -->
 <dialog id="editOrgSheet">
   <div class="sheet-in">
     <h2>Éditer l'Organisation</h2>
-    <p class="ctx">Saisissez le nom et le message général de l'organisation pour le bandeau.</p>
+    <p class="ctx">Saisissez le nouveau nom pour l'organisation.</p>
 
     <div class="field-group" style="margin-top:0;">
       <label>Nom de l'organisation :</label>
       <input type="text" id="editOrgNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    </div>
-
-    <div class="field-group" style="margin-top:.8rem;">
-      <label>Message général du bandeau :</label>
-      <input type="text" id="editOrgMsgInput" placeholder="Ex: Bienvenue à l'aréna Chavigny !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-      <small style="color:var(--muted);font-size:.75rem;display:block;margin-top:.2rem;">Affiché en premier dans le bandeau défilant.</small>
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -607,7 +632,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="cat-manage-list" id="catManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="catManageBack">⬅️️ Retour</button>
+      <button type="button" class="act-2" id="catManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
     </div>
   </div>
@@ -762,17 +787,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="rosterSheet">
   <div class="sheet-in">
     <h2 id="rsTitle">Édition d'Équipe</h2>
-    <p class="ctx">Configurez l'équipe, sa formation et son message personnalisé.</p>
+    <p class="ctx">Configurez l'équipe et sa formation.</p>
 
     <div class="field-group" style="margin-top:0;">
       <label style="font-size:.8rem;font-weight:600;">Nom de l'équipe :</label>
       <input type="text" id="editTeamNameInput" maxlength="18" placeholder="Ex: Lions Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-    </div>
-
-    <div class="field-group" style="margin-top:.5rem;">
-      <label style="font-size:.8rem;font-weight:600;">Message personnalisé de l'équipe (Bandeau) :</label>
-      <input type="text" id="editTeamMsgInput" placeholder="Ex: Encourager les Lions au prochain tournoi !" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-      <small style="color:var(--muted);font-size:.75rem;">Ce message apparaîtra après le message général de l'organisation.</small>
     </div>
 
     <div class="color-picker-row" style="margin:.6rem 0;">
@@ -910,6 +929,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   var currentEditingOrgObj = null;
   var currentEditingCatIndex = -1;
+
+  // Variables internes pour le module Gestion des Messages
+  var msgSelectedOrgKey = currentOrg;
+  var msgSelectedTeamKey = "";
+  var msgTempTeams = {};
 
   // Gestion du temps personnalisé
   $("defaultPeriodMinInput").addEventListener("change", function(){
@@ -1253,6 +1277,107 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("settingsSheet").close();
   });
 
+  // --- MODULE : GESTION DES MESSAGES ---
+  $("btnOpenMessagesManage").addEventListener("click", function(){
+    $("settingsSheet").close();
+    openMessagesManageModal();
+  });
+
+  function openMessagesManageModal(){
+    var selOrg = $("msgOrgSelect");
+    var inputOrg = $("msgOrgInput");
+    var selTeam = $("msgTeamSelect");
+    var inputTeam = $("msgTeamInput");
+
+    selOrg.innerHTML = "";
+    selOrg.disabled = (currentRole !== "admin");
+    inputOrg.disabled = (currentRole !== "admin");
+
+    organizationsList.forEach(function(o){
+      var opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name;
+      if(o.id === currentOrg) opt.selected = true;
+      selOrg.appendChild(opt);
+    });
+
+    msgSelectedOrgKey = selOrg.value || currentOrg;
+    loadOrgMessageData(msgSelectedOrgKey);
+
+    $("messagesManageSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+  }
+
+  $("msgOrgSelect").addEventListener("change", function(){
+    msgSelectedOrgKey = $("msgOrgSelect").value;
+    loadOrgMessageData(msgSelectedOrgKey);
+  });
+
+  function loadOrgMessageData(orgKey){
+    var matchedOrg = organizationsList.find(function(o){ return o.id === orgKey; });
+    $("msgOrgInput").value = (matchedOrg && matchedOrg.msg) ? matchedOrg.msg : "";
+
+    firebase.database().ref(orgKey + "/teams_presets").once("value", function(snap){
+      msgTempTeams = snap.val() || {};
+      populateMsgTeamsSelect();
+    });
+  }
+
+  function populateMsgTeamsSelect(){
+    var selTeam = $("msgTeamSelect");
+    selTeam.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
+    
+    var keys = Object.keys(msgTempTeams);
+    keys.forEach(function(k){
+      var team = msgTempTeams[k];
+      if(!team.category || team.category === "" || team.category === currentCat){
+        var opt = document.createElement("option"); opt.value = k; opt.textContent = team.name;
+        selTeam.appendChild(opt);
+      }
+    });
+
+    if(keys.length > 0){
+      selTeam.selectedIndex = 1;
+      msgSelectedTeamKey = selTeam.value;
+      $("msgTeamInput").value = (msgTempTeams[msgSelectedTeamKey] && msgTempTeams[msgSelectedTeamKey].msg) ? msgTempTeams[msgSelectedTeamKey].msg : "";
+    } else {
+      msgSelectedTeamKey = "";
+      $("msgTeamInput").value = "";
+    }
+  }
+
+  $("msgTeamSelect").addEventListener("change", function(){
+    msgSelectedTeamKey = $("msgTeamSelect").value;
+    if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
+      $("msgTeamInput").value = msgTempTeams[msgSelectedTeamKey].msg || "";
+    } else {
+      $("msgTeamInput").value = "";
+    }
+  });
+
+  $("msgManageBack").addEventListener("click", function(){
+    $("messagesManageSheet").close();
+    $("settingsSheet").showModal();
+  });
+
+  $("msgManageSave").addEventListener("click", function(){
+    if(currentRole === "admin"){
+      var matchedOrg = organizationsList.find(function(o){ return o.id === msgSelectedOrgKey; });
+      if(matchedOrg){
+        matchedOrg.msg = $("msgOrgInput").value.trim();
+        dbOrgs.set(organizationsList);
+      }
+    }
+
+    if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
+      var newTeamMsg = $("msgTeamInput").value.trim();
+      firebase.database().ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set(newTeamMsg);
+    }
+
+    alert("Messages enregistrés avec succès !");
+    updateTickerDisplay();
+    $("messagesManageSheet").close();
+    $("settingsSheet").showModal();
+  });
+
   // --- 1. GESTION DES ORGANISATIONS ---
   $("btnOpenOrgManage").addEventListener("click", function(){
     $("settingsSheet").close();
@@ -1283,8 +1408,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     list.textContent = "";
     organizationsList.forEach(function(o){
       var li = document.createElement("li"); li.className = "org-manage-item";
-      var msgSub = o.msg ? "<br><small style='color:var(--muted);'>📢 " + o.msg + "</small>" : "";
-      li.innerHTML = "<div><strong>" + o.name + "</strong> <small style='color:var(--muted);'>(" + o.id + ")</small>" + msgSub + "</div>";
+      li.innerHTML = "<div><strong>" + o.name + "</strong> <small style='color:var(--muted);'>(" + o.id + ")</small></div>";
       
       var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
 
@@ -1293,7 +1417,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       btnEdit.addEventListener("click", function(){
         currentEditingOrgObj = o;
         $("editOrgNameInput").value = o.name;
-        $("editOrgMsgInput").value = o.msg || "";
         $("orgManageSheet").close();
         $("editOrgSheet").showModal();
         setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
@@ -1320,10 +1443,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("editOrgSave").addEventListener("click", function(){
     var newName = $("editOrgNameInput").value.trim();
-    var newMsg = $("editOrgMsgInput").value.trim();
     if(newName && currentEditingOrgObj){
       currentEditingOrgObj.name = newName;
-      currentEditingOrgObj.msg = newMsg;
       dbOrgs.set(organizationsList);
     }
     $("editOrgSheet").close();
@@ -1513,8 +1634,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var colorDot = "<span style='display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:" + (team.color || "#6FA2EE") + ";margin-right:.4rem;'></span>";
       var rosterCount = team.roster ? team.roster.length : 0;
       var catTag = team.category ? " [" + team.category.toUpperCase() + "]" : " [Toutes]";
-      var msgText = team.msg ? "<br><small style='color:var(--muted);'>💬 " + team.msg + "</small>" : "";
-      info.innerHTML = "<div>" + colorDot + "<strong>" + team.name + catTag + "</strong>" + msgText + "<br><small style='color:var(--muted);'>" + rosterCount + " joueur(s)</small></div>";
+      info.innerHTML = "<div>" + colorDot + "<strong>" + team.name + catTag + "</strong><br><small style='color:var(--muted);'>" + rosterCount + " joueur(s)</small></div>";
 
       var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
 
@@ -2250,11 +2370,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   function openTeamEditor(key){
     editingTeamKey = key;
-    var team = key && manageTeamPresets[key] ? manageTeamPresets[key] : { name: "", logo: "", msg: "", color: "#6FA2EE", category: manageTeamCatKey || currentCat, roster: [], staff: [] };
+    var team = key && manageTeamPresets[key] ? manageTeamPresets[key] : { name: "", logo: "", color: "#6FA2EE", category: manageTeamCatKey || currentCat, roster: [], staff: [] };
     
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
     $("editTeamNameInput").value = team.name || "";
-    $("editTeamMsgInput").value = team.msg || "";
     $("teamLogoInput").value = team.logo || "";
     $("presetTeamColor").value = team.color || "#6FA2EE";
 
@@ -2371,7 +2490,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var teamName = str($("editTeamNameInput").value, "");
     if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
 
-    var teamMsg = $("editTeamMsgInput").value.trim();
     var logoUrl = $("teamLogoInput").value.trim();
     var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
     var color = $("presetTeamColor").value;
@@ -2379,8 +2497,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var roster = getFormRoster();
     var staff = getFormStaff();
 
+    var existingMsg = (manageTeamPresets[key] && manageTeamPresets[key].msg) ? manageTeamPresets[key].msg : "";
+
     firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).set({
-      name: teamName, msg: teamMsg, logo: logoUrl, color: color, category: category, roster: roster, staff: staff
+      name: teamName, msg: existingMsg, logo: logoUrl, color: color, category: category, roster: roster, staff: staff
     });
     
     alert("Équipe '" + teamName + "' enregistrée avec succès !");
