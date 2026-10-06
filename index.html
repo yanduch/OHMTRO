@@ -58,7 +58,8 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
 .ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 1.4rem,#000 calc(100% - 1.4rem),transparent);mask-image:linear-gradient(90deg,transparent,#000 1.4rem,#000 calc(100% - 1.4rem),transparent);}
 .ticker-text{display:inline-flex;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);will-change:transform;}
-.ticker-unit{flex:none;padding-right:3.5rem;}
+.ticker-unit{flex:none;display:inline-flex;}
+.ticker-msg{flex:none;padding-right:6rem;}
 .ticker-text:hover{animation-play-state:paused;}
 /* Le message entre par la droite, puis défile en boucle avec un espace entre deux passages */
 @keyframes tickerIn { from { transform: translate3d(var(--cw), 0, 0); } to { transform: translate3d(0, 0, 0); } }
@@ -343,6 +344,13 @@ body:not(.role-viewer) .g-who{display:none}
 .g .g-season:empty{display:none}
 .player-card-inline .p-grid.g-grid{grid-template-columns:repeat(4,1fr);row-gap:.35rem}
 .player-card-inline .p-grid.g-grid .p-stat .p-val{font-size:.95rem;white-space:nowrap}
+
+/* --- Punitions bien visibles dans le pas à pas --- */
+.event-row.pen{--team:#C4202E;background:rgba(196,32,46,.12);box-shadow:inset 0 0 0 1px rgba(196,32,46,.35)}
+.event-row.pen .info strong, .event-row.pen .time{color:#C4202E}
+:root[data-theme="dark"] .event-row.pen .info strong, :root[data-theme="dark"] .event-row.pen .time{color:#FF8A92}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .event-row.pen .info strong, :root:not([data-theme="light"]) .event-row.pen .time{color:#FF8A92} }
+@media print { .event-row.pen{border-left-color:#C4202E !important} }
 </style>
 </head>
 <body class="role-viewer">
@@ -836,7 +844,7 @@ body:not(.role-viewer) .g-who{display:none}
     </div>
     
     <div class="actions" style="margin-top:1rem;">
-      <button type="button" class="act-2" id="gsResetSeq">Réinitialiser</button>
+      <button type="button" class="act-2" id="gsCancel">Annuler</button>
       <button type="button" class="act-1" id="gsSave">Terminer / Enregistrer</button>
     </div>
     <button type="button" class="danger" id="gsDelete" hidden>Supprimer ce but</button>
@@ -1333,7 +1341,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Bandeau défilant ============ */
-  let tickerSig = null, tickerMsg = "", lastWidth = window.innerWidth, resizeTimer = null;
+  let tickerSig = null, tickerMsg = [], lastWidth = window.innerWidth, resizeTimer = null;
   const TICKER_SPEED = 55;             // pixels par seconde
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
@@ -1343,18 +1351,20 @@ document.addEventListener("DOMContentLoaded", function(){
       const p = presetByName[state.names[t]];
       if(p && p.msg && String(p.msg).trim()) messages.push(state.names[t] + " : " + String(p.msg).trim());
     });
-    const full = messages.join("\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0");
+    const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
-    tickerSig = full; tickerMsg = full;
+    tickerSig = full; tickerMsg = messages;
     layoutTicker();
   }
   // Le message entre par la droite, défile jusqu'au bout, puis recommence après un espace, sans coupure
   function layoutTicker(){
     const wrap = $("tickerWrap"), track = $("tickerText");
     track.style.animation = "none"; track.textContent = "";
-    if(!tickerMsg){ wrap.classList.remove("active"); return; }
+    if(!tickerMsg.length){ wrap.classList.remove("active"); return; }
     wrap.classList.add("active");
-    const unit = el("span", "ticker-unit", tickerMsg); track.appendChild(unit);
+    const unit = el("span", "ticker-unit");                   // chaque message est suivi d'un grand espace
+    tickerMsg.forEach(m => unit.appendChild(el("span", "ticker-msg", m)));
+    track.appendChild(unit);
     const cw = track.parentNode.clientWidth, uw = unit.offsetWidth;
     if(!cw || !uw) return;
     for(let n = Math.ceil(cw / uw); n > 0; n--) track.appendChild(unit.cloneNode(true));   // assez de copies pour remplir la largeur
@@ -2040,18 +2050,29 @@ document.addEventListener("DOMContentLoaded", function(){
     ["a","b"].forEach(side => {
       const U = side.toUpperCase(), roster = state.rosters[side], cur = goalieOf(state, side);
       setText("gName" + U, state.names[side]);
-      setText("gWho" + U, cur ? "Gardien : " + playerLabel(roster, cur) : "Gardien non désigné");
+      setText("gWho" + U, cur ? "Gardien : " + playerLabel(roster, cur) : "Gardien");
       const l = goalieLines(state, side)[cur] || { sa: 0, ga: 0 };
       if(!l.sa){ setText("sv" + U, "–"); setText("svSub" + U, "Aucun lancer reçu"); }
-      else { setText("sv" + U, svPct(l.sa, l.ga)); setText("svSub" + U, Math.max(0, l.sa - l.ga) + " arrêts / " + l.sa + " lancers"); }
+      else { setText("sv" + U, svPct(l.sa, l.ga)); const sv = Math.max(0, l.sa - l.ga); setText("svSub" + U, sv + (sv > 1 ? " arrêts / " : " arrêt / ") + l.sa + (l.sa > 1 ? " lancers" : " lancer")); }
       if(!open) return;
 
-      // Menu du gardien en poste (marqueur / admin) : les « G » de l'alignement, sinon tous les joueurs
-      const sel = $("gSel" + U); let items = [];
-      roster.forEach((p, i) => { if(p.pos === "G") items.push({ value: pidOf(p, i), label: (p.no ? "#" + p.no + " " : "") + p.name }); });
-      if(!items.length) items = roster.map((p, i) => ({ value: pidOf(p, i), label: (p.no ? "#" + p.no + " " : "") + p.name }));
-      const sig = JSON.stringify(items) + "|" + cur;
-      if(sel.dataset.sig !== sig){ sel.dataset.sig = sig; fillSelect(sel, items, cur, cur ? null : "Choisir le gardien"); }
+      // Menu du gardien en poste (marqueur / admin), modifiable en tout temps pendant la partie
+      const lab = p => (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur");
+      const groups = [["Gardiens", []], ["Autres joueurs", []]];
+      roster.forEach((p, i) => groups[p.pos === "G" ? 0 : 1][1].push({ value: pidOf(p, i), label: lab(p) }));
+      absentGoalies(side).forEach((p, i) => groups[0][1].push({ value: "abs:" + i, label: lab(p) + " (absent de l'alignement)" }));
+      const sel = $("gSel" + U), sig = JSON.stringify(groups) + "|" + cur;
+      if(sel.dataset.sig !== sig){
+        sel.dataset.sig = sig; sel.textContent = "";
+        if(!cur){ const o = el("option", null, "Gardien"); o.value = ""; sel.appendChild(o); }
+        groups.forEach(g => {
+          if(!g[1].length) return;
+          const og = el("optgroup"); og.label = g[0];
+          g[1].forEach(it => { const o = el("option", null, it.label); o.value = it.value; og.appendChild(o); });
+          sel.appendChild(og);
+        });
+        sel.value = cur;
+      }
 
       let season = "";
       if(cur && historyLoaded){
@@ -2062,9 +2083,24 @@ document.addEventListener("DOMContentLoaded", function(){
       setText("svSeason" + U, season);
     });
   }
+  // Gardiens de l'équipe enregistrée qui ne sont pas dans l'alignement du match (non cochés au départ)
+  function absentGoalies(side){
+    const preset = presetByName[state.names[side]], r = state.rosters[side];
+    return (preset ? toArr(preset.roster).map(normPlayer) : []).filter(p =>
+      p.pos === "G" && !r.some(m => p.no ? m.no === p.no : (!m.no && m.name === p.name)));
+  }
   ["a","b"].forEach(side => on("gSel" + side.toUpperCase(), "change", e => {
-    if(!canEdit()) return;
-    state.goalies[side] = e.target.value; commit();
+    if(!canEdit()){ render(); return; }
+    let val = e.target.value;
+    if(val.indexOf("abs:") === 0){                             // gardien absent de l'alignement : on l'y ajoute
+      const p = absentGoalies(side)[Number(val.slice(4))]; if(!p){ render(); return; }
+      state.rosters[side].push(p); val = pidOf(p, state.rosters[side].length - 1);
+    }
+    if(!val){ render(); return; }
+    // Les lancers déjà reçus restent au gardien précédent (ou vont au premier gardien désigné s'il n'y en avait pas)
+    const prev = goalieOf(state, side) || val, opp = side === "a" ? "b" : "a";
+    state.events.forEach(ev => { if(ev.team === opp && (ev.type === "shot" || ev.type === "goal") && !ev.g) ev.g = prev; });
+    state.goalies[side] = val; commit();
   }));
 
   function renderShotsTable(){
@@ -2092,10 +2128,18 @@ document.addEventListener("DOMContentLoaded", function(){
   ["rosterSelectTeamA","rosterSelectTeamB"].forEach(id => on(id, "change", renderRosters));
 
   function activeRoster(side, started){
-    if(started) return state.rosters[side];
-    const p = presets[$(side === "a" ? "rosterSelectTeamA" : "rosterSelectTeamB").value];
-    const r = p ? toArr(p.roster).map(normPlayer) : [];
-    return r.length ? r : state.rosters[side];
+    if(!started){
+      const p = presets[$(side === "a" ? "rosterSelectTeamA" : "rosterSelectTeamB").value];
+      const r = p ? toArr(p.roster).map(normPlayer) : [];
+      return r.length ? r : state.rosters[side];
+    }
+    if(rosterScope !== "all") return state.rosters[side];      // « Ce match » : joueurs présents
+    // « Tout (Saison) » : toute l'équipe enregistrée, plus les joueurs ajoutés pendant le match
+    const preset = presetByName[state.names[side]], full = preset ? toArr(preset.roster).map(normPlayer) : [];
+    if(!full.length) return state.rosters[side];
+    const same = (x, y) => x.no ? x.no === y.no : (!y.no && x.name === y.name);
+    state.rosters[side].forEach(m => { if(!full.some(f => same(f, m))) full.push(m); });
+    return full;
   }
 
   function renderRosters(){
@@ -2195,7 +2239,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const e = state.events[i];
       if(!(filter === "all" || (filter === "team_a" && e.team === "a") || (filter === "team_b" && e.team === "b") || e.type === filter)) continue;
       count++;
-      const li = el("li"), b = el("button", "event-row " + (e.team === "a" || e.team === "b" ? e.team : "sys")); b.type = "button"; b.dataset.id = e.id;
+      const li = el("li"), b = el("button", "event-row " + (e.team === "a" || e.team === "b" ? e.team : "sys") + (e.type === "pen" ? " pen" : "")); b.type = "button"; b.dataset.id = e.id;
       const st = el("strong"), subl = el("span"), team = state.names[e.team] || "";
       if(e.type === "goal"){
         st.textContent = "BUT - " + team + " (" + getPlayerName(e.team, e.scorer) + ")";
@@ -2298,14 +2342,15 @@ document.addEventListener("DOMContentLoaded", function(){
   function openGoal(id, isNew){
     const g = findEvent(id); if(!g) return;
     curGoal = { id: id, isNew: isNew, team: g.team, scorer: g.scorer || "", a1: g.a1 || "", a2: g.a2 || "" };
-    goalPickStep = "scorer";
+    goalPickStep = nextGoalStep();
     $("gsTitle").textContent = (isNew ? "But de " : "But, ") + state.names[g.team];
     $("gsCtx").textContent = PLONG[g.period] + " (" + g.time + ")";
     $("gsDelete").hidden = isNew;
     renderPlayerPickGrid(); openDlg("goalSheet");
   }
 
-  const STEP_TEXT = { scorer: "1. Sélectionnez le BUTEUR", a1: "2. Sélectionnez la PASSE 1 (Optionnel)", a2: "3. Sélectionnez la PASSE 2 (Optionnel)", done: "✅ Sélection terminée. Cliquez sur Terminer." };
+  const STEP_TEXT = { scorer: "1. Sélectionnez le BUTEUR", a1: "2. Sélectionnez la PASSE 1 (Optionnel)", a2: "3. Sélectionnez la PASSE 2 (Optionnel)", done: "✅ Sélection terminée. Touchez un joueur choisi pour le retirer." };
+  const nextGoalStep = () => !curGoal.scorer ? "scorer" : (!curGoal.a1 ? "a1" : (!curGoal.a2 ? "a2" : "done"));
   function playerBtn(p, idx){
     const b = el("button", "btn-player"), s = el("span"); b.type = "button"; b.dataset.pid = pidOf(p, idx);
     if(p.no){ s.appendChild(el("b", null, "#" + p.no)); s.appendChild(document.createTextNode(" ")); }
@@ -2330,16 +2375,31 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   on("playerPickGrid", "click", e => {
     const b = e.target.closest("button[data-pid]"); if(!b || !curGoal) return;
-    const pId = b.dataset.pid;
-    if(goalPickStep === "scorer"){ curGoal.scorer = pId; if(curGoal.a1 === pId) curGoal.a1 = ""; if(curGoal.a2 === pId) curGoal.a2 = ""; goalPickStep = "a1"; }
-    else if(goalPickStep === "a1"){ if(curGoal.scorer !== pId){ curGoal.a1 = pId; if(curGoal.a2 === pId) curGoal.a2 = ""; goalPickStep = "a2"; } }
-    else if(goalPickStep === "a2"){ if(curGoal.scorer !== pId && curGoal.a1 !== pId){ curGoal.a2 = pId; goalPickStep = "done"; } }
+    const pId = b.dataset.pid, c = curGoal;
+    // Toucher un joueur déjà choisi le retire ; sinon il prend le premier rôle libre (buteur, passe 1, passe 2)
+    if(c.scorer === pId) c.scorer = "";
+    else if(c.a1 === pId){ c.a1 = c.a2; c.a2 = ""; }
+    else if(c.a2 === pId) c.a2 = "";
+    else if(!c.scorer) c.scorer = pId;
+    else if(!c.a1) c.a1 = pId;
+    else if(!c.a2) c.a2 = pId;
+    goalPickStep = nextGoalStep();
     renderPlayerPickGrid();
   });
-  on("gsResetSeq", "click", () => {
-    if(!curGoal) return;
-    curGoal.scorer = ""; curGoal.a1 = ""; curGoal.a2 = ""; goalPickStep = "scorer"; renderPlayerPickGrid();
-  });
+  // Annuler : un nouveau but est retiré (avec son lancer) ; un but existant reste tel quel
+  function cancelGoal(){
+    if(curGoal && curGoal.isNew && canEdit()){
+      const g = findEvent(curGoal.id);
+      if(g){
+        state.events = state.events.filter(x => x.id !== g.id);
+        if(state.shots[g.team] && state.shots[g.team][g.period] > 0) state.shots[g.team][g.period]--;
+        commit();
+      }
+    }
+    curGoal = null; closeDlg("goalSheet");
+  }
+  on("gsCancel", "click", cancelGoal);
+  on("goalSheet", "cancel", e => { e.preventDefault(); cancelGoal(); });     // touche Échap
   on("quickAddBtn", "click", () => {
     if(!canEdit() || !curGoal) return;
     const qNo = no($("quickNo").value), qNm = $("quickName").value.trim(); if(!qNo && !qNm) return;
@@ -2353,7 +2413,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const g = findEvent(curGoal.id);
       if(g){ g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2; commit(); }
     }
-    closeDlg("goalSheet");
+    curGoal = null; closeDlg("goalSheet");
   });
   on("gsDelete", "click", () => {
     if(!curGoal || !canEdit()){ closeDlg("goalSheet"); return; }
