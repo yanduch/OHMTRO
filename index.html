@@ -65,14 +65,14 @@ button:disabled{cursor:not-allowed;opacity:.4}
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* Tableau de pointage - Taille des noms augmentée et limite 18 car */
+/* Tableau de pointage - Noms augmentés de 50% */
 .board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .3rem 1rem;gap:.2rem;}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden;}
 .team-header{display:flex;align-items:center;justify-content:center;gap:.2rem;width:100%;overflow:hidden;}
 .team-logo{width:1.8rem;height:1.8rem;object-fit:contain;border-radius:4px;flex-shrink:0}
 .team-logo[src=""]{display:none}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
-  font-family:var(--display);font-weight:700;font-size:clamp(1rem, 3.8vw, 1.6rem);line-height:1.15;padding:.1rem 0;border-radius:0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
+  font-family:var(--display);font-weight:700;font-size:clamp(1.5rem, 5.7vw, 2.4rem);line-height:1.1;padding:.1rem 0;border-radius:0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
 .side.a .name{color:var(--team-a-color)} .side.b .name{color:var(--team-b-color)}
 body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
@@ -199,11 +199,29 @@ td.cur,th.cur{background:var(--crease)}
 .history-ctrls, .team-ctrls, .cat-ctrls, .org-ctrls{display:flex;gap:.3rem;align-items:center}
 .btn-hist-del{font-size:.7rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
 
-/* Bouton Crayon (Éditer) harmonisé sans bloc blanc contrasté */
 .btn-edit{font-size:.85rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .btn-edit:hover{background:var(--ice);}
 
 .quiet{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
+
+/* Bouton Commencer une nouvelle partie agrandi & vert pastel */
+.btn-new-game-pastel{
+  margin-top:1.2rem;
+  width:100%;
+  min-height:3.6rem;
+  border-radius:12px;
+  border:1px solid #7eccb2;
+  background:#a8e6cf;
+  color:#0f382c;
+  font-family:var(--display);
+  font-weight:700;
+  font-size:1.35rem;
+  letter-spacing:.02em;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+  transition:transform .1s, background .15s;
+}
+.btn-new-game-pastel:active{transform:translateY(1px);filter:brightness(.95)}
+
 .btn-stop-game{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:0;background:var(--red);color:#FFF;font-weight:700;font-size:1.1rem}
 
 /* Dialogues */
@@ -273,7 +291,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login-bottom, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top { display:none !important; }
+  .btn-login-bottom, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .btn-new-game-pastel, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -456,8 +474,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <!-- Bouton Démarrer sous Historique -->
-  <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
+  <!-- Bouton Démarrer sous Historique - Version Vert Pastel & Plus Gros -->
+  <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
 
   <div class="export-box">
@@ -526,6 +544,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="org-manage-list" id="orgManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="orgManageBack">⬅️ Retour aux choix</button>
       <button type="button" class="act-2" id="orgManageClose">Fermer</button>
     </div>
   </div>
@@ -550,6 +569,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="cat-manage-list" id="catManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="catManageBack">⬅️ Retour aux choix</button>
       <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
     </div>
   </div>
@@ -577,6 +597,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="team-manage-list" id="teamManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="teamManageBack">⬅️ Retour aux choix</button>
       <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
     </div>
   </div>
@@ -951,7 +972,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var wrap = $("tickerWrap");
       var text = $("tickerText");
       
-      // Augmentation de 25% des espaces entre les retours de boucle (13 espaces insécables)
       var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
       var unitText = "";
       
@@ -1143,6 +1163,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("orgManageClose").addEventListener("click", function(){ $("orgManageSheet").close(); });
+  $("orgManageBack").addEventListener("click", function(){
+    $("orgManageSheet").close();
+    $("settingsSheet").showModal();
+  });
 
   $("btnAddOrg").addEventListener("click", function(){
     var id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -1201,6 +1225,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("categoriesManageClose").addEventListener("click", function(){ $("categoriesManageSheet").close(); });
+  $("catManageBack").addEventListener("click", function(){
+    $("categoriesManageSheet").close();
+    $("settingsSheet").showModal();
+  });
 
   $("catManageOrgSelect").addEventListener("change", function(){
     manageCatOrgKey = $("catManageOrgSelect").value;
@@ -1292,6 +1320,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("teamsManageClose").addEventListener("click", function(){ $("teamsManageSheet").close(); });
+  $("teamManageBack").addEventListener("click", function(){
+    $("teamsManageSheet").close();
+    $("settingsSheet").showModal();
+  });
 
   $("teamManageOrgSelect").addEventListener("change", function(){
     manageTeamOrgKey = $("teamManageOrgSelect").value;
