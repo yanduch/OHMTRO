@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Feuille de match en direct</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://ohmtro-26e56-default-rtdb.firebaseio.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
 :root{
@@ -289,13 +291,27 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   .events-list { border-top:2px solid #000; padding-top:10px; }
   .event-row { border:1px solid #CCC !important; background:#FFF !important; color:#000 !important; }
 }
+
+/* --- Ajouts --- */
+.bump{animation:bump .25s ease-out}
+@keyframes bump { 0% { transform:scale(1.18); } 100% { transform:scale(1); } }
+@media (prefers-reduced-motion:reduce){ .bump{animation:none} .ticker-text{animation-duration:0s !important} }
+.empty{font-size:.85rem;color:var(--muted);list-style:none;margin:0;padding:.2rem 0}
+body:not(.role-admin) .admin-only{display:none !important}
+.archive-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--warn);color:#FFF;border-radius:8px;padding:.4rem .6rem;margin-bottom:.8rem;font-size:.85rem;font-weight:600}
+.archive-bar[hidden]{display:none}
+.archive-bar button{border:0;border-radius:6px;padding:.3rem .6rem;background:#FFF;color:#0F2236;font-weight:700;font-size:.8rem;white-space:nowrap}
+.color-dot{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;margin-right:.4rem}
+.row-del{border:0;background:transparent;color:var(--red);font-weight:bold;padding:.2rem .4rem}
+.cat-pwd-input{width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px}
+@media print { .archive-bar, .ticker-wrap { display:none !important; } }
 </style>
 </head>
 <body class="role-viewer">
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo" onerror="this.style.display='none'">
+      <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo">
       <select id="orgSelectTop" class="select-top"></select>
       <select id="catSelectTop" class="select-top"></select>
     </div>
@@ -307,6 +323,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="ticker-content">
       <span class="ticker-text" id="tickerText"></span>
     </div>
+  </div>
+
+  <div class="archive-bar" id="archiveBar" hidden>
+    <span id="archiveText">Partie archivée</span>
+    <button type="button" id="archiveBack">⬅ Retour au direct</button>
   </div>
 
   <section class="board" aria-label="Pointage">
@@ -464,7 +485,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
+  <button type="button" class="btn-new-game-pastel admin-only" id="newGame">➕ Commencer une nouvelle partie</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
 
   <div class="export-box">
@@ -494,11 +515,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <p class="ctx">Paramètres généraux, messages, organisations, catégories et sécurité.</p>
 
     <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
-    <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Gestion des Organisations</button>
-    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
-    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Gestion des Organisations</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
 
-    <div class="field-group" style="margin-top:1.2rem;">
+    <div class="field-group admin-only" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
         <option value="10">10 minutes</option>
@@ -511,11 +532,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
-    <button type="button" class="act-2" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
+    <button type="button" class="act-2 admin-only" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
 
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="settingsCancel">Fermer</button>
-      <button type="button" class="act-1" id="settingsSave">Enregistrer</button>
+      <button type="button" class="act-1 admin-only" id="settingsSave">Enregistrer</button>
     </div>
   </div>
 </dialog>
@@ -709,8 +730,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="loginSheet">
   <div class="sheet-in">
     <h2>Connexion</h2>
-    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+    <input type="text" id="loginUser" placeholder="Utilisateur (admin, marqueur)" autocomplete="username" autocapitalize="none" style="width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+    <input type="password" id="loginPass" placeholder="Mot de passe" autocomplete="current-password" style="width:100%;padding:.5rem;margin-bottom:.8rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     <div class="actions">
       <button type="button" class="act-2" id="loginCancel">Annuler</button>
       <button type="button" class="act-1" id="loginSubmit">Se connecter</button>
@@ -846,268 +867,195 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 </dialog>
 
 <script>
-(function(){
+document.addEventListener("DOMContentLoaded", function(){
   "use strict";
 
-  var $ = function(id){ return document.getElementById(id); };
+  /* ============ Utilitaires ============ */
+  const $ = id => document.getElementById(id);
+  const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if(cls) n.className = cls; if(text != null) n.textContent = text; return n; };
+  const toArr = v => Array.isArray(v) ? v.filter(x => x != null) : (v && typeof v === "object" ? Object.keys(v).map(k => v[k]).filter(x => x != null) : []);
+  const clone = v => JSON.parse(JSON.stringify(v));
+  const cleanKey = v => String(v == null ? "" : v).toLowerCase().replace(/[^a-z0-9_-]/g, "");
+  const hex = (v, fb) => /^#[0-9a-f]{6}$/i.test(v || "") ? v : fb;
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  const int = (v,min,max) => { v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); };
+  const str = (v,fb) => { v = (typeof v === "string" ? v : "").trim().slice(0,18); return v || fb; };
+  const no = v => String(v == null ? "" : v).replace(/\D/g,"").slice(0,2);
+  const sum = a => { let s = 0; for(let i = 0; i < a.length; i++) s += Number(a[i]) || 0; return s; };
+  const formatTime = s => { const m = Math.floor(s / 60), sec = s % 60; return (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec; };
+  const pct = (saves,shots) => (saves/shots*100).toFixed(1).replace(".",",") + " %";
+  const store = {
+    get(s,k){ try{ return s.getItem(k); }catch(e){ return null; } },
+    set(s,k,v){ try{ s.setItem(k,v); }catch(e){} },
+    del(s,k){ try{ s.removeItem(k); }catch(e){} }
+  };
 
-  var firebaseConfig = {
+  function openDlg(id){
+    const d = $(id); if(!d.open) d.showModal();
+    const a = document.activeElement;
+    if(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) a.blur();   // évite l'ouverture du clavier sur mobile
+  }
+  function closeDlg(id){ const d = $(id); if(d.open) d.close(); }
+  function swapDlg(from, to){ closeDlg(from); openDlg(to); }
+
+  function fillSelect(sel, items, selected, placeholder){
+    const frag = document.createDocumentFragment();
+    if(placeholder != null){ const o = el("option", null, placeholder); o.value = ""; frag.appendChild(o); }
+    items.forEach(it => { const o = el("option", null, it.label); o.value = it.value; frag.appendChild(o); });
+    sel.textContent = ""; sel.appendChild(frag);
+    if(selected != null && items.some(it => it.value === selected)) sel.value = selected;
+  }
+
+  function setText(id, v, bump){
+    const n = $(id); v = String(v);
+    if(n.textContent !== v){
+      n.textContent = v;
+      if(bump){ n.classList.remove("bump"); void n.offsetWidth; n.classList.add("bump"); }
+    }
+  }
+
+  /* ============ Firebase ============ */
+  if(typeof firebase === "undefined"){
+    $("status").textContent = "Hors ligne (Firebase indisponible)";
+    return;
+  }
+  firebase.initializeApp({
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
     authDomain: "ohmtro-26e56.firebaseapp.com",
     databaseURL: "https://ohmtro-26e56-default-rtdb.firebaseio.com",
     projectId: "ohmtro-26e56",
     messagingSenderId: "906447628739",
     appId: "1:906447628739:web:efe6e0344fed3b3628f576"
-  };
-  firebase.initializeApp(firebaseConfig);
+  });
+  const DB = firebase.database();
+  const ref = p => DB.ref(p);
 
-  var urlParams = new URLSearchParams(window.location.search);
-  var currentOrg = urlParams.get("org") || sessionStorage.getItem("ohmtro_org") || "ohmtro";
-  var currentCat = urlParams.get("cat") || sessionStorage.getItem("ohmtro_cat") || "m15";
+  /* ============ Constantes et état ============ */
+  const PLABEL = ["P1","P2","P3","Prol."];
+  const PLONG = ["1re période","2e période","3e période","Prolongation"];
+  const DEF_A = "#6FA2EE", DEF_B = "#F2707A";
+  const DEFAULT_CATS = ["m13","m15","m17"];
+  const END_TEXT = "FIN DU MATCH";
 
-  var organizationsList = [
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentOrg = cleanKey(urlParams.get("org") || store.get(sessionStorage, "ohmtro_org")) || "ohmtro";
+  let currentCat = cleanKey(urlParams.get("cat") || store.get(sessionStorage, "ohmtro_cat")) || "m15";
+
+  let organizationsList = [
     { id: "ohmtro", name: "OHMTRO", msg: "Bienvenue à tous les supporters de l'OHMTRO !" },
     { id: "lions", name: "Lions de Chavigny", msg: "Bienvenue à l'aréna des Lions !" }
   ];
-  var categoriesList = ["m13", "m15", "m17"];
+  let categoriesList = DEFAULT_CATS.slice();
 
-  var db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence, dbCategories, dbOrgs;
-  var myPresenceRef = null;
-  var onlineCount = 1;
-  var defaultPeriodSec = 1200;
+  let db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence, dbCategories;
+  const dbOrgs = ref("global/organizations");
+  let subs = [];                       // écouteurs liés à l'organisation / catégorie courante
+  let myPresenceRef = null, onlineCount = 1, connected = false, serverOffset = 0;
+  let defaultPeriodSec = 1200;
 
-  var state = blank();
-  var presets = {};
-  var historyData = {};
-  var timerInterval = null;
-  var passwords = { admin: "hockey", marqueur: "buts", categories: {} };
+  let state = blank();
+  let presets = {}, presetByName = {}, presetsRev = 0;
+  let historyList = [], historyOn = false, historyLoaded = false, historyWaiters = [];
+  let lastLocal = 0;                   // horodatage de notre dernière écriture (évite un double rendu)
+  let archiveKey = null, liveState = null;
 
-  var openPlayerCardId = null; 
-  var rosterScope = "match"; 
+  let openCardId = null, rosterScope = "match";
 
-  var isAdminGlobal = localStorage.getItem("ohmtro_admin_auth") === "true";
-  var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
-  var assignedCat = sessionStorage.getItem("ohmtro_assigned_cat") || null;
+  let isAdminGlobal = store.get(localStorage, "ohmtro_admin_auth") === "true";
+  let currentRole = isAdminGlobal ? "admin" : (store.get(sessionStorage, "ohmtro_role") || "viewer");
+  let assignedCat = store.get(sessionStorage, "ohmtro_assigned_cat") || null;
+  let assignedOrg = store.get(sessionStorage, "ohmtro_assigned_org") || null;
+  if(["admin","marqueur","viewer"].indexOf(currentRole) === -1) currentRole = "viewer";
 
-  var currentEditingOrgObj = null;
-  var currentEditingCatIndex = -1;
+  const isAdmin = () => currentRole === "admin";
+  const canEdit = () => currentRole !== "viewer" && !archiveKey;
+  const now = () => Date.now() + serverOffset;      // heure du serveur : même chrono sur tous les appareils
 
-  var msgSelectedOrgKey = currentOrg;
-  var msgSelectedTeamKey = "";
-  var msgTempTeams = {};
-
-  var exportTypeToRun = "pdf";
-
-  $("defaultPeriodMinInput").addEventListener("change", function(){
-    if($("defaultPeriodMinInput").value === "custom"){
-      $("customPeriodMinInput").style.display = "block";
-      $("customPeriodMinInput").focus();
-    } else {
-      $("customPeriodMinInput").style.display = "none";
-    }
-  });
-
-  dbOrgs = firebase.database().ref("global/organizations");
-  dbOrgs.on("value", function(snap){
-    var val = snap.val();
-    if(val && Array.isArray(val) && val.length > 0){
-      organizationsList = val;
-    } else if(!val) {
-      dbOrgs.set(organizationsList);
-    }
-    renderOrgsDropdownTop();
-    renderOrgManageList();
-    updateTickerDisplay();
-  });
-
-  function renderOrgsDropdownTop(){
-    var sel = $("orgSelectTop"); if(!sel) return;
-    sel.innerHTML = "";
-    organizationsList.forEach(function(o){
-      var opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name;
-      if(o.id === currentOrg) opt.selected = true;
-      sel.appendChild(opt);
-    });
+  function blank(){
+    return {
+      v: 1,
+      names: { a: "Local", b: "Visiteur" },
+      period: 0,
+      logos: { a: "", b: "" },
+      colors: { a: DEF_A, b: DEF_B },
+      rosters: { a: [], b: [] },
+      staff: { a: [], b: [] },
+      shots: { a: [0,0,0,0], b: [0,0,0,0] },
+      events: [],
+      timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 },
+      finished: false,
+      histKey: "",
+      updatedAt: 0
+    };
   }
 
-  function switchOrganization(orgKey, catKey){
-    if(db) db.off(); if(dbHistory) dbHistory.off(); if(dbPresets) dbPresets.off();
-    if(dbPasswords) dbPasswords.off(); if(dbConfig) dbConfig.off(); if(dbPresence) dbPresence.off(); if(dbCategories) dbCategories.off();
+  const normPlayer = p => ({ no: no(p && p.no), name: String((p && p.name) || ""), pos: String((p && p.pos) || "A") });
+  const normStaff = s => ({ name: String((s && s.name) || ""), role: String((s && s.role) || "") });
 
-    currentOrg = orgKey;
-    sessionStorage.setItem("ohmtro_org", orgKey);
-    if($("orgSelectTop")) $("orgSelectTop").value = orgKey;
-
-    if(!isAdminGlobal && currentRole === "marqueur" && assignedCat && assignedCat !== catKey){
-      currentRole = "viewer";
-      sessionStorage.removeItem("ohmtro_role");
-      assignedCat = null;
+  function sanitize(d){
+    const s = blank(); if(!d || typeof d !== "object") return s;
+    if(d.names && typeof d.names === "object"){ s.names.a = str(d.names.a,"Local"); s.names.b = str(d.names.b,"Visiteur"); }
+    if(d.logos && typeof d.logos === "object"){ s.logos.a = String(d.logos.a || ""); s.logos.b = String(d.logos.b || ""); }
+    if(d.colors && typeof d.colors === "object"){ s.colors.a = hex(d.colors.a, DEF_A); s.colors.b = hex(d.colors.b, DEF_B); }
+    if(d.rosters && typeof d.rosters === "object"){ s.rosters.a = toArr(d.rosters.a).map(normPlayer); s.rosters.b = toArr(d.rosters.b).map(normPlayer); }
+    if(d.staff && typeof d.staff === "object"){ s.staff.a = toArr(d.staff.a).map(normStaff); s.staff.b = toArr(d.staff.b).map(normStaff); }
+    s.period = int(d.period,0,3);
+    ["a","b"].forEach(t => { for(let i = 0; i < 4; i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999); });
+    s.events = toArr(d.events).filter(e => e && typeof e === "object" && e.type).map(e => {
+      e.period = int(e.period,0,3); if(!e.id) e.id = uid(); return e;
+    });
+    if(d.timer && typeof d.timer === "object"){
+      s.timer.sec = int(d.timer.sec, 0, 5999); s.timer.running = !!d.timer.running; s.timer.lastUpdate = Number(d.timer.lastUpdate) || 0;
     }
+    s.histKey = typeof d.histKey === "string" ? d.histKey : "";
+    const last = s.events[s.events.length - 1];
+    // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
+    s.finished = (typeof d.finished === "boolean") ? d.finished
+               : !!(last && last.type === "sys" && last.text === END_TEXT && !s.timer.running && s.timer.sec === 0);
+    s.updatedAt = Number(d.updatedAt) || 0;
+    return s;
+  }
 
-    currentCat = catKey || currentCat || "m15";
-    sessionStorage.setItem("ohmtro_cat", currentCat);
+  function isStarted(s){
+    return s.timer.running || s.timer.sec < defaultPeriodSec || s.period > 0 || sum(s.shots.a) > 0 || sum(s.shots.b) > 0 || s.events.length > 0;
+  }
+  function goalsOf(t, p, events){
+    let n = 0; const evs = events || state.events;
+    for(let i = 0; i < evs.length; i++){ const e = evs[i]; if(e.type === "goal" && e.team === t && (p == null || e.period === p)) n++; }
+    return n;
+  }
+  const findEvent = id => { for(let i = 0; i < state.events.length; i++) if(state.events[i].id === id) return state.events[i]; return null; };
+  const pidOf = (p, idx) => p.no || ("p_" + idx);
+  function playerLabel(roster, pId){
+    if(!pId) return "";
+    for(let i = 0; i < roster.length; i++){
+      const p = roster[i];
+      if(pidOf(p, i) === pId) return (p.no ? "#" + p.no + " " : "") + p.name;
+    }
+    return "#" + pId;
+  }
+  const getPlayerName = (team, pId) => playerLabel(state.rosters[team] || [], pId);
 
-    var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?org=' + orgKey + '&cat=' + currentCat;
-    window.history.pushState({path: newUrl}, '', newUrl);
+  function commit(){
+    if(!canEdit()) return;
+    state.updatedAt = now(); lastLocal = state.updatedAt;
+    db.set(state, err => { if(err) alert("Échec de l'enregistrement : " + (err.message || err)); });
+    render();
+  }
 
-    if(myPresenceRef){ myPresenceRef.remove(); }
+  /* ============ Connexion, présence, statut ============ */
 
-    db = firebase.database().ref(currentOrg + "/" + currentCat + "/match");
-    dbHistory = firebase.database().ref(currentOrg + "/" + currentCat + "/history");
-    dbPresets = firebase.database().ref(currentOrg + "/teams_presets");
-    dbPasswords = firebase.database().ref(currentOrg + "/passwords");
-    dbConfig = firebase.database().ref(currentOrg + "/config");
-    dbPresence = firebase.database().ref(currentOrg + "/" + currentCat + "/presence");
-    dbCategories = firebase.database().ref(currentOrg + "/categories");
-
-    myPresenceRef = dbPresence.push();
+  function announcePresence(){
+    if(!myPresenceRef) return;
     myPresenceRef.onDisconnect().remove();
     myPresenceRef.set(true);
-
-    if(currentOrg === "lions"){
-      $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png";
-      document.title = "Feuille de match - Lions de Chavigny (" + currentCat.toUpperCase() + ")";
-    } else {
-      $("ohmtroLogo").src = "https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png";
-      document.title = "Feuille de match - OHMTRO (" + currentCat.toUpperCase() + ")";
-    }
-
-    state = blank();
-    presets = {};
-    historyData = {};
-
-    updateRoleUI();
-    attachListeners();
-  }
-
-  $("orgSelectTop").addEventListener("change", function(){ switchOrganization($("orgSelectTop").value, currentCat); });
-  $("catSelectTop").addEventListener("change", function(){ switchOrganization(currentOrg, $("catSelectTop").value); });
-
-  function attachListeners(){
-    dbPresence.on("value", function(snap) { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
-
-    dbCategories.on("value", function(snap){
-      var val = snap.val();
-      categoriesList = (val && Array.isArray(val)) ? val : ["m13", "m15", "m17"];
-      renderCategoriesDropdownTop();
-      renderCategoriesManageList();
-    });
-
-    dbConfig.on("value", function(snap){
-      var cfg = snap.val() || {};
-      if(cfg.defaultPeriodMin){
-        var mVal = String(cfg.defaultPeriodMin);
-        defaultPeriodSec = Number(mVal) * 60;
-        if(["10","12","15","18","20"].indexOf(mVal) !== -1){
-          $("defaultPeriodMinInput").value = mVal;
-          $("customPeriodMinInput").style.display = "none";
-        } else {
-          $("defaultPeriodMinInput").value = "custom";
-          $("customPeriodMinInput").value = mVal;
-          $("customPeriodMinInput").style.display = "block";
-        }
-      } else {
-        defaultPeriodSec = 1200;
-        $("defaultPeriodMinInput").value = "20";
-        $("customPeriodMinInput").style.display = "none";
-      }
-    });
-
-    dbPasswords.on("value", function(snap){
-      var val = snap.val();
-      if(val){ passwords = val; if(!passwords.categories) passwords.categories = {}; }
-    });
-
-    db.on("value", function(snapshot){
-      var raw = snapshot.val();
-      state = raw ? sanitize(raw) : blank();
-      render();
-      updateStatusDisplay();
-      updateTickerDisplay();
-    });
-
-    dbPresets.on("value", function(snapshot){
-      presets = snapshot.val() || {};
-      updatePresetDropdowns();
-      renderTeamsManageList();
-      syncStateWithPresets();
-      updateTickerDisplay();
-    });
-
-    dbHistory.on("value", function(snapshot){
-      historyData = snapshot.val() || {};
-      renderHistory();
-      calculateTeamStats();
-    });
-  }
-
-  function updateTickerDisplay(){
-    var matchedOrg = organizationsList.find(function(o){ return o.id === currentOrg; });
-    var orgMsg = (matchedOrg && matchedOrg.msg) ? matchedOrg.msg.trim() : "";
-    var teamAMsg = "", teamBMsg = "";
-
-    if(presets && typeof presets === "object"){
-      Object.keys(presets).forEach(function(k){
-        var p = presets[k];
-        if(p && p.name === state.names.a && p.msg) teamAMsg = p.msg.trim();
-        if(p && p.name === state.names.b && p.msg) teamBMsg = p.msg.trim();
-      });
-    }
-
-    var messages = [];
-    if(orgMsg) messages.push(orgMsg);
-    if(teamAMsg) messages.push(state.names.a + ": " + teamAMsg);
-    if(teamBMsg) messages.push(state.names.b + ": " + teamBMsg);
-
-    var wrap = $("tickerWrap"); var text = $("tickerText");
-    if(messages.length > 0){
-      var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
-      var fullMsg = messages.join(spaces) + spaces;
-      text.textContent = fullMsg + fullMsg;
-      wrap.classList.add("active");
-      setTimeout(function(){
-        var width = text.offsetWidth / 2;
-        text.style.animationDuration = (width / 40) + "s";
-      }, 50);
-    } else {
-      wrap.classList.remove("active");
-      text.textContent = "";
-    }
-  }
-
-  function syncStateWithPresets(){
-    if(!presets || typeof presets !== "object") return;
-    var changed = false;
-    ["a", "b"].forEach(function(side){
-      var teamName = state.names[side];
-      Object.keys(presets).forEach(function(k){
-        var p = presets[k];
-        if(p && p.name === teamName){
-          if(!state.rosters[side] || state.rosters[side].length === 0){
-            if(p.roster && p.roster.length > 0){ state.rosters[side] = JSON.parse(JSON.stringify(p.roster)); changed = true; }
-          }
-          if(!state.staff[side] || state.staff[side].length === 0){
-            if(p.staff && p.staff.length > 0){ state.staff[side] = JSON.parse(JSON.stringify(p.staff)); changed = true; }
-          }
-          if(!state.logos[side] && p.logo){ state.logos[side] = p.logo; changed = true; }
-        }
-      });
-    });
-    if(changed) render();
-  }
-
-  function renderCategoriesDropdownTop(){
-    var sel = $("catSelectTop"); sel.innerHTML = "";
-    categoriesList.forEach(function(cat){
-      var opt = document.createElement("option"); opt.value = cat; opt.textContent = cat.toUpperCase();
-      if(cat === currentCat) opt.selected = true;
-      sel.appendChild(opt);
-    });
   }
 
   function updateStatusDisplay(){
-    var st = $("status");
-    var connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
+    const st = $("status");
+    if(!connected){ st.textContent = "Hors ligne"; st.dataset.s = "offline"; return; }
+    const connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
     st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + connText : "En direct" + connText;
     st.dataset.s = "live";
   }
@@ -1115,1073 +1063,1237 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function updateRoleUI(){
     document.body.className = "role-" + currentRole;
     $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
+    $("nameA").readOnly = $("nameB").readOnly = !isAdmin();
     updateStatusDisplay();
   }
 
-  $("btnLogin").addEventListener("click", function(){
-    if(currentRole !== "viewer"){
-      currentRole = "viewer"; isAdminGlobal = false;
-      localStorage.removeItem("ohmtro_admin_auth"); sessionStorage.removeItem("ohmtro_role"); sessionStorage.removeItem("ohmtro_assigned_cat");
-      assignedCat = null; updateRoleUI(); render(); alert("Vous êtes déconnecté.");
-    } else {
-      $("loginSheet").showModal();
-      setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
-    }
-  });
-
-  $("loginCancel").addEventListener("click", function(){ $("loginSheet").close(); });
-  $("loginSubmit").addEventListener("click", function(){
-    var u = $("loginUser").value.trim().toLowerCase(); var p = $("loginPass").value.trim();
-    if((u === "admin" || u === "yanduch") && p === (passwords.admin || "hockey")){
-      currentRole = "admin"; isAdminGlobal = true;
-      localStorage.setItem("ohmtro_admin_auth", "true"); sessionStorage.setItem("ohmtro_role", "admin");
-    } else if(u === "marqueur"){
-      var matchCatKey = null;
-      if(p === (passwords.marqueur || "buts")){ matchCatKey = currentCat; }
-      else {
-        Object.keys(passwords.categories || {}).forEach(function(catKey){
-          if(passwords.categories[catKey] === p) matchCatKey = catKey;
-        });
-      }
-      if(matchCatKey){
-        currentRole = "marqueur"; isAdminGlobal = false; assignedCat = matchCatKey;
-        sessionStorage.setItem("ohmtro_role", "marqueur"); sessionStorage.setItem("ohmtro_assigned_cat", matchCatKey);
-        if(matchCatKey !== currentCat){ switchOrganization(currentOrg, matchCatKey); }
-      } else { alert("Mot de passe marqueur incorrect."); return; }
-    } else { alert("Identifiants incorrects."); return; }
-    updateRoleUI(); render(); $("loginSheet").close();
-  });
-
-  $("btnManageSettings").addEventListener("click", function(){ $("settingsSheet").showModal(); });
-  $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
-  $("settingsSave").addEventListener("click", function(){
-    var selVal = $("defaultPeriodMinInput").value;
-    var min = selVal === "custom" ? (Number($("customPeriodMinInput").value) || 20) : Number(selVal);
-    dbConfig.child("defaultPeriodMin").set(min);
-    alert("Paramètres enregistrés !"); $("settingsSheet").close();
-  });
-
-  function openExportModal(type){
-    exportTypeToRun = type;
-    $("exportSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
+  function demoteToViewer(){
+    currentRole = "viewer"; isAdminGlobal = false; assignedCat = null; assignedOrg = null;
+    store.del(localStorage, "ohmtro_admin_auth"); store.del(sessionStorage, "ohmtro_role");
+    store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_org");
   }
-  $("btnExportPDF").addEventListener("click", function(){ openExportModal("pdf"); });
-  $("btnExportCSV").addEventListener("click", function(){ openExportModal("csv"); });
-  $("exportCancel").addEventListener("click", function(){ $("exportSheet").close(); });
 
-  $("exportConfirm").addEventListener("click", function(){
-    var reportType = $("exportReportType").value;
-    var scope = $("exportScope").value;
-    $("exportSheet").close();
+  /* ============ Organisations / catégories (barre du haut) ============ */
 
-    if(exportTypeToRun === "pdf"){
-      window.print();
-    } else {
-      var csv = "Type,Temps,Periode,Equipe,Joueur,Aide1,Aide2,Detail\n";
-      var sourceEvents = (scope === "current") ? state.events : [];
-      if(scope === "all"){
-        Object.keys(historyData).forEach(function(k){
-          if(historyData[k].events) sourceEvents = sourceEvents.concat(historyData[k].events);
-        });
-      }
+  function renderOrgsDropdownTop(){
+    const items = organizationsList.map(o => ({ value: o.id, label: o.name }));
+    if(!items.some(i => i.value === currentOrg)) items.push({ value: currentOrg, label: currentOrg.toUpperCase() });
+    fillSelect($("orgSelectTop"), items, currentOrg);
+  }
+  function renderCategoriesDropdownTop(){
+    const items = categoriesList.map(c => ({ value: c, label: String(c).toUpperCase() }));
+    if(!items.some(i => i.value === currentCat)) items.push({ value: currentCat, label: currentCat.toUpperCase() });
+    fillSelect($("catSelectTop"), items, currentCat);
+  }
 
-      sourceEvents.forEach(function(e){
-        var teamName = state.names[e.team] || "Equipe";
-        var pName = PLABEL[e.period] || "";
-        if(e.type === "goal"){
-          csv += "But," + e.time + "," + pName + "," + teamName + "," + getPlayerName(e.team, e.scorer) + "," + getPlayerName(e.team, e.a1) + "," + getPlayerName(e.team, e.a2) + ",\n";
-        } else if(e.type === "pen"){
-          csv += "Punition," + e.time + "," + pName + "," + teamName + "," + getPlayerName(e.team, e.player) + ",,," + (e.min||2) + " min - " + (e.reason||"") + "\n";
-        }
-      });
+  const brandLogo = $("ohmtroLogo");
+  brandLogo.addEventListener("error", () => { brandLogo.style.display = "none"; });
+  brandLogo.addEventListener("load", () => { brandLogo.style.display = ""; });
+  function updateBrand(){
+    const org = organizationsList.find(o => o.id === currentOrg);
+    const src = currentOrg === "lions" ? "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png"
+                                       : "https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png";
+    if(brandLogo.getAttribute("src") !== src) brandLogo.setAttribute("src", src);
+    document.title = "Feuille de match - " + (org ? org.name : currentOrg.toUpperCase()) + " (" + currentCat.toUpperCase() + ")";
+  }
 
-      var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a"); a.href = url;
-      a.download = "Rapport_" + reportType + "_" + scope + ".csv";
-      a.click();
+  function sub(r, cb){ r.on("value", cb); subs.push([r, cb]); }
+
+  function switchOrganization(orgKey, catKey, nav){
+    subs.forEach(s => s[0].off("value", s[1])); subs = [];
+    if(myPresenceRef){ myPresenceRef.onDisconnect().cancel(); myPresenceRef.remove(); myPresenceRef = null; }
+    historyOn = false; historyLoaded = false; historyList = []; historyWaiters = [];
+    archiveKey = null; liveState = null; $("archiveBar").hidden = true;
+    lastLocal = 0; openCardId = null;
+
+    orgKey = cleanKey(orgKey) || "ohmtro";
+    catKey = cleanKey(catKey) || currentCat || "m15";
+
+    // Un marqueur n'est autorisé que pour l'organisation et la catégorie de son mot de passe
+    if(!isAdminGlobal && currentRole === "marqueur" &&
+       ((assignedCat && assignedCat !== catKey) || (assignedOrg && assignedOrg !== orgKey))){
+      demoteToViewer();
     }
+
+    currentOrg = orgKey; currentCat = catKey;
+    store.set(sessionStorage, "ohmtro_org", currentOrg);
+    store.set(sessionStorage, "ohmtro_cat", currentCat);
+
+    if(nav !== "pop"){
+      const newUrl = window.location.pathname + "?org=" + encodeURIComponent(currentOrg) + "&cat=" + encodeURIComponent(currentCat);
+      try{
+        if(nav === "init") window.history.replaceState(null, "", newUrl);
+        else window.history.pushState(null, "", newUrl);
+      }catch(e){}
+    }
+
+    const base = currentOrg + "/" + currentCat;
+    db = ref(base + "/match");
+    dbHistory = ref(base + "/history");
+    dbPresence = ref(base + "/presence");
+    dbPresets = ref(currentOrg + "/teams_presets");
+    dbPasswords = ref(currentOrg + "/passwords");
+    dbConfig = ref(currentOrg + "/config");
+    dbCategories = ref(currentOrg + "/categories");
+
+    myPresenceRef = dbPresence.push();
+    if(connected) announcePresence();
+
+    state = blank(); presets = {}; presetByName = {}; presetsRev++;
+    renderOrgsDropdownTop(); renderCategoriesDropdownTop(); updateBrand(); updateRoleUI();
+    render();
+    attachListeners();
+    if(needsHistory()) ensureHistory();
+  }
+
+  on("orgSelectTop", "change", () => switchOrganization($("orgSelectTop").value, currentCat));
+  on("catSelectTop", "change", () => switchOrganization(currentOrg, $("catSelectTop").value));
+  window.addEventListener("popstate", () => {
+    const p = new URLSearchParams(window.location.search);
+    switchOrganization(p.get("org") || currentOrg, p.get("cat") || currentCat, "pop");
   });
 
-  $("btnOpenMessagesManage").addEventListener("click", function(){ $("settingsSheet").close(); openMessagesManageModal(); });
-  function openMessagesManageModal(){
-    var selOrg = $("msgOrgSelect");
-    selOrg.innerHTML = ""; selOrg.disabled = (currentRole !== "admin"); $("msgOrgInput").disabled = (currentRole !== "admin");
-    organizationsList.forEach(function(o){
-      var opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name;
-      if(o.id === currentOrg) opt.selected = true; selOrg.appendChild(opt);
+  function attachListeners(){
+    sub(dbPresence, snap => { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
+
+    sub(dbCategories, snap => {
+      const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
+      categoriesList = val.length ? val : DEFAULT_CATS.slice();
+      renderCategoriesDropdownTop();
     });
+
+    sub(dbConfig, snap => {
+      const cfg = snap.val() || {};
+      const min = int(cfg.defaultPeriodMin || 20, 1, 99), mVal = String(min);
+      defaultPeriodSec = min * 60;
+      if(["10","12","15","18","20"].indexOf(mVal) !== -1){
+        $("defaultPeriodMinInput").value = mVal; $("customPeriodMinInput").style.display = "none";
+      } else {
+        $("defaultPeriodMinInput").value = "custom"; $("customPeriodMinInput").value = mVal; $("customPeriodMinInput").style.display = "block";
+      }
+      // Tableau vierge : on aligne le chrono affiché sur la durée configurée
+      if(!state.updatedAt && !state.timer.running && !state.events.length) state.timer.sec = defaultPeriodSec;
+      render();
+    });
+
+    sub(db, snap => {
+      const raw = snap.val();
+      // Écho de notre propre écriture : l'écran est déjà à jour, inutile de tout redessiner
+      if(raw && lastLocal && raw.updatedAt === lastLocal && state.updatedAt === lastLocal) return;
+      const s = raw ? sanitize(raw) : blank();
+      if(archiveKey){ liveState = s; return; }
+      state = s; syncStateWithPresets(); render();
+    });
+
+    sub(dbPresets, snap => {
+      const v = snap.val();
+      presets = (v && typeof v === "object") ? v : {};
+      presetsRev++; indexPresets();
+      syncStateWithPresets(); render();
+    });
+  }
+
+  function indexPresets(){
+    presetByName = {};
+    Object.keys(presets).forEach(k => {
+      const p = presets[k]; if(!p || !p.name) return;
+      if(!presetByName[p.name] || p.category === currentCat) presetByName[p.name] = p;
+    });
+  }
+
+  // Complète localement l'alignement / le logo à partir de l'équipe enregistrée lorsqu'ils manquent
+  function syncStateWithPresets(){
+    ["a","b"].forEach(side => {
+      const p = presetByName[state.names[side]]; if(!p) return;
+      if(!state.rosters[side].length){ const r = toArr(p.roster); if(r.length) state.rosters[side] = r.map(normPlayer); }
+      if(!state.staff[side].length){ const s = toArr(p.staff); if(s.length) state.staff[side] = s.map(normStaff); }
+      if(!state.logos[side] && p.logo) state.logos[side] = String(p.logo);
+    });
+  }
+
+  /* ============ Bandeau défilant ============ */
+  let tickerSig = null;
+  function updateTickerDisplay(){
+    const org = organizationsList.find(o => o.id === currentOrg);
+    const messages = [];
+    if(org && org.msg && String(org.msg).trim()) messages.push(String(org.msg).trim());
+    ["a","b"].forEach(t => {
+      const p = presetByName[state.names[t]];
+      if(p && p.msg && String(p.msg).trim()) messages.push(state.names[t] + ": " + String(p.msg).trim());
+    });
+    const spaces = "\u00A0".repeat(13);
+    const full = messages.length ? messages.join(spaces) + spaces : "";
+    if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
+    tickerSig = full;
+    const wrap = $("tickerWrap"), text = $("tickerText");
+    if(full){
+      text.textContent = full + full;
+      wrap.classList.add("active");
+      requestAnimationFrame(() => { text.style.animationDuration = Math.max(8, text.offsetWidth / 2 / 40) + "s"; });
+    } else {
+      wrap.classList.remove("active"); text.textContent = "";
+    }
+  }
+
+  /* ============ Connexion ============ */
+  function loadPasswords(){
+    return dbPasswords.once("value").then(s => {
+      const v = s.val() || {};
+      return { admin: v.admin || "hockey", marqueur: v.marqueur || "buts",
+               categories: (v.categories && typeof v.categories === "object") ? v.categories : {} };
+    });
+  }
+
+  on("btnLogin", "click", () => {
+    if(currentRole !== "viewer"){
+      demoteToViewer(); updateRoleUI(); render(); alert("Vous êtes déconnecté.");
+    } else {
+      $("loginPass").value = ""; openDlg("loginSheet");
+    }
+  });
+  on("loginCancel", "click", () => closeDlg("loginSheet"));
+  on("loginPass", "keydown", e => { if(e.key === "Enter") $("loginSubmit").click(); });
+  on("loginSubmit", "click", () => {
+    const u = $("loginUser").value.trim().toLowerCase(), p = $("loginPass").value.trim();
+    const btn = $("loginSubmit"); btn.disabled = true;
+    loadPasswords().then(passwords => {
+      if((u === "admin" || u === "yanduch") && p === passwords.admin){
+        currentRole = "admin"; isAdminGlobal = true; assignedCat = null; assignedOrg = null;
+        store.set(localStorage, "ohmtro_admin_auth", "true"); store.set(sessionStorage, "ohmtro_role", "admin");
+      } else if(u === "marqueur"){
+        let matchCatKey = null;
+        if(p === passwords.marqueur || passwords.categories[currentCat] === p) matchCatKey = currentCat;
+        else Object.keys(passwords.categories).some(k => { if(passwords.categories[k] === p){ matchCatKey = k; return true; } return false; });
+        if(!matchCatKey){ alert("Mot de passe marqueur incorrect."); return; }
+        currentRole = "marqueur"; isAdminGlobal = false; assignedCat = matchCatKey; assignedOrg = currentOrg;
+        store.set(sessionStorage, "ohmtro_role", "marqueur");
+        store.set(sessionStorage, "ohmtro_assigned_cat", matchCatKey); store.set(sessionStorage, "ohmtro_assigned_org", currentOrg);
+        if(matchCatKey !== currentCat) switchOrganization(currentOrg, matchCatKey);
+      } else { alert("Identifiants incorrects."); return; }
+      $("loginPass").value = "";
+      if(archiveKey) exitArchive();
+      updateRoleUI(); render(); closeDlg("loginSheet");
+    }).catch(() => alert("Connexion impossible pour le moment. Vérifiez votre réseau."))
+      .then(() => { btn.disabled = false; });
+  });
+
+  /* ============ Gestion : paramètres ============ */
+  on("btnManageSettings", "click", () => { if(canEdit()) openDlg("settingsSheet"); });
+  on("settingsCancel", "click", () => closeDlg("settingsSheet"));
+  on("defaultPeriodMinInput", "change", () => {
+    const custom = $("defaultPeriodMinInput").value === "custom";
+    $("customPeriodMinInput").style.display = custom ? "block" : "none";
+    if(custom) $("customPeriodMinInput").focus();
+  });
+  on("settingsSave", "click", () => {
+    if(!isAdmin()) return;
+    const selVal = $("defaultPeriodMinInput").value;
+    const min = int(selVal === "custom" ? ($("customPeriodMinInput").value || 20) : selVal, 1, 99);
+    dbConfig.child("defaultPeriodMin").set(min);
+    alert("Paramètres enregistrés !"); closeDlg("settingsSheet");
+  });
+
+  /* ============ Exportation ============ */
+  on("btnExportPDF", "click", () => window.print());
+  on("btnExportCSV", "click", () => openDlg("exportSheet"));
+  on("exportCancel", "click", () => closeDlg("exportSheet"));
+
+  const csvCell = v => {
+    v = v == null ? "" : String(v);
+    if(/^[=+@]/.test(v)) v = "'" + v;                       // neutralise les formules dans Excel
+    return /[",\r\n;]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+  };
+  const csvRow = cells => cells.map(csvCell).join(",") + "\r\n";
+  const dateOf = at => at ? new Date(at).toLocaleDateString("fr-CA") : "";
+
+  function matchOf(m, at){
+    const s = sanitize(m);
+    return { s: s, date: dateOf(at || s.updatedAt), label: s.names.a + " vs " + s.names.b };
+  }
+
+  function buildCsv(reportType, matches){
+    let csv = "";
+    if(reportType === "history_summary"){
+      csv += csvRow(["Date","Local","Visiteur","Buts local","Buts visiteur","Lancers local","Lancers visiteur"]);
+      matches.forEach(x => {
+        const s = x.s;
+        csv += csvRow([x.date, s.names.a, s.names.b, goalsOf("a", null, s.events), goalsOf("b", null, s.events), sum(s.shots.a), sum(s.shots.b)]);
+      });
+    } else if(reportType === "player_stats"){
+      const rows = {}, order = [];
+      matches.forEach(x => {
+        const s = x.s;
+        ["a","b"].forEach(t => {
+          const get = (pId, p) => {
+            const k = s.names[t] + "\u0001" + pId;
+            if(!rows[k]){ rows[k] = { team: s.names[t], no: p ? p.no : "", name: p ? p.name : "#" + pId, pos: p ? p.pos : "", pj: 0, b: 0, a: 0, pun: 0 }; order.push(k); }
+            return rows[k];
+          };
+          s.rosters[t].forEach((p, i) => { get(pidOf(p, i), p).pj++; });
+          s.events.forEach(e => {
+            if(e.team !== t) return;
+            if(e.type === "goal"){
+              if(e.scorer) get(e.scorer).b++;
+              if(e.a1) get(e.a1).a++;
+              if(e.a2) get(e.a2).a++;
+            } else if(e.type === "pen" && e.player){ get(e.player).pun += Number(e.min || 2); }
+          });
+        });
+      });
+      csv += csvRow(["Equipe","No","Joueur","Pos","PJ","B","A","PTS","PUN (min)"]);
+      order.forEach(k => { const r = rows[k]; csv += csvRow([r.team, r.no, r.name, r.pos, r.pj, r.b, r.a, r.b + r.a, r.pun]); });
+    } else {
+      csv += csvRow(["Date","Match","Type","Temps","Periode","Equipe","Joueur","Aide1","Aide2","Detail"]);
+      matches.forEach(x => {
+        const s = x.s;
+        s.events.forEach(e => {
+          const team = s.names[e.team] || "Equipe", per = PLABEL[e.period] || "", r = s.rosters[e.team] || [];
+          if(e.type === "goal") csv += csvRow([x.date, x.label, "But", e.time, per, team, playerLabel(r, e.scorer), playerLabel(r, e.a1), playerLabel(r, e.a2), ""]);
+          else if(e.type === "pen") csv += csvRow([x.date, x.label, "Punition", e.time, per, team, playerLabel(r, e.player), "", "", (e.min || 2) + " min - " + (e.reason || "")]);
+        });
+      });
+    }
+    return csv;
+  }
+
+  function downloadCsv(name, csv){
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });   // BOM : accents corrects dans Excel
+    const url = URL.createObjectURL(blob);
+    const a = el("a"); a.href = url; a.download = name; a.style.display = "none";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  on("exportConfirm", "click", () => {
+    const reportType = $("exportReportType").value, scope = $("exportScope").value;
+    closeDlg("exportSheet");
+    const run = () => {
+      const matches = scope === "all" ? historyList.map(h => matchOf(h.m, h.at)) : [matchOf(state)];
+      if(!matches.length){ alert("Aucune partie dans l'historique."); return; }
+      downloadCsv("Rapport_" + reportType + "_" + scope + ".csv", buildCsv(reportType, matches));
+    };
+    if(scope === "all") withHistory(run); else run();
+  });
+
+  /* ============ Gestion : messages ============ */
+  let msgSelectedOrgKey = currentOrg, msgSelectedTeamKey = "", msgTempTeams = {};
+  const orgItems = () => organizationsList.map(o => ({ value: o.id, label: o.name }));
+
+  on("btnOpenMessagesManage", "click", () => {
+    if(!canEdit()) return;
+    closeDlg("settingsSheet");
+    const selOrg = $("msgOrgSelect");
+    fillSelect(selOrg, orgItems(), currentOrg);
+    selOrg.disabled = !isAdmin(); $("msgOrgInput").disabled = !isAdmin();
     msgSelectedOrgKey = selOrg.value || currentOrg;
     loadOrgMessageData(msgSelectedOrgKey);
-    $("messagesManageSheet").showModal();
-    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
-  }
-  $("msgOrgSelect").addEventListener("change", function(){ msgSelectedOrgKey = $("msgOrgSelect").value; loadOrgMessageData(msgSelectedOrgKey); });
+    openDlg("messagesManageSheet");
+  });
+  on("msgOrgSelect", "change", () => { msgSelectedOrgKey = $("msgOrgSelect").value; loadOrgMessageData(msgSelectedOrgKey); });
   function loadOrgMessageData(orgKey){
-    var matchedOrg = organizationsList.find(function(o){ return o.id === orgKey; });
-    $("msgOrgInput").value = (matchedOrg && matchedOrg.msg) ? matchedOrg.msg : "";
-    $("msgTeamSelect").innerHTML = '<option value="">Chargement...</option>';
-    $("msgTeamInput").value = "";
-    firebase.database().ref(orgKey + "/teams_presets").once("value", function(snap){
-      msgTempTeams = snap.val() || {}; populateMsgTeamsSelect();
+    const org = organizationsList.find(o => o.id === orgKey);
+    $("msgOrgInput").value = (org && org.msg) ? org.msg : "";
+    fillSelect($("msgTeamSelect"), [], null, "Chargement...");
+    $("msgTeamInput").value = ""; msgSelectedTeamKey = ""; msgTempTeams = {};
+    ref(orgKey + "/teams_presets").once("value").then(snap => {
+      if(orgKey !== msgSelectedOrgKey) return;      // l'utilisateur a changé d'organisation entre-temps
+      msgTempTeams = snap.val() || {};
+      const items = Object.keys(msgTempTeams).filter(k => msgTempTeams[k] && msgTempTeams[k].name)
+                          .map(k => ({ value: k, label: msgTempTeams[k].name }));
+      const sel = $("msgTeamSelect");
+      if(items.length){ fillSelect(sel, items, items[0].value); msgSelectedTeamKey = sel.value; }
+      else fillSelect(sel, [], null, "Aucune équipe");
+      showTeamMsg();
     });
   }
-  function populateMsgTeamsSelect(){
-    var selTeam = $("msgTeamSelect"); selTeam.innerHTML = '<option value="">-- Sélectionner une équipe --</option>';
-    var keys = Object.keys(msgTempTeams);
-    if(keys.length > 0){
-      keys.forEach(function(k){
-        var team = msgTempTeams[k];
-        if(team && team.name){
-          var opt = document.createElement("option"); opt.value = k; opt.textContent = team.name; selTeam.appendChild(opt);
-        }
-      });
-      selTeam.selectedIndex = 1; msgSelectedTeamKey = selTeam.value;
-      $("msgTeamInput").value = (msgTempTeams[msgSelectedTeamKey] && msgTempTeams[msgSelectedTeamKey].msg) ? msgTempTeams[msgSelectedTeamKey].msg : "";
-    } else {
-      msgSelectedTeamKey = ""; selTeam.innerHTML = '<option value="">Aucune équipe</option>'; $("msgTeamInput").value = "";
-    }
+  function showTeamMsg(){
+    const t = msgTempTeams[msgSelectedTeamKey];
+    $("msgTeamInput").value = (t && t.msg) ? t.msg : "";
   }
-  $("msgTeamSelect").addEventListener("change", function(){
-    msgSelectedTeamKey = $("msgTeamSelect").value;
-    $("msgTeamInput").value = (msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]) ? (msgTempTeams[msgSelectedTeamKey].msg || "") : "";
-  });
-  $("msgManageBack").addEventListener("click", function(){ $("messagesManageSheet").close(); $("settingsSheet").showModal(); });
-  $("msgManageSave").addEventListener("click", function(){
-    if(currentRole === "admin"){
-      var matchedOrg = organizationsList.find(function(o){ return o.id === msgSelectedOrgKey; });
-      if(matchedOrg){ matchedOrg.msg = $("msgOrgInput").value.trim(); dbOrgs.set(organizationsList); }
+  on("msgTeamSelect", "change", () => { msgSelectedTeamKey = $("msgTeamSelect").value; showTeamMsg(); });
+  on("msgManageBack", "click", () => swapDlg("messagesManageSheet", "settingsSheet"));
+  on("msgManageSave", "click", () => {
+    if(!canEdit()) return;
+    if(isAdmin()){
+      const org = organizationsList.find(o => o.id === msgSelectedOrgKey);
+      if(org){ org.msg = $("msgOrgInput").value.trim(); dbOrgs.set(organizationsList); }
     }
     if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
-      firebase.database().ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set($("msgTeamInput").value.trim());
+      ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set($("msgTeamInput").value.trim());
     }
-    alert("Messages enregistrés !"); updateTickerDisplay(); $("messagesManageSheet").close(); $("settingsSheet").showModal();
+    alert("Messages enregistrés !"); updateTickerDisplay(); swapDlg("messagesManageSheet", "settingsSheet");
   });
 
-  $("btnOpenOrgManage").addEventListener("click", function(){ $("settingsSheet").close(); renderOrgManageList(); $("orgManageSheet").showModal(); });
-  $("orgManageClose").addEventListener("click", function(){ $("orgManageSheet").close(); });
-  $("orgManageBack").addEventListener("click", function(){ $("orgManageSheet").close(); $("settingsSheet").showModal(); });
-  $("btnAddOrg").addEventListener("click", function(){
-    var id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-    var name = $("newOrgNameInput").value.trim();
+  /* ============ Gestion : organisations ============ */
+  let currentEditingOrgObj = null;
+  const manageItem = (cls, labelNode, buttons) => {
+    const li = el("li", cls), box = el("div"), ctrls = el("div", cls.replace("manage-item", "ctrls"));
+    box.appendChild(labelNode); buttons.forEach(b => ctrls.appendChild(b));
+    li.appendChild(box); li.appendChild(ctrls); return li;
+  };
+  const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; b.addEventListener("click", fn); return b; };
+
+  on("btnOpenOrgManage", "click", () => { if(!isAdmin()) return; closeDlg("settingsSheet"); renderOrgManageList(); openDlg("orgManageSheet"); });
+  on("orgManageClose", "click", () => closeDlg("orgManageSheet"));
+  on("orgManageBack", "click", () => swapDlg("orgManageSheet", "settingsSheet"));
+  on("btnAddOrg", "click", () => {
+    if(!isAdmin()) return;
+    const id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), name = $("newOrgNameInput").value.trim();
     if(!id || !name) return;
-    if(!organizationsList.some(function(o){ return o.id === id; })){
-      organizationsList.push({ id: id, name: name, msg: "" }); dbOrgs.set(organizationsList);
-      $("newOrgIdInput").value = ""; $("newOrgNameInput").value = "";
-    }
+    if(organizationsList.some(o => o.id === id)){ alert("Cette clé d'organisation existe déjà."); return; }
+    organizationsList.push({ id: id, name: name, msg: "" }); dbOrgs.set(organizationsList);
+    $("newOrgIdInput").value = ""; $("newOrgNameInput").value = "";
   });
   function renderOrgManageList(){
-    var list = $("orgManageList"); if(!list) return; list.textContent = "";
-    organizationsList.forEach(function(o){
-      var li = document.createElement("li"); li.className = "org-manage-item";
-      li.innerHTML = "<div><strong>" + o.name + "</strong> <small style='color:var(--muted);'>(" + o.id + ")</small></div>";
-      var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
-      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏️ Éditer";
-      btnEdit.addEventListener("click", function(){
-        currentEditingOrgObj = o; $("editOrgNameInput").value = o.name; $("orgManageSheet").close(); $("editOrgSheet").showModal();
-      });
-      ctrls.appendChild(btnEdit);
-      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
-      btnDel.addEventListener("click", function(){
-        if(organizationsList.length <= 1){ alert("Conserver au moins une organisation."); return; }
-        if(confirm("Supprimer " + o.name + " ?")){
-          organizationsList = organizationsList.filter(function(x){ return x.id !== o.id; }); dbOrgs.set(organizationsList);
-        }
-      });
-      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
+    const list = $("orgManageList"); list.textContent = "";
+    organizationsList.forEach(o => {
+      const label = document.createDocumentFragment();
+      label.appendChild(el("strong", null, o.name)); label.appendChild(document.createTextNode(" "));
+      const sm = el("small", null, "(" + o.id + ")"); sm.style.color = "var(--muted)"; label.appendChild(sm);
+      list.appendChild(manageItem("org-manage-item", label, [
+        btn("btn-edit", "✏️ Éditer", () => { currentEditingOrgObj = o; $("editOrgNameInput").value = o.name; swapDlg("orgManageSheet", "editOrgSheet"); }),
+        btn("btn-hist-del", "🗑 Supprimer", () => {
+          if(!isAdmin()) return;
+          if(organizationsList.length <= 1){ alert("Conserver au moins une organisation."); return; }
+          if(confirm("Supprimer " + o.name + " ?")){ organizationsList = organizationsList.filter(x => x.id !== o.id); dbOrgs.set(organizationsList); }
+        })
+      ]));
     });
   }
-  $("editOrgCancel").addEventListener("click", function(){ $("editOrgSheet").close(); $("orgManageSheet").showModal(); });
-  $("editOrgSave").addEventListener("click", function(){
-    if($("editOrgNameInput").value.trim() && currentEditingOrgObj){
-      currentEditingOrgObj.name = $("editOrgNameInput").value.trim(); dbOrgs.set(organizationsList);
-    }
-    $("editOrgSheet").close(); renderOrgManageList(); $("orgManageSheet").showModal();
+  on("editOrgCancel", "click", () => swapDlg("editOrgSheet", "orgManageSheet"));
+  on("editOrgSave", "click", () => {
+    const v = $("editOrgNameInput").value.trim();
+    if(isAdmin() && v && currentEditingOrgObj){ currentEditingOrgObj.name = v; dbOrgs.set(organizationsList); }
+    renderOrgManageList(); swapDlg("editOrgSheet", "orgManageSheet");
   });
 
-  var manageCatOrgKey = currentOrg;
-  $("btnOpenCategoriesManage").addEventListener("click", function(){
-    $("settingsSheet").close(); manageCatOrgKey = currentOrg;
-    populateOrgSelect("catManageOrgSelect", manageCatOrgKey); loadCategoriesForOrg(manageCatOrgKey); $("categoriesManageSheet").showModal();
+  /* ============ Gestion : catégories ============ */
+  let manageCatOrgKey = currentOrg, manageCategoriesList = [], currentEditingCatIndex = -1;
+  const loadCats = orgKey => ref(orgKey + "/categories").once("value").then(snap => {
+    const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
+    return val.length ? val : DEFAULT_CATS.slice();
   });
-  $("categoriesManageClose").addEventListener("click", function(){ $("categoriesManageSheet").close(); });
-  $("catManageBack").addEventListener("click", function(){ $("categoriesManageSheet").close(); $("settingsSheet").showModal(); });
-  $("catManageOrgSelect").addEventListener("change", function(){ manageCatOrgKey = $("catManageOrgSelect").value; loadCategoriesForOrg(manageCatOrgKey); });
-  function populateOrgSelect(selectId, selectedValue){
-    var sel = $(selectId); sel.innerHTML = "";
-    organizationsList.forEach(function(o){
-      var opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name;
-      if(o.id === selectedValue) opt.selected = true; sel.appendChild(opt);
-    });
-  }
-  var manageCategoriesList = [];
+  const saveCats = () => ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
+
+  on("btnOpenCategoriesManage", "click", () => {
+    if(!isAdmin()) return;
+    closeDlg("settingsSheet"); manageCatOrgKey = currentOrg;
+    fillSelect($("catManageOrgSelect"), orgItems(), manageCatOrgKey);
+    loadCategoriesForOrg(manageCatOrgKey); openDlg("categoriesManageSheet");
+  });
+  on("categoriesManageClose", "click", () => closeDlg("categoriesManageSheet"));
+  on("catManageBack", "click", () => swapDlg("categoriesManageSheet", "settingsSheet"));
+  on("catManageOrgSelect", "change", () => { manageCatOrgKey = $("catManageOrgSelect").value; loadCategoriesForOrg(manageCatOrgKey); });
   function loadCategoriesForOrg(orgKey){
-    firebase.database().ref(orgKey + "/categories").once("value", function(snap){
-      var val = snap.val(); manageCategoriesList = (val && Array.isArray(val)) ? val : ["m13", "m15", "m17"]; renderCategoriesManageList();
-    });
+    manageCategoriesList = []; renderCategoriesManageList();
+    loadCats(orgKey).then(list => { if(orgKey !== manageCatOrgKey) return; manageCategoriesList = list; renderCategoriesManageList(); });
   }
-  $("btnAddCat").addEventListener("click", function(){
-    var val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""); if(!val) return;
-    if(manageCategoriesList.indexOf(val) === -1){
-      manageCategoriesList.push(val); firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-      $("newCatInput").value = ""; renderCategoriesManageList();
-    }
+  on("btnAddCat", "click", () => {
+    if(!isAdmin()) return;
+    const val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""); if(!val) return;
+    if(manageCategoriesList.indexOf(val) !== -1){ alert("Cette catégorie existe déjà."); return; }
+    manageCategoriesList.push(val); saveCats(); $("newCatInput").value = ""; renderCategoriesManageList();
   });
   function renderCategoriesManageList(){
-    var list = $("catManageList"); if(!list) return; list.textContent = "";
-    manageCategoriesList.forEach(function(cat, index){
-      var li = document.createElement("li"); li.className = "cat-manage-item";
-      li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
-      var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
-      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏ Éditer";
-      btnEdit.addEventListener("click", function(){
-        currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); $("categoriesManageSheet").close(); $("editCatSheet").showModal();
-      });
-      ctrls.appendChild(btnEdit);
-      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
-      btnDel.addEventListener("click", function(){
-        if(manageCategoriesList.length <= 1){ alert("Conserver au moins une catégorie."); return; }
-        if(confirm("Supprimer la catégorie ?")){
-          manageCategoriesList = manageCategoriesList.filter(function(c){ return c !== cat; });
-          firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList); renderCategoriesManageList();
-        }
-      });
-      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
+    const list = $("catManageList"); list.textContent = "";
+    manageCategoriesList.forEach((cat, index) => {
+      list.appendChild(manageItem("cat-manage-item", el("strong", null, cat.toUpperCase()), [
+        btn("btn-edit", "✏ Éditer", () => { currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); swapDlg("categoriesManageSheet", "editCatSheet"); }),
+        btn("btn-hist-del", "🗑 Supprimer", () => {
+          if(!isAdmin()) return;
+          if(manageCategoriesList.length <= 1){ alert("Conserver au moins une catégorie."); return; }
+          if(confirm("Supprimer la catégorie " + cat.toUpperCase() + " ?\nSes parties et son historique ne seront plus accessibles.")){
+            manageCategoriesList = manageCategoriesList.filter(c => c !== cat); saveCats(); renderCategoriesManageList();
+          }
+        })
+      ]));
     });
   }
-  $("editCatCancel").addEventListener("click", function(){ $("editCatSheet").close(); $("categoriesManageSheet").showModal(); });
-  $("editCatSave").addEventListener("click", function(){
-    var newCatName = $("editCatNameInput").value.trim();
-    if(newCatName && currentEditingCatIndex >= 0){
-      var cleanKey = newCatName.toLowerCase().replace(/[^a-z0-9]/g, "");
-      if(cleanKey){ manageCategoriesList[currentEditingCatIndex] = cleanKey; firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList); }
+  on("editCatCancel", "click", () => swapDlg("editCatSheet", "categoriesManageSheet"));
+  on("editCatSave", "click", () => {
+    const cleanK = $("editCatNameInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const old = manageCategoriesList[currentEditingCatIndex];
+    if(isAdmin() && cleanK && old && cleanK !== old){
+      if(manageCategoriesList.indexOf(cleanK) !== -1) alert("Cette catégorie existe déjà.");
+      else if(confirm("Renommer " + old.toUpperCase() + " en " + cleanK.toUpperCase() + " ?\nLa partie en cours, l'historique et le mot de passe restent liés à l'ancien nom (" + old.toUpperCase() + ").")){
+        manageCategoriesList[currentEditingCatIndex] = cleanK; saveCats();
+      }
     }
-    $("editCatSheet").close(); renderCategoriesManageList(); $("categoriesManageSheet").showModal();
+    renderCategoriesManageList(); swapDlg("editCatSheet", "categoriesManageSheet");
   });
 
-  var manageTeamOrgKey = currentOrg, manageTeamCatKey = currentCat, manageTeamPresets = {};
-  $("btnOpenTeamsManage").addEventListener("click", function(){
-    $("settingsSheet").close(); manageTeamOrgKey = currentOrg; manageTeamCatKey = currentCat;
-    populateOrgSelect("teamManageOrgSelect", manageTeamOrgKey); populateCatSelectForTeams(manageTeamOrgKey, manageTeamCatKey);
-    loadTeamsForManage(manageTeamOrgKey); $("teamsManageSheet").showModal();
-  });
-  $("teamsManageClose").addEventListener("click", function(){ $("teamsManageSheet").close(); });
-  $("teamManageBack").addEventListener("click", function(){ $("teamsManageSheet").close(); $("settingsSheet").showModal(); });
-  $("teamManageOrgSelect").addEventListener("change", function(){
-    manageTeamOrgKey = $("teamManageOrgSelect").value; populateCatSelectForTeams(manageTeamOrgKey, ""); loadTeamsForManage(manageTeamOrgKey);
-  });
-  $("teamManageCatSelect").addEventListener("change", function(){ manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList(); });
-  function populateCatSelectForTeams(orgKey, selectedCatKey){
-    firebase.database().ref(orgKey + "/categories").once("value", function(snap){
-      var cats = snap.val() || ["m13", "m15", "m17"];
-      var sel = $("teamManageCatSelect"); sel.innerHTML = '<option value="">Toutes les catégories</option>';
-      cats.forEach(function(c){
-        var opt = document.createElement("option"); opt.value = c; opt.textContent = c.toUpperCase();
-        if(c === selectedCatKey) opt.selected = true; sel.appendChild(opt);
-      });
-    });
-  }
+  /* ============ Gestion : équipes ============ */
+  let manageTeamOrgKey = currentOrg, manageTeamCatKey = currentCat, manageTeamPresets = {}, manageTeamRef = null, editingTeamKey = null;
+  const onManageTeams = snap => { manageTeamPresets = snap.val() || {}; renderTeamsManageList(); };
+  function stopTeamsManage(){ if(manageTeamRef){ manageTeamRef.off("value", onManageTeams); manageTeamRef = null; } }
   function loadTeamsForManage(orgKey){
-    firebase.database().ref(orgKey + "/teams_presets").on("value", function(snap){
-      manageTeamPresets = snap.val() || {}; renderTeamsManageList();
+    stopTeamsManage(); manageTeamPresets = {}; renderTeamsManageList();
+    manageTeamRef = ref(orgKey + "/teams_presets"); manageTeamRef.on("value", onManageTeams);
+  }
+  function populateCatSelectForTeams(orgKey, selectedCatKey){
+    loadCats(orgKey).then(cats => {
+      if(orgKey !== manageTeamOrgKey) return;
+      fillSelect($("teamManageCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), selectedCatKey, "Toutes les catégories");
+      manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList();
     });
   }
+  on("btnOpenTeamsManage", "click", () => {
+    if(!isAdmin()) return;
+    closeDlg("settingsSheet"); manageTeamOrgKey = currentOrg; manageTeamCatKey = currentCat;
+    fillSelect($("teamManageOrgSelect"), orgItems(), manageTeamOrgKey);
+    populateCatSelectForTeams(manageTeamOrgKey, manageTeamCatKey);
+    loadTeamsForManage(manageTeamOrgKey); openDlg("teamsManageSheet");
+  });
+  on("teamsManageClose", "click", () => { stopTeamsManage(); closeDlg("teamsManageSheet"); });
+  on("teamManageBack", "click", () => { stopTeamsManage(); swapDlg("teamsManageSheet", "settingsSheet"); });
+  on("teamManageOrgSelect", "change", () => {
+    manageTeamOrgKey = $("teamManageOrgSelect").value; manageTeamCatKey = "";
+    populateCatSelectForTeams(manageTeamOrgKey, ""); loadTeamsForManage(manageTeamOrgKey);
+  });
+  on("teamManageCatSelect", "change", () => { manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList(); });
+
   function renderTeamsManageList(){
-    var list = $("teamManageList"); if(!list) return; list.textContent = "";
-    var keys = Object.keys(manageTeamPresets);
-    var filteredKeys = keys.filter(function(k){
-      var team = manageTeamPresets[k]; return !manageTeamCatKey || !team.category || team.category === "" || team.category === manageTeamCatKey;
+    const list = $("teamManageList"); list.textContent = "";
+    const keys = Object.keys(manageTeamPresets).filter(k => {
+      const t = manageTeamPresets[k]; return t && (!manageTeamCatKey || !t.category || t.category === manageTeamCatKey);
     });
-    if(!filteredKeys.length){ list.innerHTML = "<li style='font-size:.85rem;color:var(--muted);'>Aucune équipe.</li>"; return; }
-    filteredKeys.forEach(function(key){
-      var team = manageTeamPresets[key]; var li = document.createElement("li"); li.className = "team-manage-item";
-      var colorDot = "<span style='display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:" + (team.color || "#6FA2EE") + ";margin-right:.4rem;'></span>";
-      li.innerHTML = "<div>" + colorDot + "<strong>" + team.name + "</strong></div>";
-      var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
-      var btnEdit = document.createElement("button"); btnEdit.className = "btn-edit"; btnEdit.textContent = "✏️ Éditer";
-      btnEdit.addEventListener("click", function(){ openTeamEditor(key); });
-      ctrls.appendChild(btnEdit);
-      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
-      btnDel.addEventListener("click", function(){
-        if(confirm("Supprimer " + team.name + " ?")){ firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).remove(); }
+    if(!keys.length){ list.appendChild(el("li", "empty", "Aucune équipe.")); return; }
+    keys.forEach(key => {
+      const team = manageTeamPresets[key];
+      const label = document.createDocumentFragment(), dot = el("span", "color-dot");
+      dot.style.background = hex(team.color, DEF_A);
+      label.appendChild(dot); label.appendChild(el("strong", null, team.name || key));
+      list.appendChild(manageItem("team-manage-item", label, [
+        btn("btn-edit", "✏️ Éditer", () => openTeamEditor(key)),
+        btn("btn-hist-del", "🗑 Supprimer", () => {
+          if(isAdmin() && confirm("Supprimer " + (team.name || key) + " ?")) ref(manageTeamOrgKey + "/teams_presets/" + key).remove();
+        })
+      ]));
+    });
+  }
+
+  on("btnAddNewTeam", "click", () => openTeamEditor(null));
+  function openTeamEditor(key){
+    if(!isAdmin()) return;
+    editingTeamKey = key;
+    const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, roster: [], staff: [] };
+    $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
+    $("editTeamNameInput").value = team.name || ""; $("teamLogoInput").value = team.logo || ""; $("presetTeamColor").value = hex(team.color, DEF_A);
+    updateLogoPreview();
+    const roster = toArr(team.roster), staff = toArr(team.staff);
+    $("rosterForm").textContent = ""; roster.forEach(p => addRosterRow(p.no, p.name, p.pos)); if(!roster.length) addRosterRow("","","A");
+    $("staffForm").textContent = ""; staff.forEach(s => addStaffRow(s.name, s.role));
+    swapDlg("teamsManageSheet", "rosterSheet");
+  }
+  function updateLogoPreview(){
+    const url = $("teamLogoInput").value.trim(), img = $("logoPreview");
+    if(/^https?:\/\//i.test(url)){ img.src = url; img.style.display = "block"; } else { img.removeAttribute("src"); img.style.display = "none"; }
+  }
+  on("teamLogoInput", "change", updateLogoPreview);
+  $("logoPreview").addEventListener("error", () => { $("logoPreview").style.display = "none"; });
+
+  const delBtn = row => { const b = btn("row-del", "✕", () => row.remove()); b.setAttribute("aria-label", "Retirer"); return b; };
+  const mkInput = (cls, ph, val, max) => { const i = el("input", cls); i.type = "text"; i.placeholder = ph; i.value = val || ""; if(max) i.maxLength = max; return i; };
+  const mkSelect = (cls, opts, val) => {
+    const s = el("select", cls); opts.forEach(o => { const op = el("option", null, o[1]); op.value = o[0]; s.appendChild(op); });
+    if(val && opts.some(o => o[0] === val)) s.value = val; return s;
+  };
+  function addRosterRow(n, name, pos){
+    const row = el("div", "roster-row");
+    row.appendChild(mkInput("r-no", "#", n, 2)); row.appendChild(mkInput("r-name", "Nom du joueur", name));
+    row.appendChild(mkSelect("r-pos", [["A","A"],["D","D"],["G","G"]], pos)); row.appendChild(delBtn(row));
+    $("rosterForm").appendChild(row);
+  }
+  function addStaffRow(name, role){
+    const row = el("div", "staff-row");
+    row.appendChild(mkInput("s-name", "Nom", name));
+    row.appendChild(mkSelect("s-role", [["Entraîneur-chef","Chef"],["Adjoint","Adjoint"],["Gérant","Gérant"]], role)); row.appendChild(delBtn(row));
+    $("staffForm").appendChild(row);
+  }
+  on("addPlayerBtn", "click", () => addRosterRow("","","A"));
+  on("addStaffBtn", "click", () => addStaffRow("","Entraîneur-chef"));
+  on("rsCancel", "click", () => swapDlg("rosterSheet", "teamsManageSheet"));
+  on("rsSave", "click", () => {
+    if(!isAdmin()) return;
+    const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ alert("Nom obligatoire."); return; }
+    const existing = editingTeamKey ? manageTeamPresets[editingTeamKey] : null;
+    const category = existing ? (existing.category || "") : (manageTeamCatKey || currentCat);
+    let key = editingTeamKey;
+    if(!key){
+      // Nouvelle équipe : ne jamais écraser une équipe existante du même nom (autre catégorie, par exemple)
+      key = teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      if(manageTeamPresets[key]) key += "_" + category;
+      if(manageTeamPresets[key]) key += "_" + uid().slice(-4);
+    }
+    const roster = [], staff = [], seen = {}; let dup = "";
+    $("rosterForm").querySelectorAll(".roster-row").forEach(r => {
+      const n = no(r.querySelector(".r-no").value), nm = r.querySelector(".r-name").value.trim(), ps = r.querySelector(".r-pos").value;
+      if(n || nm){ if(n){ if(seen[n]) dup = n; seen[n] = true; } roster.push({ no: n, name: nm, pos: ps }); }
+    });
+    if(dup && !confirm("Le numéro " + dup + " est utilisé par plus d'un joueur : leurs statistiques seront confondues. Enregistrer quand même ?")) return;
+    $("staffForm").querySelectorAll(".staff-row").forEach(r => {
+      const nm = r.querySelector(".s-name").value.trim(), rl = r.querySelector(".s-role").value;
+      if(nm) staff.push({ name: nm, role: rl });
+    });
+    ref(manageTeamOrgKey + "/teams_presets/" + key).set({
+      name: teamName, msg: (existing && existing.msg) || "", logo: $("teamLogoInput").value.trim(),
+      color: $("presetTeamColor").value, category: category, roster: roster, staff: staff
+    });
+    alert("Équipe enregistrée !"); swapDlg("rosterSheet", "teamsManageSheet");
+  });
+
+  /* ============ Gestion : mots de passe ============ */
+  on("btnOpenPasswords", "click", () => {
+    if(!isAdmin()) return;
+    loadPasswords().then(passwords => {
+      closeDlg("settingsSheet"); $("pwdAdminInput").value = passwords.admin;
+      const container = $("catPasswordsContainer"); container.textContent = "";
+      container.dataset.marqueur = passwords.marqueur;
+      categoriesList.forEach(cat => {
+        const group = el("div", "field-group"), label = el("label", null, "Marqueur - " + cat.toUpperCase() + " :");
+        const input = el("input", "cat-pwd-input"); input.type = "password"; input.dataset.cat = cat;
+        input.value = passwords.categories[cat] || passwords.marqueur;
+        group.appendChild(label); group.appendChild(input); container.appendChild(group);
       });
-      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
-    });
-  }
-
-  $("btnOpenPasswords").addEventListener("click", function(){
-    $("settingsSheet").close(); $("pwdAdminInput").value = passwords.admin || "hockey";
-    var container = $("catPasswordsContainer"); container.textContent = "";
-    categoriesList.forEach(function(cat){
-      var group = document.createElement("div"); group.className = "field-group";
-      var label = document.createElement("label"); label.textContent = "Marqueur - " + cat.toUpperCase() + " :";
-      var input = document.createElement("input"); input.type = "password"; input.className = "cat-pwd-input"; input.dataset.cat = cat;
-      input.value = (passwords.categories && passwords.categories[cat]) || passwords.marqueur || "buts";
-      group.appendChild(label); group.appendChild(input); container.appendChild(group);
-    });
-    $("passwordsSheet").showModal();
+      openDlg("passwordsSheet");
+    }).catch(() => alert("Impossible de charger les mots de passe."));
   });
-  $("pwdCancel").addEventListener("click", function(){ $("passwordsSheet").close(); });
-  $("pwdSave").addEventListener("click", function(){
-    var newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: passwords.marqueur || "buts", categories: {} };
-    document.querySelectorAll(".cat-pwd-input").forEach(function(inp){ newP.categories[inp.dataset.cat] = inp.value.trim() || "buts"; });
-    dbPasswords.set(newP); alert("Mots de passe enregistrés !"); $("passwordsSheet").close();
+  on("pwdCancel", "click", () => closeDlg("passwordsSheet"));
+  on("pwdSave", "click", () => {
+    if(!isAdmin()) return;
+    const newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: $("catPasswordsContainer").dataset.marqueur || "buts", categories: {} };
+    document.querySelectorAll(".cat-pwd-input").forEach(inp => { newP.categories[inp.dataset.cat] = inp.value.trim() || "buts"; });
+    dbPasswords.set(newP); alert("Mots de passe enregistrés !"); closeDlg("passwordsSheet");
   });
 
-  var PLABEL = ["P1","P2","P3","Prol."];
-  var PLONG = ["1re période","2e période","3e période","Prolongation"];
-
-  // Correction : "Visiteur" explicite au lieu du nom de rôle
-  function blank(names){
-    return { 
-      v: 1, 
-      names: names || { a: "Local", b: "Visiteur" }, 
-      period: 0,
-      logos: { a: "", b: "" }, 
-      colors: { a: "#6FA2EE", b: "#F2707A" }, 
-      rosters: { a: [], b: [] }, 
-      staff: { a: [], b: [] },
-      shots: { a: [0,0,0,0], b: [0,0,0,0] }, 
-      events: [],
-      timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 }, 
-      updatedAt: 0 
-    };
+  /* ============ Chronomètre ============ */
+  function remaining(){
+    const t = state.timer; if(!t.running) return t.sec;
+    return Math.max(0, t.sec - Math.floor((now() - t.lastUpdate) / 1000));
   }
-  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function int(v,min,max){ v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); }
-  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,18); return v || fb; }
-  function no(v){ return String(v == null ? "" : v).replace(/\D/g,"").slice(0,2); }
+  function paintTimer(){ setText("timerDisplay", state.finished ? "FINAL" : formatTime(remaining())); }
 
-  function sanitize(d){
-    var s = blank(); if(!d || typeof d !== "object") return s;
-    if(d.names && typeof d.names === "object"){ s.names.a = str(d.names.a,"Local"); s.names.b = str(d.names.b,"Visiteur"); }
-    if(d.logos && typeof d.logos === "object"){ s.logos.a = d.logos.a || ""; s.logos.b = d.logos.b || ""; }
-    if(d.colors && typeof d.colors === "object"){ s.colors.a = d.colors.a || "#6FA2EE"; s.colors.b = d.colors.b || "#F2707A"; }
-    if(d.rosters && typeof d.rosters === "object"){
-      s.rosters.a = Array.isArray(d.rosters.a) ? JSON.parse(JSON.stringify(d.rosters.a)) : [];
-      s.rosters.b = Array.isArray(d.rosters.b) ? JSON.parse(JSON.stringify(d.rosters.b)) : [];
-    }
-    if(d.staff && typeof d.staff === "object"){
-      s.staff.a = Array.isArray(d.staff.a) ? JSON.parse(JSON.stringify(d.staff.a)) : [];
-      s.staff.b = Array.isArray(d.staff.b) ? JSON.parse(JSON.stringify(d.staff.b)) : [];
-    }
-    s.period = int(d.period,0,3);
-    ["a","b"].forEach(function(t){ for(var i=0;i<4;i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999); });
-    if(Array.isArray(d.events)){ s.events = JSON.parse(JSON.stringify(d.events)); }
-    if(d.timer && typeof d.timer === "object"){
-      s.timer.sec = int(d.timer.sec, 0, 5999); s.timer.running = !!d.timer.running; s.timer.lastUpdate = Number(d.timer.lastUpdate) || 0;
-    }
-    s.updatedAt = Number(d.updatedAt) || 0; return s;
-  }
+  setInterval(() => {
+    // Seuls les marqueurs / admins font avancer le match ; les spectateurs ne font qu'afficher
+    if(state.timer.running && remaining() === 0 && canEdit()) handleTimerEnd();
+    paintTimer();
+  }, 250);
 
-  function commit(){
-    if (currentRole === "viewer") return;
-    state.updatedAt = Date.now(); db.set(state); render();
-  }
-
-  function sum(a){ return a[0]+a[1]+a[2]+a[3]; }
-  function goalsOf(t,p){ return state.events.filter(function(e){ return e.type === "goal" && e.team === t && (p == null || e.period === p); }).length; }
-  function pct(saves,shots){ return (saves/shots*100).toFixed(1).replace(".",",") + " %"; }
-  function formatTime(s){ var m = Math.floor(s / 60), sec = s % 60; return (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec; }
-
-  function getCurrentTimerSec(){
-    if(!state.timer.running) return state.timer.sec;
-    var elapsed = Math.floor((Date.now() - state.timer.lastUpdate) / 1000);
-    var remaining = Math.max(0, state.timer.sec - elapsed);
-    if(remaining === 0 && state.timer.running){
-      handleTimerEnd();
-    }
-    return remaining;
-  }
-
-  // Remplacement des popups confirm par des Modales
   function handleTimerEnd(){
     state.timer.running = false;
-    state.timer.sec = defaultPeriodSec;
-
-    var gA = goalsOf("a"), gB = goalsOf("b");
     if(state.period < 2){
-      state.period++;
-    } else if(state.period === 2){
-      if(gA === gB){
-        $("overtimeSheet").showModal();
-      } else {
-        promptSaveHistory();
-      }
+      state.period++; state.timer.sec = defaultPeriodSec; commit();
+    } else if(state.period === 2 && goalsOf("a") === goalsOf("b")){
+      state.timer.sec = 0; commit(); openDlg("overtimeSheet");
     } else {
-      promptSaveHistory();
+      finishGame();
+    }
+  }
+  function finishGame(){
+    state.timer.running = false; state.timer.sec = 0; state.finished = true;
+    const last = state.events[state.events.length - 1];
+    if(!(last && last.type === "sys" && last.text === END_TEXT)){
+      state.events.push({ id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: END_TEXT, t: now() });
+    }
+    commit(); openDlg("saveHistorySheet");
+  }
+
+  on("overtimeYes", "click", () => {
+    closeDlg("overtimeSheet"); if(!canEdit()) return;
+    state.period = 3; state.timer.sec = defaultPeriodSec; state.timer.running = false; state.finished = false; commit();
+  });
+  on("overtimeNo", "click", () => { closeDlg("overtimeSheet"); if(canEdit()) finishGame(); });
+
+  on("btnTimerToggle", "click", () => {
+    if(!canEdit()) return;
+    if(state.timer.running){ state.timer.sec = remaining(); state.timer.running = false; }
+    else {
+      if(state.timer.sec <= 0){ openTimerSheet(); return; }     // chrono à zéro : on demande le temps à remettre
+      state.timer.running = true; state.timer.lastUpdate = now(); state.finished = false;
     }
     commit();
-  }
-
-  $("overtimeYes").addEventListener("click", function(){
-    state.period = 3;
-    commit();
-    $("overtimeSheet").close();
   });
-
-  $("overtimeNo").addEventListener("click", function(){
-    $("overtimeSheet").close();
-    promptSaveHistory();
-  });
-
-  function promptSaveHistory(){
-    if(currentRole !== "viewer"){
-      $("saveHistorySheet").showModal();
-    }
-  }
-
-  function getPlayerName(team, pId){
-    if(!pId) return "";
-    var roster = state.rosters[team] || [];
-    for(var i=0; i<roster.length; i++){
-      var p = roster[i]; var id = p.no || ("p_" + i);
-      if(id === pId || p.no === pId) return (p.no ? "#" + p.no + " " : "") + p.name;
-    }
-    return "#" + pId;
-  }
-
-  clearInterval(timerInterval);
-  timerInterval = setInterval(function(){
-    var curSec = getCurrentTimerSec();
-    if(currentRole === "viewer" && curSec === 0 && state.period >= 2){
-      $("timerDisplay").textContent = "FIN DE PARTIE";
-    } else {
-      $("timerDisplay").textContent = formatTime(curSec);
-    }
-  }, 500);
-
-  function setText(id,v,bump){
-    var el = $(id); v = String(v);
-    if(el.textContent !== v){ el.textContent = v; if(bump){ el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } }
-  }
-
-  function calculateTeamStats(){
-    var targetTeamKey = $("statsTeamSelect").value;
-    var targetTeamName = state.names[targetTeamKey];
-    var pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, last10 = [], totalShotsAgainst = 0;
-
-    Object.keys(historyData).forEach(function(key){
-      var m = historyData[key]; if(!m || !m.names) return;
-      var side = (m.names.a === targetTeamName) ? "a" : ((m.names.b === targetTeamName) ? "b" : null);
-      if(side){
-        pj++; var opp = side === "a" ? "b" : "a";
-        var gFor = m.events ? m.events.filter(function(e){ return e.type === "goal" && e.team === side; }).length : 0;
-        var gAgainst = m.events ? m.events.filter(function(e){ return e.type === "goal" && e.team === opp; }).length : 0;
-        var sAgainst = m.shots && m.shots[opp] ? sum(m.shots[opp]) : 0;
-        bp += gFor; bc += gAgainst; totalShotsAgainst += sAgainst;
-        if(gFor > gAgainst){ v++; last10.push("V"); } else if(gFor < gAgainst){ d++; last10.push("D"); } else { ega++; last10.push("N"); }
-      }
-    });
-
-    $("stPJ").textContent = pj; $("stV").textContent = v; $("stD").textContent = d; $("stEGA").textContent = ega;
-    $("stBP").textContent = bp; $("stBC").textContent = bc;
-    var diff = bp - bc; $("stDIF").textContent = (diff > 0 ? "+" : "") + diff;
-    $("st10D").textContent = last10.slice(-10).filter(function(x){ return x==="V"; }).length + "-" + last10.slice(-10).filter(function(x){ return x==="D"; }).length + "-" + last10.slice(-10).filter(function(x){ return x==="N"; }).length;
-    $("stSEQ").textContent = last10.length ? last10[last10.length-1] : "-";
-    $("stGAA").textContent = pj > 0 ? (bc / pj).toFixed(2) : "0.00";
-    var saves = Math.max(0, totalShotsAgainst - bc);
-    $("stSV").textContent = totalShotsAgainst > 0 ? Math.round((saves / totalShotsAgainst) * 100) + "%" : "0%";
-  }
-
-  $("statsTeamSelect").addEventListener("change", calculateTeamStats);
-
-  function renderHistory(){
-    var list = $("historyList"); list.textContent = "";
-    var keys = Object.keys(historyData);
-    if(!keys.length){ list.innerHTML = "<li class='empty'>Aucun match enregistré.</li>"; return; }
-    keys.slice().reverse().forEach(function(key){
-      var m = historyData[key]; var li = document.createElement("li"); li.className = "history-item";
-      var gA = m.events ? m.events.filter(function(e){ return e.type==="goal" && e.team==="a"; }).length : 0;
-      var gB = m.events ? m.events.filter(function(e){ return e.type==="goal" && e.team==="b"; }).length : 0;
-      var dateStr = new Date(m.updatedAt || Date.now()).toLocaleDateString("fr-CA");
-      li.innerHTML = "<div><strong>" + m.names.a + " " + gA + " - " + gB + " " + m.names.b + "</strong><br><small style='color:var(--muted);'>" + dateStr + "</small></div>";
-      var ctrls = document.createElement("div"); ctrls.className = "history-ctrls";
-      var btnCons = document.createElement("button"); btnCons.className = "btn-edit"; btnCons.textContent = "Consulter";
-      btnCons.addEventListener("click", function(){ state = sanitize(m); commit(); alert("Partie chargée."); });
-      ctrls.appendChild(btnCons);
-      var btnDel = document.createElement("button"); btnDel.className = "btn-hist-del"; btnDel.textContent = "🗑 Supprimer";
-      btnDel.addEventListener("click", function(){
-        if(currentRole === "viewer") return;
-        if(confirm("Supprimer ce match de l'historique ?")){ dbHistory.child(key).remove(); }
-      });
-      ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
-    });
-  }
-
-  $("btnTimerToggle").addEventListener("click", function(){
-    if(currentRole === "viewer") return;
-    if(state.timer.running){ state.timer.sec = getCurrentTimerSec(); state.timer.running = false; }
-    else { state.timer.running = true; state.timer.lastUpdate = Date.now(); }
-    commit();
-  });
-
-  $("btnTimerReset").addEventListener("click", function(){
-    if(currentRole === "viewer") return;
+  on("btnTimerReset", "click", () => {
+    if(!canEdit()) return;
     state.timer.running = false; state.timer.sec = defaultPeriodSec; commit();
   });
-
-  $("timerDisplay").addEventListener("click", function(){
-    if(currentRole === "viewer") return;
-    var cur = getCurrentTimerSec(); $("timerMin").value = Math.floor(cur / 60); $("timerSec").value = cur % 60;
-    $("timerSheet").showModal();
-  });
-  $("timerCancel").addEventListener("click", function(){ $("timerSheet").close(); });
-  $("timerSave").addEventListener("click", function(){
+  function openTimerSheet(){
+    const cur = remaining() || defaultPeriodSec;
+    $("timerMin").value = Math.floor(cur / 60); $("timerSec").value = cur % 60;
+    openDlg("timerSheet");
+  }
+  on("timerDisplay", "click", () => { if(canEdit()) openTimerSheet(); });
+  on("timerCancel", "click", () => closeDlg("timerSheet"));
+  on("timerSave", "click", () => {
+    if(!canEdit()) return;
     state.timer.sec = (int($("timerMin").value,0,99) * 60) + int($("timerSec").value,0,59);
-    state.timer.lastUpdate = Date.now(); commit(); $("timerSheet").close();
+    state.timer.lastUpdate = now();
+    if(state.timer.sec > 0) state.finished = false;
+    commit(); closeDlg("timerSheet");
   });
 
-  $("btnStopGame").addEventListener("click", function(){
-    if(currentRole === "viewer") return;
-    state.timer.running = false; state.timer.sec = 0;
-    state.events.push({ id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: "FIN DU MATCH", t: Date.now() });
-    commit(); $("saveHistorySheet").showModal();
-  });
+  on("btnStopGame", "click", () => { if(canEdit() && confirm("Arrêter la partie maintenant ?")) finishGame(); });
 
-  $("saveHistoryNo").addEventListener("click", function(){ $("saveHistorySheet").close(); });
-  $("saveHistoryYes").addEventListener("click", function(){
-    dbHistory.child(Date.now().toString()).set(state, function(err){
-      if(!err){ alert("Partie sauvegardée dans l'historique ! Le tableau reste modifiable à l'écran."); }
+  /* ============ Historique ============ */
+  const needsHistory = () => !$("statsBlock").classList.contains("hidden") || !$("historyBlock").classList.contains("hidden") ||
+                             (rosterScope === "all" && !$("rosterBlock").classList.contains("hidden"));
+
+  // L'historique complet n'est téléchargé que lorsqu'une section en a besoin
+  function ensureHistory(){
+    if(historyOn || !dbHistory) return;
+    historyOn = true;
+    sub(dbHistory, snap => {
+      const val = snap.val() || {};
+      historyList = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
+      historyLoaded = true;
+      renderHistory(); renderStats();
+      if(rosterScope === "all" && isOpen("rosterBlock")) renderRosters();
+      const w = historyWaiters; historyWaiters = []; w.forEach(fn => fn());
     });
-    $("saveHistorySheet").close();
+    renderHistory();
+  }
+  function withHistory(fn){ if(historyLoaded) fn(); else { historyWaiters.push(fn); ensureHistory(); } }
+
+  function indexMatch(key, m){
+    if(!m || typeof m !== "object") return null;
+    const names = m.names || {}, events = toArr(m.events);
+    const shots = t => sum(toArr(m.shots && m.shots[t]));
+    return { key: key, m: m, at: Number(m.updatedAt) || Number(key) || 0,
+             a: str(names.a, "Local"), b: str(names.b, "Visiteur"), events: events,
+             gA: goalsOf("a", null, events), gB: goalsOf("b", null, events), sA: shots("a"), sB: shots("b") };
+  }
+
+  function renderHistory(){
+    const list = $("historyList"); list.textContent = "";
+    if(!historyLoaded){ list.appendChild(el("li", "empty", "Chargement…")); return; }
+    if(!historyList.length){ list.appendChild(el("li", "empty", "Aucun match enregistré.")); return; }
+    const frag = document.createDocumentFragment();
+    for(let i = historyList.length - 1; i >= 0; i--){
+      const h = historyList[i], li = el("li", "history-item"), box = el("div"), ctrls = el("div", "history-ctrls");
+      box.appendChild(el("strong", null, h.a + " " + h.gA + " - " + h.gB + " " + h.b));
+      box.appendChild(el("br"));
+      const sm = el("small", null, dateOf(h.at) || "—"); sm.style.color = "var(--muted)"; box.appendChild(sm);
+      ctrls.appendChild(btn("btn-edit", "Consulter", () => consultMatch(h)));
+      ctrls.appendChild(btn("btn-hist-del", "🗑 Supprimer", () => {
+        if(currentRole === "viewer") return;
+        if(confirm("Supprimer ce match de l'historique ?")) dbHistory.child(h.key).remove();
+      }));
+      li.appendChild(box); li.appendChild(ctrls); frag.appendChild(li);
+    }
+    list.appendChild(frag);
+  }
+
+  function consultMatch(h){
+    if(currentRole === "viewer"){
+      // Spectateur : consultation locale, sans toucher au match en direct
+      if(!archiveKey) liveState = state;
+      archiveKey = h.key; state = sanitize(h.m); state.timer.running = false;
+      $("archiveText").textContent = "Partie archivée du " + (dateOf(h.at) || "—");
+      $("archiveBar").hidden = false; render(); window.scrollTo(0, 0);
+      return;
+    }
+    const msg = (isStarted(state) && !state.finished)
+      ? "Une partie est EN COURS. La remplacer par cette partie archivée ? Les données non sauvegardées seront perdues."
+      : "Charger cette partie dans le tableau en direct pour la consulter ou la corriger ?";
+    if(!confirm(msg)) return;
+    state = sanitize(h.m); state.timer.running = false; state.histKey = h.key;
+    commit(); window.scrollTo(0, 0);
+  }
+  function exitArchive(){
+    if(!archiveKey) return;
+    archiveKey = null; state = liveState || blank(); liveState = null;
+    $("archiveBar").hidden = true; syncStateWithPresets(); render();
+  }
+  on("archiveBack", "click", exitArchive);
+
+  on("saveHistoryNo", "click", () => closeDlg("saveHistorySheet"));
+  on("saveHistoryYes", "click", () => {
+    closeDlg("saveHistorySheet"); if(!canEdit()) return;
+    // Une même partie garde la même clé : la sauvegarder de nouveau la met à jour au lieu de créer un doublon
+    if(!state.histKey) state.histKey = String(Date.now());
+    commit();
+    dbHistory.child(state.histKey).set(state, err => {
+      alert(err ? "Échec de la sauvegarde : " + (err.message || err)
+                : "Partie sauvegardée dans l'historique ! Le tableau reste modifiable à l'écran.");
+    });
   });
 
-  $("btnSwapSides").addEventListener("click", function(){
-    if(currentRole === "viewer") return;
-    var tmpN = state.names.a; state.names.a = state.names.b; state.names.b = tmpN;
-    var tmpL = state.logos.a; state.logos.a = state.logos.b; state.logos.b = tmpL;
-    var tmpC = state.colors.a; state.colors.a = state.colors.b; state.colors.b = tmpC;
-    var tmpR = state.rosters.a; state.rosters.a = state.rosters.b; state.rosters.b = tmpR;
-    var tmpSt = state.staff.a; state.staff.a = state.staff.b; state.staff.b = tmpSt;
-    var tmpS = state.shots.a; state.shots.a = state.shots.b; state.shots.b = tmpS;
-    state.events.forEach(function(e){ if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a"; });
-    commit();
-  });
+  /* ============ Statistiques d'équipe ============ */
+  function renderStats(){
+    const name = state.names[$("statsTeamSelect").value];
+    let pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, shotsAgainst = 0; const res = [];
+    historyList.forEach(h => {
+      const side = h.a === name ? "a" : (h.b === name ? "b" : null); if(!side) return;
+      const gf = side === "a" ? h.gA : h.gB, ga = side === "a" ? h.gB : h.gA;
+      pj++; bp += gf; bc += ga; shotsAgainst += side === "a" ? h.sB : h.sA;
+      if(gf > ga){ v++; res.push("V"); } else if(gf < ga){ d++; res.push("D"); } else { ega++; res.push("N"); }
+    });
+    const last10 = res.slice(-10), cnt = x => last10.filter(r => r === x).length;
+    let streak = 0; for(let i = res.length - 1; i >= 0 && res[i] === res[res.length - 1]; i--) streak++;
+    const diff = bp - bc, saves = Math.max(0, shotsAgainst - bc);
+    setText("stPJ", pj); setText("stV", v); setText("stD", d); setText("stEGA", ega); setText("stBP", bp); setText("stBC", bc);
+    setText("stDIF", (diff > 0 ? "+" : "") + diff);
+    setText("st10D", cnt("V") + "-" + cnt("D") + "-" + cnt("N"));
+    setText("stSEQ", res.length ? res[res.length - 1] + streak : "-");
+    setText("stGAA", pj > 0 ? (bc / pj).toFixed(2) : "0.00");
+    setText("stSV", shotsAgainst > 0 ? Math.round(saves / shotsAgainst * 100) + "%" : "0%");
+  }
+  on("statsTeamSelect", "change", () => { $("statsTeamSelect").dataset.userTouched = "1"; renderStats(); });
+
+  /* ============ Rendu principal ============ */
+  const rootStyle = document.documentElement.style, painted = { ca: "", cb: "" };
+  const isOpen = id => !$(id).classList.contains("hidden");
+  function setLogo(img, url){ url = url || ""; if(img.getAttribute("src") !== url) img.setAttribute("src", url); }
+  ["logoA","logoB"].forEach(id => $(id).addEventListener("error", () => { if($(id).getAttribute("src")) $(id).setAttribute("src", ""); }));
 
   function render(){
-    var n = state.names;
+    const n = state.names, started = isStarted(state);
     if(document.activeElement !== $("nameA")) $("nameA").value = n.a;
     if(document.activeElement !== $("nameB")) $("nameB").value = n.b;
-    $("logoA").src = state.logos.a || ""; $("logoB").src = state.logos.b || "";
+    setLogo($("logoA"), state.logos.a); setLogo($("logoB"), state.logos.b);
+    if(painted.ca !== state.colors.a){ painted.ca = state.colors.a; rootStyle.setProperty("--team-a-color", state.colors.a); }
+    if(painted.cb !== state.colors.b){ painted.cb = state.colors.b; rootStyle.setProperty("--team-b-color", state.colors.b); }
 
-    document.documentElement.style.setProperty('--team-a-color', state.colors.a || '#6FA2EE');
-    document.documentElement.style.setProperty('--team-b-color', state.colors.b || '#F2707A');
+    setText("optTeamA", n.a); setText("optTeamB", n.b);
+    setText("stOptA", n.a + " (Local)"); setText("stOptB", n.b + " (Visiteur)");
 
-    $("optTeamA").textContent = n.a || "Équipe Locale"; $("optTeamB").textContent = n.b || "Équipe Visiteuse";
-    $("stOptA").textContent = (n.a || "Équipe Locale") + " (Local)"; $("stOptB").textContent = (n.b || "Équipe Visiteuse") + " (Visiteur)";
-
-    var gA = goalsOf("a"), gB = goalsOf("b"), sA = sum(state.shots.a), sB = sum(state.shots.b);
+    const gA = goalsOf("a"), gB = goalsOf("b"), sA = sum(state.shots.a), sB = sum(state.shots.b);
     $("btnOt").disabled = (gA !== gB);
-
     setText("scoreA", gA, true); setText("scoreB", gB, true);
     setText("shotsA", sA, true); setText("shotsB", sB, true);
-    $("lblShotsA").textContent = sA > 1 ? " lancers" : " lancer";
-    $("lblShotsB").textContent = sB > 1 ? " lancers" : " lancer";
-
+    setText("lblShotsA", sA > 1 ? " lancers" : " lancer"); setText("lblShotsB", sB > 1 ? " lancers" : " lancer");
     setText("periodMark", PLABEL[state.period]);
+    paintTimer();
+    setText("btnTimerToggle", state.timer.running ? "⏸" : "▶");
 
-    var curSec = getCurrentTimerSec();
-    if(currentRole === "viewer" && curSec === 0 && state.period >= 2){
-      $("timerDisplay").textContent = "FIN DE PARTIE";
-    } else {
-      $("timerDisplay").textContent = formatTime(curSec);
-    }
-    $("btnTimerToggle").textContent = state.timer.running ? "⏸" : "▶";
+    // Partie terminée (ou jamais commencée) : on peut en lancer une nouvelle
+    const canStartNew = !started || state.finished;
+    $("btnStopGame").style.display = canStartNew ? "none" : "block";
+    $("newGame").style.display = canStartNew ? "block" : "none";
 
-    // Modifié : Masquer le bouton de nouvelle partie si la période est > 0 ou match actif
-    var isGameActive = state.timer.running || 
-                       (state.timer.sec < defaultPeriodSec) || 
-                       (state.period > 0) || 
-                       (sA > 0) || (sB > 0) || 
-                       (state.events && state.events.length > 0);
+    const segBtns = $("seg").children;
+    for(let i = 0; i < segBtns.length; i++) segBtns[i].setAttribute("aria-pressed", String(Number(segBtns[i].dataset.p) === state.period));
 
-    $("btnStopGame").style.display = isGameActive ? "block" : "none";
-    $("newGame").style.display = isGameActive ? "none" : "block";
-
-    Array.prototype.forEach.call($("seg").children, function(b){ b.setAttribute("aria-pressed", String(Number(b.dataset.p) === state.period)); });
-
-    $("gNameA").textContent = "Gardien, " + n.a; $("gNameB").textContent = "Gardien, " + n.b;
+    setText("gNameA", "Gardien, " + n.a); setText("gNameB", "Gardien, " + n.b);
     goalie("A", sB, gB); goalie("B", sA, gA);
 
-    renderRosterPickers(isGameActive);
-    renderRosterList("rosterA", getActiveRosterForSide("a"), "a");
-    renderRosterList("rosterB", getActiveRosterForSide("b"), "b");
-
-    renderStaffList("staffA", "staffBoxA", state.staff ? state.staff.a : []);
-    renderStaffList("staffB", "staffBoxB", state.staff ? state.staff.b : []);
-
-    var body = $("perBody"); body.textContent = "";
-    ["a","b"].forEach(function(t){
-      var tr = document.createElement("tr");
-      var th = document.createElement("th"); th.scope = "row"; th.textContent = n[t]; tr.appendChild(th);
-      state.shots[t].forEach(function(v,i){
-        var td = document.createElement("td"); td.textContent = v;
-        if(i === state.period) td.className = "cur"; tr.appendChild(td);
-      });
-      var tot = document.createElement("td"); tot.className = "tot"; tot.textContent = sum(state.shots[t]); tr.appendChild(tot);
-      body.appendChild(tr);
-    });
-
+    renderShotsTable();
     renderEvents();
+    if(isOpen("rosterBlock")) renderRosters();
     if(!$("statsTeamSelect").dataset.userTouched) $("statsTeamSelect").value = "a";
-    calculateTeamStats(); updateTickerDisplay();
-  }
-
-  function renderRosterPickers(isGameActive){
-    var pickersBox = $("rosterTeamPickers");
-    if(isGameActive){
-      pickersBox.style.display = "none";
-      $("rosterTitleA").textContent = state.names.a;
-      $("rosterTitleB").textContent = state.names.b;
-    } else {
-      pickersBox.style.display = "flex";
-      populatePresetPicker("rosterSelectTeamA", state.names.a);
-      populatePresetPicker("rosterSelectTeamB", state.names.b);
-      $("rosterTitleA").textContent = $("rosterSelectTeamA").selectedOptions[0] ? $("rosterSelectTeamA").selectedOptions[0].text : state.names.a;
-      $("rosterTitleB").textContent = $("rosterSelectTeamB").selectedOptions[0] ? $("rosterSelectTeamB").selectedOptions[0].text : state.names.b;
-    }
-  }
-
-  function populatePresetPicker(selectId, currentName){
-    var sel = $(selectId);
-    if(sel.dataset.initialized === "true") return;
-    sel.innerHTML = "";
-    Object.keys(presets).forEach(function(k){
-      var p = presets[k];
-      if(!p.category || p.category === "" || p.category === currentCat){
-        var opt = document.createElement("option"); opt.value = k; opt.textContent = p.name;
-        if(p.name === currentName) opt.selected = true;
-        sel.appendChild(opt);
-      }
-    });
-    sel.dataset.initialized = "true";
-    sel.addEventListener("change", function(){ render(); });
-  }
-
-  function getActiveRosterForSide(side){
-    var isGameActive = state.timer.running || (state.timer.sec < defaultPeriodSec) || (state.period > 0) || sum(state.shots.a) > 0 || sum(state.shots.b) > 0 || state.events.length > 0;
-    if(isGameActive){
-      return state.rosters[side] || [];
-    } else {
-      var selId = side === "a" ? "rosterSelectTeamA" : "rosterSelectTeamB";
-      var key = $(selId).value;
-      return (presets[key] && presets[key].roster) ? presets[key].roster : (state.rosters[side] || []);
-    }
-  }
-
-  $("btnScopeMatch").addEventListener("click", function(){
-    rosterScope = "match"; $("btnScopeMatch").classList.add("active"); $("btnScopeAll").classList.remove("active"); render();
-  });
-  $("btnScopeAll").addEventListener("click", function(){
-    rosterScope = "all"; $("btnScopeAll").classList.add("active"); $("btnScopeMatch").classList.remove("active"); render();
-  });
-
-  function renderRosterList(id, list, side){
-    var ul = $(id); ul.textContent = "";
-    if(!list || !list.length){ ul.innerHTML = "<li style='font-size:.8rem;color:var(--muted);'>Aucun joueur</li>"; return; }
-
-    list.forEach(function(p, idx){
-      var pId = p.no || ("p_" + idx);
-      var li = document.createElement("li"); li.className = "roster-item" + (openPlayerCardId === pId ? " active" : "");
-      li.innerHTML = "<span>" + (p.no ? "<b>#" + p.no + "</b> " : "") + p.name + "</span><span class='pos'>" + p.pos + "</span>";
-
-      li.addEventListener("click", function(){
-        openPlayerCardId = (openPlayerCardId === pId) ? null : pId;
-        render();
-      });
-
-      ul.appendChild(li);
-
-      if(openPlayerCardId === pId){
-        var cardBox = document.createElement("div"); cardBox.className = "player-card-inline";
-        var stats = getPlayerStatsCalculated(side, pId, rosterScope);
-        cardBox.innerHTML = "<h4><span>👤 " + (p.no ? "#" + p.no + " " : "") + p.name + "</span><small>(" + (rosterScope === "match" ? "Ce match" : "Saison") + ")</small></h4>" +
-                            "<div class='p-grid'>" +
-                            "<div class='p-stat'><span class='p-lbl'>PJ</span><span class='p-val'>" + stats.pj + "</span></div>" +
-                            "<div class='p-stat'><span class='p-lbl'>B</span><span class='p-val'>" + stats.b + "</span></div>" +
-                            "<div class='p-stat'><span class='p-lbl'>A</span><span class='p-val'>" + stats.a + "</span></div>" +
-                            "<div class='p-stat'><span class='p-lbl'>PTS</span><span class='p-val'>" + (stats.b + stats.a) + "</span></div>" +
-                            "<div class='p-stat'><span class='p-lbl'>PUN</span><span class='p-val'>" + stats.pun + "m</span></div>" +
-                            "</div>";
-        ul.appendChild(cardBox);
-      }
-    });
-  }
-
-  function getPlayerStatsCalculated(side, pId, scope){
-    var b = 0, a = 0, pun = 0, pj = (scope === "match" ? 1 : 0);
-    var teamName = state.names[side];
-
-    var processEvent = function(e, matchSide){
-      if(e.team === matchSide){
-        if(e.type === "goal"){
-          if(e.scorer === pId) b++;
-          if(e.a1 === pId || e.a2 === pId) a++;
-        } else if(e.type === "pen" && e.player === pId){
-          pun += Number(e.min || 2);
-        }
-      }
-    };
-
-    if(scope === "match"){
-      state.events.forEach(function(e){ processEvent(e, side); });
-    } else {
-      Object.keys(historyData).forEach(function(k){
-        var m = historyData[k]; if(!m || !m.names) return;
-        var matchSide = (m.names.a === teamName) ? "a" : ((m.names.b === teamName) ? "b" : null);
-        if(matchSide){
-          pj++;
-          if(m.events) m.events.forEach(function(e){ processEvent(e, matchSide); });
-        }
-      });
-      state.events.forEach(function(e){ processEvent(e, side); });
-    }
-
-    return { pj: pj, b: b, a: a, pun: pun };
-  }
-
-  function renderEvents(){
-    var list = $("eventsList"); list.textContent = "";
-    var filter = $("feedFilter").value; if(filter === "none") return;
-    var filtered = state.events.filter(function(e){
-      if(filter === "all") return true;
-      if(filter === "team_a") return e.team === "a";
-      if(filter === "team_b") return e.team === "b";
-      return e.type === filter;
-    });
-    if(!filtered.length){ list.innerHTML = "<li class='empty'>Aucun événement.</li>"; return; }
-    filtered.slice().reverse().forEach(function(e){
-      var li = document.createElement("li");
-      var b = document.createElement("button"); b.type = "button"; b.className = "event-row " + e.team; b.dataset.id = e.id;
-      var st = document.createElement("strong"), sub = document.createElement("span");
-      if(e.type === "goal"){
-        st.textContent = "BUT - " + (state.names[e.team] || "") + " (" + getPlayerName(e.team, e.scorer) + ")";
-        var as = [e.a1, e.a2].filter(Boolean).map(function(pId){ return getPlayerName(e.team, pId); });
-        sub.textContent = as.length ? "Passes : " + as.join(", ") : "Sans aide";
-      } else if(e.type === "pen"){
-        st.textContent = "PUNITION - " + (state.names[e.team] || "") + " (" + getPlayerName(e.team, e.player) + ")";
-        sub.textContent = (e.min || 2) + " min - " + (e.reason || "Infraction");
-      } else if(e.type === "shot"){
-        st.textContent = "LANCER - " + (state.names[e.team] || ""); sub.textContent = "Lancer au but";
-      } else if(e.type === "sys"){
-        st.textContent = e.text; sub.textContent = "Info match";
-      }
-      var infoSpan = document.createElement("span"); infoSpan.className = "info"; infoSpan.appendChild(st); infoSpan.appendChild(sub);
-      var timeSpan = document.createElement("span"); timeSpan.className = "time"; timeSpan.textContent = e.time || "--:--";
-      var perSpan = document.createElement("span"); perSpan.className = "per"; perSpan.textContent = PLABEL[e.period];
-      b.appendChild(timeSpan); b.appendChild(infoSpan); b.appendChild(perSpan); li.appendChild(b); list.appendChild(li);
-    });
-  }
-
-  $("feedFilter").addEventListener("change", renderEvents);
-
-  function renderStaffList(ulId, boxId, list){
-    var ul = $(ulId), box = $(boxId); ul.textContent = "";
-    if(!list || !list.length){ box.style.display = "none"; return; }
-    box.style.display = "block";
-    list.forEach(function(s){
-      var li = document.createElement("li"); li.className = "roster-item"; li.style.cursor = "default";
-      li.innerHTML = "<span>" + s.name + "</span><span class='pos'>" + s.role + "</span>"; ul.appendChild(li);
-    });
+    if(isOpen("statsBlock")) renderStats();
+    updateTickerDisplay();
   }
 
   function goalie(side, shotsAgainst, goalsAgainst){
     if(!shotsAgainst){ setText("sv"+side, "–"); setText("svSub"+side, "Aucun lancer reçu"); return; }
-    var saves = Math.max(0, shotsAgainst - goalsAgainst);
+    const saves = Math.max(0, shotsAgainst - goalsAgainst);
     setText("sv"+side, pct(saves, shotsAgainst));
     setText("svSub"+side, saves + " arrêts / " + shotsAgainst + " lancers");
   }
 
-  function setupToggle(btnId, blockId){
-    $(btnId).addEventListener("click", function(){ $(blockId).classList.toggle("hidden"); $(btnId).classList.toggle("collapsed"); });
+  function renderShotsTable(){
+    const frag = document.createDocumentFragment();
+    ["a","b"].forEach(t => {
+      const tr = el("tr"), th = el("th", null, state.names[t]); th.scope = "row"; tr.appendChild(th);
+      state.shots[t].forEach((v,i) => tr.appendChild(el("td", i === state.period ? "cur" : null, v)));
+      tr.appendChild(el("td", "tot", sum(state.shots[t]))); frag.appendChild(tr);
+    });
+    const body = $("perBody"); body.textContent = ""; body.appendChild(frag);
   }
-  setupToggle("toggleStatsBtn", "statsBlock"); setupToggle("toggleRosterBtn", "rosterBlock");
-  setupToggle("toggleGoaliesBtn", "goaliesBlock"); setupToggle("toggleHistoryBtn", "historyBlock");
 
-  // NOUVELLE PARTIE : Peuplage garanti des équipes
-  function populateWizTeamSelect(selectId, currentName){
-    var sel = $(selectId);
-    sel.innerHTML = '<option value="">-- Choisir une équipe --</option>';
-    if(presets && typeof presets === "object"){
-      Object.keys(presets).forEach(function(k){
-        var p = presets[k];
-        if(p && p.name){
-          var opt = document.createElement("option");
-          opt.value = k;
-          opt.textContent = p.name + (p.category ? " (" + p.category.toUpperCase() + ")" : "");
-          if(p.name === currentName) opt.selected = true;
-          sel.appendChild(opt);
-        }
+  /* ============ Alignements ============ */
+  function refreshPresetPicker(sel, currentName){
+    const sig = presetsRev + "|" + currentCat;
+    if(sel.dataset.sig === sig) return;
+    sel.dataset.sig = sig;
+    const prev = sel.value, items = []; let byName = null;
+    Object.keys(presets).forEach(k => {
+      const p = presets[k];
+      if(p && p.name && (!p.category || p.category === currentCat)){ items.push({ value: k, label: p.name }); if(p.name === currentName) byName = k; }
+    });
+    fillSelect(sel, items, items.some(i => i.value === prev) ? prev : byName);
+  }
+  ["rosterSelectTeamA","rosterSelectTeamB"].forEach(id => on(id, "change", renderRosters));
+
+  function activeRoster(side, started){
+    if(started) return state.rosters[side];
+    const p = presets[$(side === "a" ? "rosterSelectTeamA" : "rosterSelectTeamB").value];
+    const r = p ? toArr(p.roster).map(normPlayer) : [];
+    return r.length ? r : state.rosters[side];
+  }
+
+  function renderRosters(){
+    const started = isStarted(state), selA = $("rosterSelectTeamA"), selB = $("rosterSelectTeamB");
+    $("rosterTeamPickers").style.display = started ? "none" : "flex";
+    if(!started){ refreshPresetPicker(selA, state.names.a); refreshPresetPicker(selB, state.names.b); }
+    const title = (sel, fb) => (!started && sel.selectedOptions[0]) ? sel.selectedOptions[0].text : fb;
+    setText("rosterTitleA", title(selA, state.names.a)); setText("rosterTitleB", title(selB, state.names.b));
+    renderRosterList("rosterA", activeRoster("a", started), "a");
+    renderRosterList("rosterB", activeRoster("b", started), "b");
+    renderStaffList("staffA", "staffBoxA", state.staff.a);
+    renderStaffList("staffB", "staffBoxB", state.staff.b);
+  }
+
+  function setScope(scope){
+    rosterScope = scope;
+    $("btnScopeMatch").classList.toggle("active", scope === "match");
+    $("btnScopeAll").classList.toggle("active", scope === "all");
+    if(scope === "all") ensureHistory();
+    renderRosters();
+  }
+  on("btnScopeMatch", "click", () => setScope("match"));
+  on("btnScopeAll", "click", () => setScope("all"));
+
+  function renderRosterList(id, list, side){
+    const ul = $(id); ul.textContent = "";
+    if(!list || !list.length){ ul.appendChild(el("li", "empty", "Aucun joueur")); return; }
+    const frag = document.createDocumentFragment();
+    list.forEach((p, idx) => {
+      const pId = pidOf(p, idx), cardId = side + ":" + pId, isCardOpen = openCardId === cardId;
+      const li = el("li", "roster-item" + (isCardOpen ? " active" : "")), nameSpan = el("span");
+      if(p.no){ nameSpan.appendChild(el("b", null, "#" + p.no)); nameSpan.appendChild(document.createTextNode(" ")); }
+      nameSpan.appendChild(document.createTextNode(p.name));
+      li.appendChild(nameSpan); li.appendChild(el("span", "pos", p.pos));
+      li.addEventListener("click", () => { openCardId = isCardOpen ? null : cardId; renderRosters(); });
+      frag.appendChild(li);
+
+      if(isCardOpen){
+        const st = playerStats(side, pId, rosterScope), card = el("div", "player-card-inline"), h4 = el("h4"), grid = el("div", "p-grid");
+        h4.appendChild(el("span", null, "👤 " + (p.no ? "#" + p.no + " " : "") + p.name));
+        h4.appendChild(el("small", null, "(" + (rosterScope === "match" ? "Ce match" : "Saison") + ")"));
+        [["PJ", st.pj], ["B", st.b], ["A", st.a], ["PTS", st.b + st.a], ["PUN", st.pun + "m"]].forEach(c => {
+          const cell = el("div", "p-stat"); cell.appendChild(el("span", "p-lbl", c[0])); cell.appendChild(el("span", "p-val", c[1])); grid.appendChild(cell);
+        });
+        card.appendChild(h4); card.appendChild(grid); frag.appendChild(card);
+      }
+    });
+    ul.appendChild(frag);
+  }
+
+  function playerStats(side, pId, scope){
+    let b = 0, a = 0, pun = 0, pj = 0; const teamName = state.names[side];
+    const scan = (events, matchSide) => {
+      for(let i = 0; i < events.length; i++){
+        const e = events[i]; if(e.team !== matchSide) continue;
+        if(e.type === "goal"){ if(e.scorer === pId) b++; if(e.a1 === pId || e.a2 === pId) a++; }
+        else if(e.type === "pen" && e.player === pId) pun += Number(e.min || 2);
+      }
+    };
+    if(scope !== "match"){
+      historyList.forEach(h => {
+        if(h.key === state.histKey) return;       // le match affiché est compté une seule fois, ci-dessous
+        const ms = h.a === teamName ? "a" : (h.b === teamName ? "b" : null);
+        if(ms){ pj++; scan(h.events, ms); }
       });
     }
+    if(scope === "match" || isStarted(state)){ pj++; scan(state.events, side); }
+    return { pj: pj, b: b, a: a, pun: pun };
   }
 
-  $("newGame").addEventListener("click", function(){
-    if(currentRole !== "admin") return;
-    populateWizTeamSelect("wizTeamA", state.names.a);
-    populateWizTeamSelect("wizTeamB", state.names.b);
-    $("wizColorA").value = state.colors.a || "#6FA2EE";
-    $("wizColorB").value = state.colors.b || "#F2707A";
-    renderPresenceList("a", $("wizTeamA").value);
-    renderPresenceList("b", $("wizTeamB").value);
-    $("newGameWizard").showModal();
-  });
-  $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
+  function renderStaffList(ulId, boxId, list){
+    const ul = $(ulId), box = $(boxId); ul.textContent = "";
+    if(!list || !list.length){ box.style.display = "none"; return; }
+    box.style.display = "block";
+    list.forEach(s => {
+      const li = el("li", "roster-item"); li.style.cursor = "default";
+      li.appendChild(el("span", null, s.name)); li.appendChild(el("span", "pos", s.role)); ul.appendChild(li);
+    });
+  }
 
+  /* ============ Match pas à pas ============ */
+  function renderEvents(){
+    const list = $("eventsList"), filter = $("feedFilter").value;
+    if(filter === "none"){ if(list.firstChild) list.textContent = ""; return; }
+    const frag = document.createDocumentFragment(); let count = 0;
+    for(let i = state.events.length - 1; i >= 0; i--){
+      const e = state.events[i];
+      if(!(filter === "all" || (filter === "team_a" && e.team === "a") || (filter === "team_b" && e.team === "b") || e.type === filter)) continue;
+      count++;
+      const li = el("li"), b = el("button", "event-row " + (e.team === "a" || e.team === "b" ? e.team : "sys")); b.type = "button"; b.dataset.id = e.id;
+      const st = el("strong"), subl = el("span"), team = state.names[e.team] || "";
+      if(e.type === "goal"){
+        st.textContent = "BUT - " + team + " (" + getPlayerName(e.team, e.scorer) + ")";
+        const as = [e.a1, e.a2].filter(Boolean).map(p => getPlayerName(e.team, p));
+        subl.textContent = as.length ? "Passes : " + as.join(", ") : "Sans aide";
+      } else if(e.type === "pen"){
+        st.textContent = "PUNITION - " + team + " (" + getPlayerName(e.team, e.player) + ")";
+        subl.textContent = (e.min || 2) + " min - " + (e.reason || "Infraction");
+      } else if(e.type === "shot"){
+        st.textContent = "LANCER - " + team; subl.textContent = "Lancer au but";
+      } else {
+        st.textContent = e.text || ""; subl.textContent = "Info match";
+      }
+      const info = el("span", "info"); info.appendChild(st); info.appendChild(subl);
+      b.appendChild(el("span", "time", e.time || "--:--")); b.appendChild(info); b.appendChild(el("span", "per", PLABEL[e.period]));
+      li.appendChild(b); frag.appendChild(li);
+    }
+    list.textContent = "";
+    if(!count) list.appendChild(el("li", "empty", "Aucun événement.")); else list.appendChild(frag);
+  }
+  on("feedFilter", "change", renderEvents);
+  on("eventsList", "click", e => {
+    if(!canEdit()) return;
+    const b = e.target.closest("button[data-id]"); if(!b) return;
+    const ev = findEvent(b.dataset.id); if(!ev) return;
+    if(ev.type === "goal") openGoal(ev.id, false);
+    else if(ev.type === "pen") openPen(ev.team, ev);
+  });
+
+  /* ============ Sections repliables ============ */
+  function setupToggle(btnId, blockId, onOpen){
+    on(btnId, "click", () => {
+      const hidden = $(blockId).classList.toggle("hidden");
+      $(btnId).classList.toggle("collapsed", hidden);
+      if(!hidden && onOpen) onOpen();
+    });
+  }
+  setupToggle("toggleStatsBtn", "statsBlock", () => { ensureHistory(); renderStats(); });
+  setupToggle("toggleRosterBtn", "rosterBlock", () => { if(rosterScope === "all") ensureHistory(); renderRosters(); });
+  setupToggle("toggleGoaliesBtn", "goaliesBlock");
+  setupToggle("toggleHistoryBtn", "historyBlock", () => { ensureHistory(); renderHistory(); });
+
+  /* ============ Nouvelle partie ============ */
+  function populateWizTeamSelect(selectId, currentName){
+    const items = []; let selected = null;
+    Object.keys(presets).forEach(k => {
+      const p = presets[k]; if(!p || !p.name) return;
+      items.push({ value: k, label: p.name + (p.category ? " (" + String(p.category).toUpperCase() + ")" : "") });
+      if(p.name === currentName && (selected == null || p.category === currentCat)) selected = k;
+    });
+    fillSelect($(selectId), items, selected, "-- Choisir une équipe --");
+  }
   function renderPresenceList(side, teamKey){
-    var listContainer = $(side === "a" ? "wizPresenceListA" : "wizPresenceListB"); listContainer.textContent = "";
-    if(!teamKey || !presets[teamKey] || !presets[teamKey].roster || !presets[teamKey].roster.length){
-      listContainer.innerHTML = "<small style='color:var(--muted);grid-column:1/-1;'>Aucun joueur prédéfini</small>"; return;
-    }
-    presets[teamKey].roster.forEach(function(p, idx){
-      var label = document.createElement("label"); label.className = "presence-item";
-      var chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = true; chk.dataset.idx = idx; chk.className = "chk-presence-" + side;
-      label.appendChild(chk); label.appendChild(document.createTextNode((p.no ? "#" + p.no + " " : "") + p.name)); listContainer.appendChild(label);
+    const box = $(side === "a" ? "wizPresenceListA" : "wizPresenceListB"); box.textContent = "";
+    const roster = presets[teamKey] ? toArr(presets[teamKey].roster) : [];
+    if(!roster.length){ const s = el("small", null, "Aucun joueur prédéfini"); s.style.cssText = "color:var(--muted);grid-column:1/-1;"; box.appendChild(s); return; }
+    roster.forEach((p, idx) => {
+      const label = el("label", "presence-item"), chk = el("input", "chk-presence-" + side);
+      chk.type = "checkbox"; chk.checked = true; chk.dataset.idx = idx;
+      label.appendChild(chk); label.appendChild(document.createTextNode((p.no ? "#" + p.no + " " : "") + (p.name || ""))); box.appendChild(label);
     });
   }
+  function wizSyncColor(side){
+    const p = presets[$(side === "a" ? "wizTeamA" : "wizTeamB").value];
+    if(p && p.color) $(side === "a" ? "wizColorA" : "wizColorB").value = hex(p.color, side === "a" ? DEF_A : DEF_B);
+  }
 
-  $("wizTeamA").addEventListener("change", function(){ renderPresenceList("a", $("wizTeamA").value); });
-  $("wizTeamB").addEventListener("change", function(){ renderPresenceList("b", $("wizTeamB").value); });
+  on("newGame", "click", () => {
+    if(!isAdmin()) return;
+    populateWizTeamSelect("wizTeamA", state.names.a); populateWizTeamSelect("wizTeamB", state.names.b);
+    $("wizColorA").value = state.colors.a; $("wizColorB").value = state.colors.b;
+    renderPresenceList("a", $("wizTeamA").value); renderPresenceList("b", $("wizTeamB").value);
+    openDlg("newGameWizard");
+  });
+  on("wizCancel", "click", () => closeDlg("newGameWizard"));
+  on("wizTeamA", "change", () => { renderPresenceList("a", $("wizTeamA").value); wizSyncColor("a"); });
+  on("wizTeamB", "change", () => { renderPresenceList("b", $("wizTeamB").value); wizSyncColor("b"); });
 
-  $("wizStart").addEventListener("click", function(){
-    var keyB = $("wizTeamB").value, keyA = $("wizTeamA").value;
-    state = blank(); delete $("statsTeamSelect").dataset.userTouched;
-    if(keyB && presets[keyB]){
-      state.names.b = str(presets[keyB].name, "Visiteur"); state.logos.b = presets[keyB].logo || "";
-      var fullRosterB = JSON.parse(JSON.stringify(presets[keyB].roster || [])); var presentRosterB = [];
-      document.querySelectorAll(".chk-presence-b").forEach(function(chk){ if(chk.checked) presentRosterB.push(fullRosterB[Number(chk.dataset.idx)]); });
-      state.rosters.b = presentRosterB.length ? presentRosterB : fullRosterB;
-      state.staff.b = JSON.parse(JSON.stringify(presets[keyB].staff || []));
-    }
-    if(keyA && presets[keyA]){
-      state.names.a = str(presets[keyA].name, "Local"); state.logos.a = presets[keyA].logo || "";
-      var fullRosterA = JSON.parse(JSON.stringify(presets[keyA].roster || [])); var presentRosterA = [];
-      document.querySelectorAll(".chk-presence-a").forEach(function(chk){ if(chk.checked) presentRosterA.push(fullRosterA[Number(chk.dataset.idx)]); });
-      state.rosters.a = presentRosterA.length ? presentRosterA : fullRosterA;
-      state.staff.a = JSON.parse(JSON.stringify(presets[keyA].staff || []));
-    }
-    state.colors.a = $("wizColorA").value; state.colors.b = $("wizColorB").value;
-    commit(); $("newGameWizard").close();
+  on("wizStart", "click", () => {
+    if(!isAdmin()) return;
+    const keys = { a: $("wizTeamA").value, b: $("wizTeamB").value };
+    if(keys.a && keys.a === keys.b){ alert("Choisissez deux équipes différentes."); return; }
+    state = blank(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
+    ["a","b"].forEach(t => {
+      const p = presets[keys[t]]; if(!p) return;
+      const full = toArr(p.roster).map(normPlayer), present = [];
+      document.querySelectorAll(".chk-presence-" + t).forEach(chk => { if(chk.checked && full[Number(chk.dataset.idx)]) present.push(full[Number(chk.dataset.idx)]); });
+      state.names[t] = str(p.name, t === "a" ? "Local" : "Visiteur");
+      state.logos[t] = String(p.logo || "");
+      state.rosters[t] = present.length ? present : full;
+      state.staff[t] = toArr(p.staff).map(normStaff);
+    });
+    state.colors.a = hex($("wizColorA").value, DEF_A); state.colors.b = hex($("wizColorB").value, DEF_B);
+    commit(); closeDlg("newGameWizard");
   });
 
-  var editingTeamKey = null;
-  $("btnAddNewTeam").addEventListener("click", function(){ openTeamEditor(null); });
-  function openTeamEditor(key){
-    editingTeamKey = key;
-    var team = key && manageTeamPresets[key] ? manageTeamPresets[key] : { name: "", logo: "", color: "#6FA2EE", category: manageTeamCatKey || currentCat, roster: [], staff: [] };
-    $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
-    $("editTeamNameInput").value = team.name || ""; $("teamLogoInput").value = team.logo || ""; $("presetTeamColor").value = team.color || "#6FA2EE";
-    buildRosterForm(team.roster || []); buildStaffForm(team.staff || []);
-    $("teamsManageSheet").close(); $("rosterSheet").showModal();
-  }
-  function buildRosterForm(list){
-    $("rosterForm").textContent = ""; list.forEach(function(p){ addRosterRow(p.no, p.name, p.pos); });
-    if(!list.length) addRosterRow("","","A");
-  }
-  function addRosterRow(no, name, pos){
-    var div = document.createElement("div"); div.className = "roster-row";
-    div.innerHTML = "<input type='text' maxlength='2' placeholder='#' value='" + (no||"") + "' class='r-no'>" +
-                    "<input type='text' placeholder='Nom du joueur' value='" + (name||"") + "' class='r-name'>" +
-                    "<select class='r-pos'><option value='A'>A</option><option value='D'>D</option><option value='G'>G</option></select>" +
-                    "<button type='button' style='border:0;background:transparent;color:var(--red);font-weight:bold;'>✕</button>";
-    if(pos) div.querySelector(".r-pos").value = pos;
-    div.querySelector("button").addEventListener("click", function(){ div.remove(); });
-    $("rosterForm").appendChild(div);
-  }
-  function buildStaffForm(list){ $("staffForm").textContent = ""; list.forEach(function(s){ addStaffRow(s.name, s.role); }); }
-  function addStaffRow(name, role){
-    var div = document.createElement("div"); div.className = "staff-row";
-    div.innerHTML = "<input type='text' placeholder='Nom' value='" + (name||"") + "' class='s-name'>" +
-                    "<select class='s-role'><option value='Entraîneur-chef'>Chef</option><option value='Adjoint'>Adjoint</option><option value='Gérant'>Gérant</option></select>" +
-                    "<button type='button' style='border:0;background:transparent;color:var(--red);font-weight:bold;'>✕</button>";
-    if(role) div.querySelector(".s-role").value = role;
-    div.querySelector("button").addEventListener("click", function(){ div.remove(); });
-    $("staffForm").appendChild(div);
-  }
-  $("addPlayerBtn").addEventListener("click", function(){ addRosterRow("","","A"); });
-  $("addStaffBtn").addEventListener("click", function(){ addStaffRow("","Entraîneur-chef"); });
-  $("rsCancel").addEventListener("click", function(){ $("rosterSheet").close(); $("teamsManageSheet").showModal(); });
-  $("rsSave").addEventListener("click", function(){
-    if(currentRole !== "admin") return;
-    var teamName = str($("editTeamNameInput").value, ""); if(!teamName){ alert("Nom obligatoire."); return; }
-    var key = editingTeamKey || teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    var roster = []; $("rosterForm").querySelectorAll(".roster-row").forEach(function(r){
-      var n = no(r.querySelector(".r-no").value), nm = r.querySelector(".r-name").value.trim(), ps = r.querySelector(".r-pos").value;
-      if(n || nm) roster.push({no:n, name:nm, pos:ps});
-    });
-    var staff = []; $("staffForm").querySelectorAll(".staff-row").forEach(function(r){
-      var nm = r.querySelector(".s-name").value.trim(), rl = r.querySelector(".s-role").value;
-      if(nm) staff.push({name:nm, role:rl});
-    });
-    firebase.database().ref(manageTeamOrgKey + "/teams_presets/" + key).set({
-      name: teamName, msg: (manageTeamPresets[key] && manageTeamPresets[key].msg) || "", logo: $("teamLogoInput").value.trim(), color: $("presetTeamColor").value, category: manageTeamCatKey || currentCat, roster: roster, staff: staff
-    });
-    alert("Équipe enregistrée !"); $("rosterSheet").close(); $("teamsManageSheet").showModal();
-  });
-
-  var sheetGoal = $("goalSheet"), curGoal = null, goalPickStep = "scorer"; 
+  /* ============ Buts ============ */
+  let curGoal = null, goalPickStep = "scorer";
 
   function openGoal(id, isNew){
-    var g = state.events.filter(function(x){ return x.id === id; })[0]; if(!g) return;
-    curGoal = { id:id, isNew:isNew, team:g.team, scorer:g.scorer||"", a1:g.a1||"", a2:g.a2||"" };
+    const g = findEvent(id); if(!g) return;
+    curGoal = { id: id, isNew: isNew, team: g.team, scorer: g.scorer || "", a1: g.a1 || "", a2: g.a2 || "" };
     goalPickStep = "scorer";
     $("gsTitle").textContent = (isNew ? "But de " : "But, ") + state.names[g.team];
     $("gsCtx").textContent = PLONG[g.period] + " (" + g.time + ")";
     $("gsDelete").hidden = isNew;
-    renderPlayerPickGrid();
-    sheetGoal.showModal();
+    renderPlayerPickGrid(); openDlg("goalSheet");
   }
+
+  const STEP_TEXT = { scorer: "1. Sélectionnez le BUTEUR", a1: "2. Sélectionnez la PASSE 1 (Optionnel)", a2: "3. Sélectionnez la PASSE 2 (Optionnel)", done: "✅ Sélection terminée. Cliquez sur Terminer." };
+  function playerBtn(p, idx){
+    const b = el("button", "btn-player"), s = el("span"); b.type = "button"; b.dataset.pid = pidOf(p, idx);
+    if(p.no){ s.appendChild(el("b", null, "#" + p.no)); s.appendChild(document.createTextNode(" ")); }
+    s.appendChild(document.createTextNode(p.name || "Joueur")); b.appendChild(s); return b;
+  }
+  function emptyGrid(grid, text){ const p = el("p", "empty", text); p.style.gridColumn = "1/-1"; grid.appendChild(p); }
 
   function renderPlayerPickGrid(){
-    var grid = $("playerPickGrid"); grid.textContent = "";
-    var roster = state.rosters[curGoal.team] || [];
-    if(!roster.length){ grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur dans l'alignement.</p>"; return; }
-
-    var statusEl = $("goalSequenceStatus");
-    if(goalPickStep === "scorer") statusEl.textContent = "1. Sélectionnez le BUTEUR";
-    else if(goalPickStep === "a1") statusEl.textContent = "2. Sélectionnez la PASSE 1 (Optionnel)";
-    else if(goalPickStep === "a2") statusEl.textContent = "3. Sélectionnez la PASSE 2 (Optionnel)";
-    else statusEl.textContent = "✅ Sélection terminée. Cliquez sur Terminer.";
-
-    roster.forEach(function(p, idx){
-      var pId = p.no || ("p_" + idx);
-      var b = document.createElement("button"); b.type = "button"; b.className = "btn-player";
-      var roleTag = "<span class='role-tag' style='color:var(--muted);'>⚪ Aucun</span>";
-
-      var targetVal = p.no || pId;
-      if(curGoal.scorer === targetVal || curGoal.scorer === pId){ b.classList.add("buteur"); roleTag = "<span class='role-tag'>🟢 Buteur</span>"; }
-      else if(curGoal.a1 === targetVal || curGoal.a1 === pId){ b.classList.add("passe1"); roleTag = "<span class='role-tag'>🔵 Passe 1</span>"; }
-      else if(curGoal.a2 === targetVal || curGoal.a2 === pId){ b.classList.add("passe2"); roleTag = "<span class='role-tag'>🟣 Passe 2</span>"; }
-
-      b.innerHTML = "<span>" + (p.no ? "<b>#" + p.no + "</b> " : "") + (p.name || "Joueur") + "</span>" + roleTag;
-
-      b.addEventListener("click", function(){
-        if(goalPickStep === "scorer"){
-          curGoal.scorer = targetVal; goalPickStep = "a1";
-        } else if(goalPickStep === "a1"){
-          if(curGoal.scorer !== targetVal){ curGoal.a1 = targetVal; goalPickStep = "a2"; }
-        } else if(goalPickStep === "a2"){
-          if(curGoal.scorer !== targetVal && curGoal.a1 !== targetVal){ curGoal.a2 = targetVal; goalPickStep = "done"; }
-        }
-        renderPlayerPickGrid();
-      });
-
+    const grid = $("playerPickGrid"); grid.textContent = "";
+    $("goalSequenceStatus").textContent = STEP_TEXT[goalPickStep];
+    const roster = state.rosters[curGoal.team] || [];
+    if(!roster.length){ emptyGrid(grid, "Aucun joueur dans l'alignement."); return; }
+    roster.forEach((p, idx) => {
+      const b = playerBtn(p, idx), pId = b.dataset.pid; let tag = "⚪ Aucun", cls = "";
+      if(curGoal.scorer === pId){ cls = "buteur"; tag = "🟢 Buteur"; }
+      else if(curGoal.a1 === pId){ cls = "passe1"; tag = "🔵 Passe 1"; }
+      else if(curGoal.a2 === pId){ cls = "passe2"; tag = "🟣 Passe 2"; }
+      if(cls) b.classList.add(cls);
+      const t = el("span", "role-tag", tag); if(!cls) t.style.color = "var(--muted)"; b.appendChild(t);
       grid.appendChild(b);
     });
   }
-
-  $("gsResetSeq").addEventListener("click", function(){
+  on("playerPickGrid", "click", e => {
+    const b = e.target.closest("button[data-pid]"); if(!b || !curGoal) return;
+    const pId = b.dataset.pid;
+    if(goalPickStep === "scorer"){ curGoal.scorer = pId; if(curGoal.a1 === pId) curGoal.a1 = ""; if(curGoal.a2 === pId) curGoal.a2 = ""; goalPickStep = "a1"; }
+    else if(goalPickStep === "a1"){ if(curGoal.scorer !== pId){ curGoal.a1 = pId; if(curGoal.a2 === pId) curGoal.a2 = ""; goalPickStep = "a2"; } }
+    else if(goalPickStep === "a2"){ if(curGoal.scorer !== pId && curGoal.a1 !== pId){ curGoal.a2 = pId; goalPickStep = "done"; } }
+    renderPlayerPickGrid();
+  });
+  on("gsResetSeq", "click", () => {
+    if(!curGoal) return;
     curGoal.scorer = ""; curGoal.a1 = ""; curGoal.a2 = ""; goalPickStep = "scorer"; renderPlayerPickGrid();
   });
-
-  $("quickAddBtn").addEventListener("click", function(){
-    if(currentRole !== "admin") return;
-    var qNo = no($("quickNo").value), qNm = $("quickName").value.trim(); if(!qNo && !qNm) return;
-    var roster = state.rosters[curGoal.team] || []; roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
-    state.rosters[curGoal.team] = roster; $("quickNo").value = ""; $("quickName").value = ""; renderPlayerPickGrid();
+  on("quickAddBtn", "click", () => {
+    if(!canEdit() || !curGoal) return;
+    const qNo = no($("quickNo").value), qNm = $("quickName").value.trim(); if(!qNo && !qNm) return;
+    const roster = state.rosters[curGoal.team];
+    if(qNo && roster.some(p => p.no === qNo)){ alert("Le numéro " + qNo + " est déjà dans l'alignement."); return; }
+    roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
+    $("quickNo").value = ""; $("quickName").value = ""; renderPlayerPickGrid();
   });
-
-  $("gsSave").addEventListener("click", function(){
-    if(!curGoal || currentRole === "viewer") return;
-    var g = state.events.filter(function(x){ return x.id === curGoal.id; })[0];
-    if(g){ g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2; commit(); }
-    sheetGoal.close();
-  });
-
-  $("gsDelete").addEventListener("click", function(){
-    if(!curGoal || currentRole === "viewer") return;
-    var g = state.events.filter(function(x){ return x.id === curGoal.id; })[0];
-    if(g){
-      state.events = state.events.filter(function(x){ return x.id !== curGoal.id; });
-      if(state.shots[g.team][g.period] > 0) state.shots[g.team][g.period]--;
-      commit();
+  on("gsSave", "click", () => {
+    if(curGoal && canEdit()){
+      const g = findEvent(curGoal.id);
+      if(g){ g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2; commit(); }
     }
-    sheetGoal.close();
+    closeDlg("goalSheet");
+  });
+  on("gsDelete", "click", () => {
+    if(curGoal && canEdit()){
+      const g = findEvent(curGoal.id);
+      if(g && confirm("Supprimer ce but ?")){
+        state.events = state.events.filter(x => x.id !== g.id);
+        if(state.shots[g.team] && state.shots[g.team][g.period] > 0) state.shots[g.team][g.period]--;
+        commit();
+      } else if(g) return;
+    }
+    closeDlg("goalSheet");
   });
 
-  var sheetPen = $("penSheet"), curPen = null;
-  function openPen(team){
-    curPen = { id: uid(), team: team, period: state.period, time: formatTime(getCurrentTimerSec()), player: "", min: 2, reason: "Accrochage" };
-    $("penTitle").textContent = "Punition - " + state.names[team]; $("penCtx").textContent = PLONG[state.period] + " (" + curPen.time + ")";
-    renderPenPlayerGrid(); sheetPen.showModal();
+  /* ============ Punitions ============ */
+  let curPen = null;
+  function openPen(team, existing){
+    curPen = existing
+      ? { id: existing.id, isNew: false, team: existing.team, period: existing.period, time: existing.time, player: existing.player || "", min: existing.min || 2, reason: existing.reason || "Autre" }
+      : { id: uid(), isNew: true, team: team, period: state.period, time: formatTime(remaining()), player: "", min: 2, reason: "Accrochage" };
+    $("penTitle").textContent = "Punition - " + state.names[curPen.team];
+    $("penCtx").textContent = PLONG[curPen.period] + " (" + curPen.time + ")";
+    $("penMin").value = String(curPen.min); if(!$("penMin").value) $("penMin").value = "2";
+    $("penReason").value = curPen.reason; if(!$("penReason").value) $("penReason").value = "Autre";
+    $("penDelete").hidden = curPen.isNew;
+    renderPenPlayerGrid(); openDlg("penSheet");
   }
   function renderPenPlayerGrid(){
-    var grid = $("penPlayerGrid"); grid.textContent = "";
-    var roster = state.rosters[curPen.team] || []; if(!roster.length){ grid.innerHTML = "<p style='grid-column:1/-1;font-size:.85rem;color:var(--muted);'>Aucun joueur</p>"; return; }
-    roster.forEach(function(p, idx){
-      var pId = p.no || ("p_" + idx), targetVal = p.no || pId;
-      var b = document.createElement("button"); b.type = "button"; b.className = "btn-player";
-      if(curPen.player === targetVal || curPen.player === pId) b.classList.add("penalized");
-      b.innerHTML = "<span>" + (p.no ? "<b>#" + p.no + "</b> " : "") + (p.name || "Joueur") + "</span>";
-      b.addEventListener("click", function(){ curPen.player = (curPen.player === targetVal) ? "" : targetVal; renderPenPlayerGrid(); });
-      grid.appendChild(b);
-    });
+    const grid = $("penPlayerGrid"); grid.textContent = "";
+    const roster = state.rosters[curPen.team] || [];
+    if(!roster.length){ emptyGrid(grid, "Aucun joueur"); return; }
+    roster.forEach((p, idx) => { const b = playerBtn(p, idx); if(curPen.player === b.dataset.pid) b.classList.add("penalized"); grid.appendChild(b); });
   }
-  $("penCancel").addEventListener("click", function(){ sheetPen.close(); });
-  $("penSave").addEventListener("click", function(){
-    if(!curPen || currentRole === "viewer") return;
-    curPen.min = Number($("penMin").value); curPen.reason = $("penReason").value; curPen.type = "pen"; curPen.t = Date.now();
-    state.events.push(curPen); commit(); sheetPen.close();
+  on("penPlayerGrid", "click", e => {
+    const b = e.target.closest("button[data-pid]"); if(!b || !curPen) return;
+    curPen.player = (curPen.player === b.dataset.pid) ? "" : b.dataset.pid; renderPenPlayerGrid();
+  });
+  on("penCancel", "click", () => closeDlg("penSheet"));
+  on("penSave", "click", () => {
+    if(curPen && canEdit()){
+      const min = Number($("penMin").value) || 2, reason = $("penReason").value;
+      if(curPen.isNew){
+        state.events.push({ id: curPen.id, type: "pen", team: curPen.team, period: curPen.period, time: curPen.time, player: curPen.player, min: min, reason: reason, t: now() });
+      } else {
+        const ev = findEvent(curPen.id);
+        if(ev){ ev.player = curPen.player; ev.min = min; ev.reason = reason; }
+      }
+      commit();
+    }
+    closeDlg("penSheet");
+  });
+  on("penDelete", "click", () => {
+    if(curPen && canEdit() && !curPen.isNew){
+      if(!confirm("Supprimer cette punition ?")) return;
+      state.events = state.events.filter(x => x.id !== curPen.id); commit();
+    }
+    closeDlg("penSheet");
   });
 
-  $("pad").addEventListener("click", function(e){
-    if(currentRole === "viewer") return;
-    var b = e.target.closest("button[data-act]"); if(!b) return;
-    var t = b.dataset.team, p = state.period, act = b.dataset.act, curTime = formatTime(getCurrentTimerSec());
+  /* ============ Pavé de saisie ============ */
+  function lastEventIndex(test){ for(let i = state.events.length - 1; i >= 0; i--) if(test(state.events[i])) return i; return -1; }
+
+  on("pad", "click", e => {
+    if(!canEdit()) return;
+    const b = e.target.closest("button[data-act]"); if(!b) return;
+    const t = b.dataset.team, p = state.period, act = b.dataset.act, curTime = formatTime(remaining());
 
     if(act === "shot"){
       state.shots[t][p] = Math.min(999, state.shots[t][p] + 1);
-      state.events.push({ id: uid(), type: "shot", team: t, period: p, time: curTime, t: Date.now() }); commit();
+      state.events.push({ id: uid(), type: "shot", team: t, period: p, time: curTime, t: now() }); commit();
     } else if(act === "unshot"){
-      if(state.shots[t][p] > goalsOf(t,p)){ state.shots[t][p]--; commit(); }
+      if(state.shots[t][p] > goalsOf(t,p)){
+        state.shots[t][p]--;
+        const i = lastEventIndex(x => x.type === "shot" && x.team === t && x.period === p);
+        if(i !== -1) state.events.splice(i, 1);          // le fil du match reste cohérent avec le compteur
+        commit();
+      }
     } else if(act === "goal"){
-      var g = { id: uid(), type: "goal", team: t, period: p, time: curTime, scorer: "", a1: "", a2: "", t: Date.now() };
+      const g = { id: uid(), type: "goal", team: t, period: p, time: curTime, scorer: "", a1: "", a2: "", t: now() };
       state.events.push(g); state.shots[t][p] = Math.min(999, state.shots[t][p] + 1); commit(); openGoal(g.id, true);
     } else if(act === "ungoal"){
-      var lastGoalIndex = -1;
-      for(var i = state.events.length - 1; i >= 0; i--){
-        if(state.events[i].type === "goal" && state.events[i].team === t){ lastGoalIndex = i; break; }
-      }
-      if(lastGoalIndex !== -1){
-        var removedGoal = state.events.splice(lastGoalIndex, 1)[0];
-        if(state.shots[t][removedGoal.period] > 0) state.shots[t][removedGoal.period]--;
-        commit();
-      } else { alert("Aucun but à retirer."); }
+      const i = lastEventIndex(x => x.type === "goal" && x.team === t);
+      if(i === -1){ alert("Aucun but à retirer."); return; }
+      const removed = state.events.splice(i, 1)[0];
+      if(state.shots[t][removed.period] > 0) state.shots[t][removed.period]--;
+      commit();
     } else if(act === "pen"){
       openPen(t);
     }
   });
 
-  $("seg").addEventListener("click", function(e){
-    if(currentRole === "viewer") return;
-    var b = e.target.closest("button[data-p]"); if(!b || b.disabled) return;
-    var p = Number(b.dataset.p); if(p !== state.period){ state.period = p; commit(); }
+  on("seg", "click", e => {
+    if(!canEdit()) return;
+    const b = e.target.closest("button[data-p]"); if(!b || b.disabled) return;
+    const p = Number(b.dataset.p); if(p !== state.period){ state.period = p; commit(); }
   });
 
-  ["a","b"].forEach(function(t){
-    var el = $(t === "a" ? "nameA" : "nameB");
-    el.addEventListener("change", function(){
-      if(currentRole !== "admin") return;
-      var v = str(el.value, t === "a" ? "Local" : "Visiteur"); el.value = v;
+  on("btnSwapSides", "click", () => {
+    if(!canEdit()) return;
+    ["names","logos","colors","rosters","staff","shots"].forEach(k => { const tmp = state[k].a; state[k].a = state[k].b; state[k].b = tmp; });
+    state.events.forEach(e => { if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a"; });
+    if(openCardId) openCardId = null;
+    commit();
+  });
+
+  ["a","b"].forEach(t => {
+    const inp = $(t === "a" ? "nameA" : "nameB");
+    inp.addEventListener("change", () => {
+      if(!isAdmin() || archiveKey) return;
+      const v = str(inp.value, t === "a" ? "Local" : "Visiteur"); inp.value = v;
       if(v !== state.names[t]){ state.names[t] = v; commit(); }
     });
-    el.addEventListener("keydown", function(e){ if(e.key === "Enter") el.blur(); });
+    inp.addEventListener("keydown", e => { if(e.key === "Enter") inp.blur(); });
   });
 
-  $("eventsList").addEventListener("click", function(e){
-    if(currentRole === "viewer") return;
-    var b = e.target.closest("button[data-id]");
-    if(b){
-      var ev = state.events.filter(function(x){ return x.id === b.dataset.id; })[0];
-      if(ev && ev.type === "goal") openGoal(ev.id, false);
-    }
+  /* ============ Démarrage ============ */
+  ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
+  ref(".info/connected").on("value", s => { connected = !!s.val(); if(connected) announcePresence(); updateStatusDisplay(); });
+  dbOrgs.on("value", snap => {
+    const val = toArr(snap.val()).filter(o => o && o.id);
+    if(val.length) organizationsList = val;
+    else if(!snap.exists() && isAdmin()) dbOrgs.set(organizationsList);
+    renderOrgsDropdownTop(); renderOrgManageList(); updateBrand(); updateTickerDisplay();
   });
-
-  switchOrganization(currentOrg, currentCat);
-
-})();
+  switchOrganization(currentOrg, currentCat, "init");
+});
 </script>
 </body>
 </html>
