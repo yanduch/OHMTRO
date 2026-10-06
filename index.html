@@ -377,6 +377,25 @@ body:not(.role-viewer) .g-who{display:none}
 .check-row input{width:1.2rem;height:1.2rem;margin-top:.1rem;flex:none}
 .check-row small{display:block;font-weight:400;font-size:.78rem;color:var(--muted);margin-top:.15rem}
 .own-tag{display:inline-block;margin-left:.4rem;padding:.05rem .35rem;border-radius:4px;background:var(--crease);color:var(--blue);font-size:.7rem;font-weight:700;vertical-align:middle;white-space:nowrap}
+
+/* --- Consultation (lecture seule) et modification d'une partie archivée --- */
+.archive-view .pad, .archive-view .hint, .archive-view #newGame, .archive-view .btn-swap, .archive-view .timer-ctrls, .archive-view #btnStopGame, .archive-view .g-select{display:none !important}
+.archive-view .seg button:not([aria-pressed="true"]){opacity:.3;pointer-events:none}
+.archive-view .g-who{display:block !important}
+.archive-edit #newGame{display:none !important}
+.archive-edit .archive-bar{background:var(--blue)}
+#hmList{max-height:45vh;overflow-y:auto;padding:0;margin:0;list-style:none}
+#historyManageSheet select{background:#FFFFFF;color:#0F2236}
+.history-ctrls{flex:none}
+.history-ctrls button{white-space:nowrap}
+
+/* --- Gestion des messages : plusieurs messages --- */
+.msg-list{display:grid;gap:.35rem}
+.msg-row{display:flex;gap:.3rem;align-items:center}
+.msg-row .msg-num{flex:none;width:1.2rem;font-size:.8rem;font-weight:700;color:var(--muted);text-align:right}
+.msg-row input{flex:1;min-width:0;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236}
+.msg-add{margin-top:.45rem;border:1px dashed var(--line);background:transparent;color:var(--blue);font-weight:600;font-size:.85rem;border-radius:6px;padding:.4rem .6rem;width:100%}
+.msg-add[hidden]{display:none}
 </style>
 </head>
 <body class="role-viewer">
@@ -590,6 +609,7 @@ body:not(.role-viewer) .g-who{display:none}
     <p class="ctx">Messages, organisations (avec leurs catégories et leurs équipes), paramètres et sécurité.</p>
 
     <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
+    <button type="button" class="act-1" id="btnOpenHistoryManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#2E63C6;color:#FFF;">🗂️ Gestion de l'historique</button>
     <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Organisations, catégories et équipes</button>
 
     <div class="field-group admin-only" style="margin-top:1.2rem;">
@@ -646,25 +666,48 @@ body:not(.role-viewer) .g-who{display:none}
 <dialog id="messagesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Messages</h2>
-    <p class="ctx">Configurez les messages affichés dans le bandeau défilant.</p>
+    <p class="ctx">Les messages défilent dans le bandeau l'un à la suite de l'autre : ceux de l'organisation, puis ceux des équipes en présence.</p>
 
     <div class="preset-box" id="msgOrgBox">
       <label style="font-weight:700;">1. Organisation :</label>
       <select id="msgOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
-      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message général de l'organisation :</label>
-      <input type="text" id="msgOrgInput" placeholder="Ex: Bienvenue à l'aréna !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Messages de l'organisation :</label>
+      <div class="msg-list" id="msgOrgList"></div>
+      <button type="button" class="msg-add" id="msgOrgAdd">➕ Ajouter un message</button>
     </div>
 
     <div class="preset-box" id="msgTeamBox" style="margin-top:1rem;">
-      <label style="font-weight:700;">2. Équipe :</label>
-      <select id="msgTeamSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
-      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message personnalisé de l'équipe :</label>
-      <input type="text" id="msgTeamInput" placeholder="Ex: Bon match à tous !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <label style="font-weight:700;">2. Catégorie et équipe :</label>
+      <div class="inline-row" style="margin-bottom:.4rem;">
+        <select id="msgCatSelect" aria-label="Catégorie" style="flex:0 1 7rem;background:#FFF;color:#0F2236;"></select>
+        <select id="msgTeamSelect" aria-label="Équipe" style="background:#FFF;color:#0F2236;"></select>
+      </div>
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Messages de l'équipe :</label>
+      <div class="msg-list" id="msgTeamList"></div>
+      <button type="button" class="msg-add" id="msgTeamAdd">➕ Ajouter un message</button>
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="msgManageBack">Retour</button>
       <button type="button" class="act-1" id="msgManageSave">Enregistrer les messages</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="historyManageSheet">
+  <div class="sheet-in">
+    <h2>Gestion de l'historique</h2>
+    <p class="ctx">Choisissez l'organisation, la catégorie et l'équipe, puis modifiez ou supprimez une partie enregistrée.</p>
+    <div class="field-group"><label for="hmOrgSelect">Organisation :</label><select id="hmOrgSelect" class="full-input"></select></div>
+    <div class="inline-row" style="margin-top:.6rem;">
+      <select id="hmCatSelect" aria-label="Catégorie"></select>
+      <select id="hmTeamSelect" aria-label="Équipe"></select>
+    </div>
+    <p class="ctx" id="hmCount" style="margin:.2rem 0 .5rem;"></p>
+    <ul class="history-list" id="hmList"></ul>
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="hmBack">Retour</button>
+      <button type="button" class="act-2" id="hmClose">Fermer</button>
     </div>
   </div>
 </dialog>
@@ -961,6 +1004,12 @@ document.addEventListener("DOMContentLoaded", function(){
   const el = (tag, cls, text) => { const n = document.createElement(tag); if(cls) n.className = cls; if(text != null) n.textContent = text; return n; };
   const toArr = v => Array.isArray(v) ? v.filter(x => x != null) : (v && typeof v === "object" ? Object.keys(v).map(k => v[k]).filter(x => x != null) : []);
   const clone = v => JSON.parse(JSON.stringify(v));
+  // Messages d'une organisation ou d'une équipe : liste « msgs », ou l'ancien message unique « msg »
+  const msgsOf = o => {
+    if(!o) return [];
+    const list = (o.msgs != null ? toArr(o.msgs) : [o.msg]).map(m => String(m == null ? "" : m).trim()).filter(Boolean);
+    return list;
+  };
   const cleanKey = v => String(v == null ? "" : v).toLowerCase().replace(/[^a-z0-9_-]/g, "");
   const hex = (v, fb) => /^#[0-9a-f]{6}$/i.test(v || "") ? v : fb;
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -1089,6 +1138,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   const isAdmin = () => currentRole === "admin";
   const canEdit = () => currentRole !== "viewer" && !archiveKey;
+  let editEntry = null;                // partie de l'historique en cours de modification : { key, m, at }
   const now = () => Date.now() + serverOffset;      // heure du serveur : même chrono sur tous les appareils
 
   function blank(){
@@ -1107,6 +1157,7 @@ document.addEventListener("DOMContentLoaded", function(){
       finished: false,
       histKey: "",
       id: "",
+      playedAt: 0,                       // date de la partie dans l'historique (ne change pas quand on la corrige)
       updatedAt: 0
     };
   }
@@ -1132,6 +1183,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     s.histKey = typeof d.histKey === "string" ? d.histKey : "";
     s.id = typeof d.id === "string" ? d.id : "";
+    s.playedAt = Number(d.playedAt) || 0;
     const last = s.events[s.events.length - 1];
     // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
     s.finished = (typeof d.finished === "boolean") ? d.finished
@@ -1210,6 +1262,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function commit(){
     if(!canEdit()) return;
     state.updatedAt = now(); lastLocal = state.updatedAt;
+    if(editEntry) editEntry.m = state;
     db.set(state, err => { if(err) notify("Échec de l'enregistrement : " + (err.message || err), "error"); });
     render();
   }
@@ -1341,7 +1394,7 @@ document.addEventListener("DOMContentLoaded", function(){
     store.set(sessionStorage, "ohmtro_team", boardTeam);
     boardBase = catBase() + (boardTeam ? "/boards/" + boardTeam : "");
     boardLink = null; linkStale = false; pendingSnap = null; linkKnown = !boardTeam;
-    archiveKey = null; liveState = null; $("archiveBar").hidden = true;
+    archiveKey = null; liveState = null; setArchiveBar(null);
     lastLocal = 0; openCardId = null; state = blank();
     setUrl(nav); checkMarqueurScope();
 
@@ -1359,17 +1412,20 @@ document.addEventListener("DOMContentLoaded", function(){
       else if(first && pendingSnap){ const s = pendingSnap; pendingSnap = null; onMatch(s); }
     });
     watchMatch();
+    if(editEntry) applyEdit();
     renderTeamDropdownTop(); updateRoleUI(); render();
   }
 
   const isLinked = () => !!(boardLink && !linkStale);
   function watchMatch(){
+    if(editEntry) return;                                    // on modifie une partie archivée : pas de direct
     if(matchRef) matchRef.off("value", onMatch);
     pendingSnap = null;
     db = matchRef = ref(isLinked() ? catBase() + "/boards/" + boardLink.team + "/match" : boardBase + "/match");
     matchRef.on("value", onMatch);
   }
   function onMatch(snap){
+    if(editEntry) return;
     if(!linkKnown){ pendingSnap = snap; return; }             // on attend de savoir si le tableau pointe ailleurs
     const raw = snap.val();
     // L'autre équipe a commencé une autre partie : le lien n'est plus valide, retour à notre propre tableau
@@ -1403,13 +1459,14 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("orgSelectTop", "change", () => {
     // On vérifie d'abord les catégories de la nouvelle organisation pour ne pas garder une catégorie qu'elle n'a pas
+    editEntry = null;
     const org = $("orgSelectTop").value, go = cats => switchOrganization(org, cats.indexOf(currentCat) !== -1 ? currentCat : cats[0]);
     loadCats(org).then(go, () => go([currentCat]));
   });
-  on("catSelectTop", "change", () => switchOrganization(currentOrg, $("catSelectTop").value));
-  on("teamSelectTop", "change", () => switchBoard($("teamSelectTop").value));
+  on("catSelectTop", "change", () => { editEntry = null; switchOrganization(currentOrg, $("catSelectTop").value); });
+  on("teamSelectTop", "change", () => { editEntry = null; switchBoard($("teamSelectTop").value); });
   window.addEventListener("popstate", () => {
-    const p = new URLSearchParams(window.location.search);
+    const p = new URLSearchParams(window.location.search); editEntry = null;
     switchOrganization(p.get("org") || currentOrg, p.get("cat") || currentCat, "pop", p.get("team"));
   });
 
@@ -1469,10 +1526,10 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
-    if(org && org.msg && String(org.msg).trim()) messages.push(String(org.msg).trim());
+    msgsOf(org).forEach(m => messages.push(m));
     ["a","b"].forEach(t => {
       const p = presetByName[state.names[t]];
-      if(p && p.msg && String(p.msg).trim()) messages.push(state.names[t] + " : " + String(p.msg).trim());
+      msgsOf(p).forEach(m => messages.push(state.names[t] + " : " + m));
     });
     const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
@@ -1509,6 +1566,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("btnLogin", "click", () => {
     if(currentRole !== "viewer"){
+      if(editEntry) exitEdit(true);
       demoteToViewer(); updateRoleUI(); render(); notify("Vous êtes déconnecté.");
     } else {
       $("loginPass").value = ""; openDlg("loginSheet");
@@ -1655,51 +1713,104 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   /* ============ Gestion : messages ============ */
-  let msgSelectedOrgKey = currentOrg, msgSelectedTeamKey = "", msgTempTeams = {};
+  const MAX_MSGS = 10;
+  let msgSelectedOrgKey = currentOrg, msgSelectedTeamKey = "", msgTempTeams = {}, msgDirtyTeams = {};
   const orgItems = () => organizationsList.map(o => ({ value: o.id, label: o.name }));
+
+  // Liste de champs : un message par ligne, avec retrait et ajout
+  function msgRow(listId, value, placeholder, disabled){
+    const list = $(listId), row = el("div", "msg-row"), num = el("span", "msg-num"), input = el("input");
+    input.type = "text"; input.value = value || ""; input.placeholder = placeholder; input.maxLength = 200; input.disabled = !!disabled;
+    row.appendChild(num); row.appendChild(input);
+    if(!disabled){
+      const del = btn("row-del", "✕", () => { row.remove(); if(!list.children.length) msgRow(listId, "", placeholder); msgRenumber(listId); });
+      del.setAttribute("aria-label", "Retirer ce message"); row.appendChild(del);
+    }
+    list.appendChild(row); msgRenumber(listId);
+    return input;
+  }
+  function msgRenumber(listId){
+    const rows = $(listId).children;
+    for(let i = 0; i < rows.length; i++) rows[i].firstChild.textContent = (i + 1) + ".";
+    const add = $(listId === "msgOrgList" ? "msgOrgAdd" : "msgTeamAdd");
+    add.hidden = rows.length >= MAX_MSGS || (listId === "msgOrgList" && !isAdmin()) || (listId === "msgTeamList" && !msgSelectedTeamKey);
+  }
+  function msgFill(listId, msgs, placeholder, disabled){
+    $(listId).textContent = "";
+    (msgs.length ? msgs : [""]).forEach(m => msgRow(listId, m, placeholder, disabled));
+  }
+  const msgRead = listId => Array.prototype.map.call($(listId).querySelectorAll("input"), i => i.value.trim()).filter(Boolean);
+  const ORG_PH = "Ex: Bienvenue à l'aréna !", TEAM_PH = "Ex: Bon match à tous !";
+  on("msgOrgAdd", "click", () => msgRow("msgOrgList", "", ORG_PH).focus());
+  on("msgTeamAdd", "click", () => msgRow("msgTeamList", "", TEAM_PH).focus());
 
   on("btnOpenMessagesManage", "click", () => {
     if(!canEdit()) return;
     closeDlg("settingsSheet");
     const selOrg = $("msgOrgSelect");
     fillSelect(selOrg, orgItems(), currentOrg);
-    selOrg.disabled = !isAdmin(); $("msgOrgInput").disabled = !isAdmin();
+    selOrg.disabled = !isAdmin();
     msgSelectedOrgKey = selOrg.value || currentOrg;
     loadOrgMessageData(msgSelectedOrgKey);
     openDlg("messagesManageSheet");
   });
   on("msgOrgSelect", "change", () => { msgSelectedOrgKey = $("msgOrgSelect").value; loadOrgMessageData(msgSelectedOrgKey); });
+  let msgCatKey = "", msgToken = 0;
   function loadOrgMessageData(orgKey){
-    const org = organizationsList.find(o => o.id === orgKey);
-    $("msgOrgInput").value = (org && org.msg) ? org.msg : "";
+    const token = ++msgToken, org = organizationsList.find(o => o.id === orgKey);
+    msgSelectedTeamKey = ""; msgTempTeams = {}; msgDirtyTeams = {};
+    msgFill("msgOrgList", msgsOf(org), ORG_PH, !isAdmin());
+    msgCatKey = orgKey === currentOrg ? currentCat : "";
+    fillSelect($("msgCatSelect"), msgCatKey ? [{ value: msgCatKey, label: msgCatKey.toUpperCase() }] : [], msgCatKey);
     fillSelect($("msgTeamSelect"), [], null, "Chargement...");
-    $("msgTeamInput").value = ""; msgSelectedTeamKey = ""; msgTempTeams = {};
+    msgFill("msgTeamList", [], TEAM_PH, true);
+    loadCats(orgKey).then(cats => {
+      if(token !== msgToken) return;                // l'utilisateur a changé d'organisation entre-temps
+      if(cats.indexOf(msgCatKey) === -1) msgCatKey = cats[0];
+      fillSelect($("msgCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), msgCatKey);
+      fillMsgTeams();
+    });
     ref(orgKey + "/teams_presets").once("value").then(snap => {
-      if(orgKey !== msgSelectedOrgKey) return;      // l'utilisateur a changé d'organisation entre-temps
+      if(token !== msgToken) return;
       msgTempTeams = snap.val() || {};
-      const items = Object.keys(msgTempTeams).filter(k => msgTempTeams[k] && msgTempTeams[k].name)
-                          .map(k => ({ value: k, label: msgTempTeams[k].name }));
-      const sel = $("msgTeamSelect");
-      if(items.length){ fillSelect(sel, items, items[0].value); msgSelectedTeamKey = sel.value; }
-      else fillSelect(sel, [], null, "Aucune équipe");
-      showTeamMsg();
+      fillMsgTeams();
     });
   }
+  // Équipes de la catégorie choisie (une équipe sans catégorie apparaît dans toutes)
+  function fillMsgTeams(){
+    const items = Object.keys(msgTempTeams).filter(k => { const t = msgTempTeams[k]; return t && t.name && (!t.category || t.category === msgCatKey); })
+                        .map(k => ({ value: k, label: msgTempTeams[k].name }))
+                        .sort((x, y) => x.label.localeCompare(y.label, "fr", { numeric: true }));
+    const sel = $("msgTeamSelect");
+    if(items.length){ fillSelect(sel, items, items.some(it => it.value === msgSelectedTeamKey) ? msgSelectedTeamKey : items[0].value); msgSelectedTeamKey = sel.value; }
+    else { fillSelect(sel, [], null, "Aucune équipe"); msgSelectedTeamKey = ""; }
+    showTeamMsg();
+  }
+  on("msgCatSelect", "change", () => { stashTeamMsgs(); msgCatKey = $("msgCatSelect").value; msgSelectedTeamKey = ""; fillMsgTeams(); });
   function showTeamMsg(){
     const t = msgTempTeams[msgSelectedTeamKey];
-    $("msgTeamInput").value = (t && t.msg) ? t.msg : "";
+    msgFill("msgTeamList", msgsOf(t), TEAM_PH, !t);
   }
-  on("msgTeamSelect", "change", () => { msgSelectedTeamKey = $("msgTeamSelect").value; showTeamMsg(); });
+  // Les messages saisis pour une équipe sont conservés quand on passe à une autre équipe, puis enregistrés ensemble
+  function stashTeamMsgs(){
+    const t = msgTempTeams[msgSelectedTeamKey]; if(!t) return;
+    const msgs = msgRead("msgTeamList");
+    if(JSON.stringify(msgs) !== JSON.stringify(msgsOf(t))){ t.msgs = msgs; t.msg = msgs[0] || ""; msgDirtyTeams[msgSelectedTeamKey] = true; }
+  }
+  on("msgTeamSelect", "change", () => { stashTeamMsgs(); msgSelectedTeamKey = $("msgTeamSelect").value; showTeamMsg(); });
   on("msgManageBack", "click", () => swapDlg("messagesManageSheet", "settingsSheet"));
   on("msgManageSave", "click", () => {
     if(!canEdit()) return;
     if(isAdmin()){
       const org = organizationsList.find(o => o.id === msgSelectedOrgKey);
-      if(org){ org.msg = $("msgOrgInput").value.trim(); dbOrgs.set(organizationsList); }
+      if(org){ const msgs = msgRead("msgOrgList"); org.msgs = msgs; org.msg = msgs[0] || ""; dbOrgs.set(organizationsList); }
     }
-    if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
-      ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set($("msgTeamInput").value.trim());
-    }
+    stashTeamMsgs();
+    Object.keys(msgDirtyTeams).forEach(k => {
+      const t = msgTempTeams[k], base = msgSelectedOrgKey + "/teams_presets/" + k;
+      ref(base + "/msgs").set(t.msgs); ref(base + "/msg").set(t.msg);
+    });
+    msgDirtyTeams = {};
     updateTickerDisplay(); swapDlg("messagesManageSheet", "settingsSheet"); notify("Messages enregistrés !");
   });
 
@@ -1923,7 +2034,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
     const save = () => {
       ref(manageOrgKey + "/teams_presets/" + key).set({
-        name: teamName, msg: (existing && existing.msg) || "", logo: $("teamLogoInput").value.trim(),
+        name: teamName, msg: msgsOf(existing)[0] || "", msgs: msgsOf(existing), logo: $("teamLogoInput").value.trim(),
         color: $("presetTeamColor").value, category: category, own: $("editTeamOwn").checked, roster: roster, staff: staff
       });
       notify("Équipe enregistrée !"); swapDlg("rosterSheet", "orgDetailSheet");
@@ -1993,7 +2104,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!(last && last.type === "sys" && last.text === END_TEXT)){
       state.events.push({ id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: END_TEXT, t: now() });
     }
-    commit(); openDlg("saveHistorySheet");
+    commit();
+    if(!editEntry) openDlg("saveHistorySheet");             // une partie archivée est déjà dans l'historique
   }
 
   on("overtimeYes", "click", () => {
@@ -2060,61 +2172,152 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!m || typeof m !== "object") return null;
     const names = m.names || {}, events = toArr(m.events);
     const shots = t => sum(toArr(m.shots && m.shots[t]));
-    return { key: key, m: m, s: sanitize(m), gl: {}, at: Number(m.updatedAt) || Number(key) || 0,
+    return { key: key, m: m, s: sanitize(m), gl: {}, at: Number(m.playedAt) || Number(m.updatedAt) || Number(key) || 0,
              a: str(names.a, "Local"), b: str(names.b, "Visiteur"), events: events,
              gA: goalsOf("a", null, events), gB: goalsOf("b", null, events), sA: shots("a"), sB: shots("b") };
   }
 
+  function historyRow(h, buttons){
+    const li = el("li", "history-item"), box = el("div"), ctrls = el("div", "history-ctrls");
+    box.appendChild(el("strong", null, h.a + " " + h.gA + " - " + h.gB + " " + h.b));
+    box.appendChild(el("br"));
+    const sm = el("small", null, dateOf(h.at) || "—"); sm.style.color = "var(--muted)"; box.appendChild(sm);
+    buttons.forEach(b => ctrls.appendChild(b));
+    li.appendChild(box); li.appendChild(ctrls); return li;
+  }
+
+  // Liste publique : consultation seulement (la suppression et la modification sont dans Gestion)
   function renderHistory(){
     const list = $("historyList"); list.textContent = "";
     if(!historyLoaded){ list.appendChild(el("li", "empty", "Chargement…")); return; }
     if(!historyList.length){ list.appendChild(el("li", "empty", "Aucun match enregistré.")); return; }
     const frag = document.createDocumentFragment();
     for(let i = historyList.length - 1; i >= 0; i--){
-      const h = historyList[i], li = el("li", "history-item"), box = el("div"), ctrls = el("div", "history-ctrls");
-      box.appendChild(el("strong", null, h.a + " " + h.gA + " - " + h.gB + " " + h.b));
-      box.appendChild(el("br"));
-      const sm = el("small", null, dateOf(h.at) || "—"); sm.style.color = "var(--muted)"; box.appendChild(sm);
-      ctrls.appendChild(btn("btn-edit", "Consulter", () => consultMatch(h)));
-      ctrls.appendChild(btn("btn-hist-del", "🗑 Supprimer", () => {
-        if(currentRole === "viewer") return;
-        ask("Supprimer ce match de l'historique ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => { if(ok) dbHistory.child(h.key).remove(); });
-      }));
-      li.appendChild(box); li.appendChild(ctrls); frag.appendChild(li);
+      const h = historyList[i];
+      frag.appendChild(historyRow(h, [btn("btn-edit", "Consulter", () => consultMatch(h))]));
     }
     list.appendChild(frag);
   }
 
+  function setArchiveBar(text, backLabel){
+    $("archiveBar").hidden = !text;
+    if(text){ $("archiveText").textContent = text; $("archiveBack").textContent = backLabel; }
+    document.documentElement.classList.toggle("archive-view", !!archiveKey);
+    document.documentElement.classList.toggle("archive-edit", !!editEntry);
+  }
+
+  // Consultation en lecture seule, sans toucher au match en direct
   function consultMatch(h){
-    if(currentRole === "viewer"){
-      // Spectateur : consultation locale, sans toucher au match en direct
-      if(!archiveKey) liveState = state;
-      archiveKey = h.key; state = sanitize(h.m); state.timer.running = false;
-      $("archiveText").textContent = "Partie archivée du " + (dateOf(h.at) || "—");
-      $("archiveBar").hidden = false; render(); window.scrollTo(0, 0);
-      return;
-    }
-    const live = isStarted(state) && !state.finished;
-    ask(live ? "Une partie est EN COURS.\nLa remplacer par cette partie archivée ? Les données non sauvegardées seront perdues."
-             : "Charger cette partie dans le tableau en direct pour la consulter ou la corriger ?",
-        { title: "Charger la partie", ok: live ? "Remplacer" : "Charger", danger: live }).then(ok => {
-      if(!ok || !canEdit()) return;
-      state = sanitize(h.m); state.timer.running = false; state.histKey = h.key;
-      commit(); window.scrollTo(0, 0);
-    });
+    if(editEntry) exitEdit(true);
+    if(!archiveKey) liveState = state;
+    archiveKey = h.key; state = sanitize(h.m); state.timer.running = false;
+    setArchiveBar("Partie archivée du " + (dateOf(h.at) || "—"), "Retour au direct");
+    render(); window.scrollTo(0, 0);
   }
   function exitArchive(){
     if(!archiveKey) return;
     archiveKey = null; state = liveState || blank(); liveState = null;
-    $("archiveBar").hidden = true; syncStateWithPresets(); render();
+    setArchiveBar(null); syncStateWithPresets(); render();
   }
-  on("archiveBack", "click", exitArchive);
+
+  /* --- Modification d'une partie archivée : les changements s'enregistrent directement dans l'historique --- */
+  function applyEdit(){
+    if(matchRef){ matchRef.off("value", onMatch); matchRef = null; }
+    archiveKey = null; liveState = null; pendingSnap = null; lastLocal = 0; openCardId = null;
+    db = ref(catBase() + "/history/" + editEntry.key);
+    state = sanitize(editEntry.m); state.timer.running = false;
+    state.histKey = editEntry.key; state.playedAt = editEntry.at || state.playedAt || state.updatedAt;
+    setArchiveBar("Modification de la partie du " + (dateOf(editEntry.at) || "—"), "Terminer");
+  }
+  function exitEdit(silent){
+    if(!editEntry) return;
+    editEntry = null; state = blank(); lastLocal = 0; openCardId = null;
+    setArchiveBar(null); watchMatch(); render();
+    if(!silent) notify("Partie archivée mise à jour.");
+  }
+  on("archiveBack", "click", () => { if(editEntry) exitEdit(); else exitArchive(); });
+
+  /* ============ Gestion de l'historique ============ */
+  let hmOrg = currentOrg, hmCat = currentCat, hmList = [], hmToken = 0;
+  on("btnOpenHistoryManage", "click", () => {
+    if(currentRole === "viewer") return;
+    closeDlg("settingsSheet");
+    hmOrg = currentOrg; hmCat = currentCat;
+    fillSelect($("hmOrgSelect"), orgItems(), hmOrg);
+    $("hmOrgSelect").disabled = $("hmCatSelect").disabled = !isAdmin();     // le marqueur gère seulement sa catégorie
+    hmLoadCats(); openDlg("historyManageSheet");
+  });
+  on("hmBack", "click", () => swapDlg("historyManageSheet", "settingsSheet"));
+  on("hmClose", "click", () => closeDlg("historyManageSheet"));
+  on("hmOrgSelect", "change", () => { hmOrg = $("hmOrgSelect").value; hmCat = ""; hmLoadCats(); });
+  on("hmCatSelect", "change", () => { hmCat = $("hmCatSelect").value; hmLoad(); });
+  on("hmTeamSelect", "change", hmRender);
+
+  function hmLoadCats(){
+    const org = hmOrg;
+    fillSelect($("hmCatSelect"), hmCat ? [{ value: hmCat, label: hmCat.toUpperCase() }] : [], hmCat);
+    hmList = []; hmFillTeams(); hmRender(true);
+    loadCats(org).then(cats => {
+      if(org !== hmOrg) return;
+      if(cats.indexOf(hmCat) === -1) hmCat = cats[0];
+      fillSelect($("hmCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), hmCat);
+      hmLoad();
+    });
+  }
+  function hmLoad(){
+    const token = ++hmToken, path = hmOrg + "/" + hmCat + "/history";
+    hmList = []; hmRender(true);
+    ref(path).once("value").then(snap => {
+      if(token !== hmToken) return;
+      const val = snap.val() || {};
+      hmList = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x, y) => y.at - x.at);
+      hmFillTeams(); hmRender();
+    }).catch(() => { if(token === hmToken){ hmList = []; hmRender(); notify("Impossible de charger l'historique.", "error"); } });
+  }
+  function hmFillTeams(){
+    const prev = $("hmTeamSelect").value, names = {};
+    hmList.forEach(h => { names[h.a] = true; names[h.b] = true; });
+    const items = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true })).map(n => ({ value: n, label: n }));
+    fillSelect($("hmTeamSelect"), items, prev, "Toutes les équipes");
+  }
+  function hmRender(loading){
+    const list = $("hmList"), team = $("hmTeamSelect").value; list.textContent = "";
+    if(loading === true){ list.appendChild(el("li", "empty", "Chargement…")); $("hmCount").textContent = ""; return; }
+    const rows = hmList.filter(h => !team || h.a === team || h.b === team);
+    $("hmCount").textContent = rows.length + (rows.length > 1 ? " parties" : " partie");
+    if(!rows.length){ list.appendChild(el("li", "empty", "Aucune partie enregistrée.")); return; }
+    const frag = document.createDocumentFragment();
+    rows.forEach(h => frag.appendChild(historyRow(h, [
+      btn("btn-edit", "✏️ Modifier", () => hmEdit(h)),
+      btn("btn-hist-del", "🗑 Supprimer", () => {
+        if(currentRole === "viewer") return;
+        const org = hmOrg, cat = hmCat;
+        ask("Supprimer définitivement cette partie de l'historique ?\n" + h.a + " " + h.gA + " - " + h.gB + " " + h.b + " (" + (dateOf(h.at) || "—") + ")",
+            { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+          if(!ok) return;
+          ref(org + "/" + cat + "/history/" + h.key).remove();
+          hmList = hmList.filter(x => x.key !== h.key); hmFillTeams(); hmRender();
+        });
+      })
+    ])));
+    list.appendChild(frag);
+  }
+  function hmEdit(h){
+    if(currentRole === "viewer") return;
+    closeDlg("historyManageSheet");
+    if(archiveKey) exitArchive();
+    editEntry = { key: h.key, m: h.m, at: h.at };
+    if(hmOrg !== currentOrg || hmCat !== currentCat) switchOrganization(hmOrg, hmCat);   // attachBoard ouvre la partie
+    else { applyEdit(); render(); }
+    window.scrollTo(0, 0);
+  }
 
   on("saveHistoryNo", "click", () => closeDlg("saveHistorySheet"));
   on("saveHistoryYes", "click", () => {
     closeDlg("saveHistorySheet"); if(!canEdit()) return;
     // Une même partie garde la même clé : la sauvegarder de nouveau la met à jour au lieu de créer un doublon
     if(!state.histKey) state.histKey = String(Date.now());
+    if(!state.playedAt) state.playedAt = Date.now();
     commit();
     dbHistory.child(state.histKey).set(state, err => {
       if(err) notify("Échec de la sauvegarde : " + (err.message || err), "error");
@@ -2478,7 +2681,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   on("newGame", "click", () => {
-    if(!isAdmin()) return;
+    if(!isAdmin() || editEntry) return;
     populateWizTeamSelect("wizTeamA", state.names.a); populateWizTeamSelect("wizTeamB", state.names.b);
     $("wizColorA").value = state.colors.a; $("wizColorB").value = state.colors.b;
     // Tableau d'équipe : l'équipe du tableau est proposée d'office comme équipe locale
