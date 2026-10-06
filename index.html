@@ -42,7 +42,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
-/* En-tête ajusté pour affichage complet du nom */
+/* En-tête */
 .top{display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.6rem;flex-wrap:nowrap;width:100%;}
 .brand{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;min-width:0;flex:1 1 auto;overflow:hidden;}
 .brand img{height:1.8rem;width:auto;object-fit:contain;flex-shrink:0;}
@@ -65,14 +65,14 @@ button:disabled{cursor:not-allowed;opacity:.4}
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* Tableau de pointage */
+/* Tableau de pointage - Taille des noms augmentée et limite 18 car */
 .board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .3rem 1rem;gap:.2rem;}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden;}
 .team-header{display:flex;align-items:center;justify-content:center;gap:.2rem;width:100%;overflow:hidden;}
 .team-logo{width:1.8rem;height:1.8rem;object-fit:contain;border-radius:4px;flex-shrink:0}
 .team-logo[src=""]{display:none}
 .name{width:100%;border:0;border-bottom:2px dashed transparent;background:transparent;text-align:center;
-  font-family:var(--display);font-weight:600;font-size:clamp(0.75rem, 2.8vw, 1.25rem);line-height:1.15;padding:.1rem 0;border-radius:0;white-space:nowrap;}
+  font-family:var(--display);font-weight:700;font-size:clamp(1rem, 3.8vw, 1.6rem);line-height:1.15;padding:.1rem 0;border-radius:0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
 .side.a .name{color:var(--team-a-color)} .side.b .name{color:var(--team-b-color)}
 body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .name:focus{outline:none;border-bottom:2px solid currentColor}
@@ -197,7 +197,11 @@ td.cur,th.cur{background:var(--crease)}
 .history-list, .team-manage-list, .cat-manage-list, .org-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
 .history-item, .team-manage-item, .cat-manage-item, .org-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
 .history-ctrls, .team-ctrls, .cat-ctrls, .org-ctrls{display:flex;gap:.3rem;align-items:center}
-.btn-hist-del{font-size:.65rem;padding:.2rem .4rem;border-radius:5px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
+.btn-hist-del{font-size:.7rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
+
+/* Bouton Crayon (Éditer) harmonisé sans bloc blanc contrasté */
+.btn-edit{font-size:.85rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+.btn-edit:hover{background:var(--ice);}
 
 .quiet{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 .btn-stop-game{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:0;background:var(--red);color:#FFF;font-weight:700;font-size:1.1rem}
@@ -304,7 +308,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="side a">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoA">
-        <input class="name" id="nameA" maxlength="40" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
@@ -322,7 +326,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="side b">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoB">
-        <input class="name" id="nameB" maxlength="40" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
@@ -463,7 +467,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️ Gestion</button>
 
-  <!-- Connexion déplacé complètement en bas -->
+  <!-- Connexion tout en bas -->
   <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
 </div>
 
@@ -477,7 +481,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
     <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
 
-    <!-- Configuration des messages déplacée sous Gestion des équipes -->
+    <!-- Configuration des messages -->
     <div class="field-group" style="margin-top:1.2rem;background:var(--ice);padding:.75rem;border-radius:10px;border:1px solid var(--line);">
       <label style="margin-bottom:.4rem;font-weight:700;">Configuration des messages :</label>
       <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message personnalisé 1 (Bandeau) :</label>
@@ -685,7 +689,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     <div class="field-group" style="margin-top:0;">
       <label style="font-size:.8rem;font-weight:600;">Nom de l'équipe :</label>
-      <input type="text" id="editTeamNameInput" placeholder="Ex: Lions de Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="text" id="editTeamNameInput" maxlength="18" placeholder="Ex: Lions Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <div class="color-picker-row" style="margin:.6rem 0;">
@@ -947,7 +951,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var wrap = $("tickerWrap");
       var text = $("tickerText");
       
-      var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"; // 10 espaces
+      // Augmentation de 25% des espaces entre les retours de boucle (13 espaces insécables)
+      var spaces = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
       var unitText = "";
       
       if(msg1.trim() && msg2.trim()){
@@ -959,7 +964,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       }
       
       if(unitText){
-        text.textContent = unitText + unitText; // Duplication pour boucle 50%
+        text.textContent = unitText + unitText;
         wrap.classList.add("active");
         
         setTimeout(function(){
@@ -1071,6 +1076,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       alert("Vous êtes déconnecté.");
     } else {
       $("loginSheet").showModal();
+      setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
     }
   });
 
@@ -1134,6 +1140,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("settingsSheet").close();
     renderOrgManageList();
     $("orgManageSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("orgManageClose").addEventListener("click", function(){ $("orgManageSheet").close(); });
 
@@ -1158,8 +1165,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       
       var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
 
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
-      btnEdit.style.fontSize = ".7rem"; btnEdit.style.padding = ".2rem .4rem";
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
       btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
         var newName = prompt("Nouveau nom pour l'organisation :", o.name);
@@ -1192,6 +1198,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     populateOrgSelect("catManageOrgSelect", manageCatOrgKey);
     loadCategoriesForOrg(manageCatOrgKey);
     $("categoriesManageSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("categoriesManageClose").addEventListener("click", function(){ $("categoriesManageSheet").close(); });
 
@@ -1238,8 +1245,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       
       var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
 
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
-      btnEdit.style.fontSize = ".7rem"; btnEdit.style.padding = ".2rem .4rem";
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
       btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
         var newCatName = prompt("Nouveau nom pour la catégorie :", cat.toUpperCase());
@@ -1283,6 +1289,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     
     loadTeamsForManage(manageTeamOrgKey);
     $("teamsManageSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("teamsManageClose").addEventListener("click", function(){ $("teamsManageSheet").close(); });
 
@@ -1345,8 +1352,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
       var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
 
-      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
-      btnEdit.style.fontSize = ".75rem"; btnEdit.style.padding = ".3rem .5rem";
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
       btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
         openTeamEditor(key);
@@ -1385,6 +1391,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
 
     $("passwordsSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("pwdCancel").addEventListener("click", function(){ $("passwordsSheet").close(); });
   $("pwdSave").addEventListener("click", function(){
@@ -1415,7 +1422,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function int(v,min,max){ v = Math.floor(Number(v)); if(!isFinite(v)) v = min; return Math.min(max, Math.max(min, v)); }
-  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,40); return v || fb; }
+  function str(v,fb){ v = (typeof v === "string" ? v : "").trim().slice(0,18); return v || fb; }
   function no(v){ return String(v == null ? "" : v).replace(/\D/g,"").slice(0,2); }
 
   function sanitize(d){
@@ -1592,8 +1599,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       
       var ctrls = document.createElement("div"); ctrls.className = "history-ctrls";
 
-      var btnCons = document.createElement("button"); btnCons.type = "button"; btnCons.className = "btn-login";
-      btnCons.style.fontSize = ".75rem"; btnCons.style.padding = ".3rem .5rem";
+      var btnCons = document.createElement("button"); btnCons.type = "button"; btnCons.className = "btn-edit";
       btnCons.textContent = "Consulter";
       btnCons.addEventListener("click", function(){
         state = sanitize(m);
@@ -1664,6 +1670,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("timerMin").value = Math.floor(cur / 60);
     $("timerSec").value = cur % 60;
     $("timerSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("timerCancel").addEventListener("click", function(){ $("timerSheet").close(); });
   $("timerSave").addEventListener("click", function(){
@@ -1984,6 +1991,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("wizColorA").value = state.colors.a || "#6FA2EE";
     $("wizColorB").value = state.colors.b || "#F2707A";
     $("newGameWizard").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   });
   $("wizCancel").addEventListener("click", function(){ $("newGameWizard").close(); });
 
@@ -2031,7 +2039,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     delete $("statsTeamSelect").dataset.userTouched;
     
     if(keyB && presets[keyB]){
-      state.names.b = presets[keyB].name;
+      state.names.b = str(presets[keyB].name, "Visiteur");
       state.logos.b = presets[keyB].logo || "";
       var fullRosterB = JSON.parse(JSON.stringify(presets[keyB].roster || []));
       var presentRosterB = [];
@@ -2043,7 +2051,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     }
 
     if(keyA && presets[keyA]){
-      state.names.a = presets[keyA].name;
+      state.names.a = str(presets[keyA].name, "Local");
       state.logos.a = presets[keyA].logo || "";
       var fullRosterA = JSON.parse(JSON.stringify(presets[keyA].roster || []));
       var presentRosterA = [];
@@ -2082,6 +2090,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     buildStaffForm(team.staff || []);
     $("teamsManageSheet").close();
     $("rosterSheet").showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   }
 
   function updateLogoPreview(url){
@@ -2185,7 +2194,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("rsSave").addEventListener("click", function(){
     if(currentRole !== "admin") return;
-    var teamName = $("editTeamNameInput").value.trim();
+    var teamName = str($("editTeamNameInput").value, "");
     if(!teamName){ alert("Veuillez saisir un nom d'équipe."); return; }
 
     var logoUrl = $("teamLogoInput").value.trim();
@@ -2214,6 +2223,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("gsDelete").hidden = isNew;
     renderPlayerPickGrid();
     sheetGoal.showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   }
 
   function renderPlayerPickGrid(){
@@ -2284,6 +2294,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("penCtx").textContent = PLONG[state.period] + " (" + curPen.time + ")";
     renderPenPlayerGrid();
     sheetPen.showModal();
+    setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
   }
 
   function renderPenPlayerGrid(){
