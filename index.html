@@ -351,6 +351,21 @@ body:not(.role-viewer) .g-who{display:none}
 :root[data-theme="dark"] .event-row.pen .info strong, :root[data-theme="dark"] .event-row.pen .time{color:#FF8A92}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .event-row.pen .info strong, :root:not([data-theme="light"]) .event-row.pen .time{color:#FF8A92} }
 @media print { .event-row.pen{border-left-color:#C4202E !important} }
+
+/* --- Buts (vert) et passes (bleu, violet) : mêmes teintes que dans la fenêtre de but --- */
+.event-row.goal{background:rgba(31,122,77,.13);box-shadow:inset 0 0 0 1px rgba(31,122,77,.38)}
+.event-row.goal .info strong, .event-row.goal .time{color:#1F7A4D}
+.event-row .info span.as1, .event-row .info span.as2{display:inline;font-size:inherit;font-weight:700}
+.event-row .info span.as1{color:#1B4FA0}
+.event-row .info span.as2{color:#8E44AD}
+:root[data-theme="dark"] .event-row.goal .info strong, :root[data-theme="dark"] .event-row.goal .time{color:#5FD39A}
+:root[data-theme="dark"] .event-row .info span.as1{color:#96C2FF}
+:root[data-theme="dark"] .event-row .info span.as2{color:#D1A6ED}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .event-row.goal .info strong, :root:not([data-theme="light"]) .event-row.goal .time{color:#5FD39A}
+  :root:not([data-theme="light"]) .event-row .info span.as1{color:#96C2FF}
+  :root:not([data-theme="light"]) .event-row .info span.as2{color:#D1A6ED}
+}
 </style>
 </head>
 <body class="role-viewer">
@@ -1117,7 +1132,7 @@ document.addEventListener("DOMContentLoaded", function(){
   // Gardien devant le filet : celui désigné par le marqueur, sinon le premier « G » de l'alignement
   function goalieOf(s, side){
     const r = s.rosters[side], cur = s.goalies[side];
-    if(cur && r.some((p, i) => pidOf(p, i) === cur)) return cur;
+    if(cur && r.some((p, i) => p.pos === "G" && pidOf(p, i) === cur)) return cur;
     for(let i = 0; i < r.length; i++) if(r[i].pos === "G") return pidOf(r[i], i);
     return "";
   }
@@ -2058,21 +2073,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
       // Menu du gardien en poste (marqueur / admin), modifiable en tout temps pendant la partie
       const lab = p => (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur");
-      const groups = [["Gardiens", []], ["Autres joueurs", []]];
-      roster.forEach((p, i) => groups[p.pos === "G" ? 0 : 1][1].push({ value: pidOf(p, i), label: lab(p) }));
-      absentGoalies(side).forEach((p, i) => groups[0][1].push({ value: "abs:" + i, label: lab(p) + " (absent de l'alignement)" }));
-      const sel = $("gSel" + U), sig = JSON.stringify(groups) + "|" + cur;
-      if(sel.dataset.sig !== sig){
-        sel.dataset.sig = sig; sel.textContent = "";
-        if(!cur){ const o = el("option", null, "Gardien"); o.value = ""; sel.appendChild(o); }
-        groups.forEach(g => {
-          if(!g[1].length) return;
-          const og = el("optgroup"); og.label = g[0];
-          g[1].forEach(it => { const o = el("option", null, it.label); o.value = it.value; og.appendChild(o); });
-          sel.appendChild(og);
-        });
-        sel.value = cur;
-      }
+      // Seuls les gardiens sont proposés ; sans gardien dans l'alignement, le menu affiche « Gardien »
+      const items = [];
+      roster.forEach((p, i) => { if(p.pos === "G") items.push({ value: pidOf(p, i), label: lab(p) }); });
+      absentGoalies(side).forEach((p, i) => items.push({ value: "abs:" + i, label: lab(p) + " (absent de l'alignement)" }));
+      const sel = $("gSel" + U), sig = JSON.stringify(items) + "|" + cur;
+      if(sel.dataset.sig !== sig){ sel.dataset.sig = sig; fillSelect(sel, items, cur, cur ? null : "Gardien"); }
 
       let season = "";
       if(cur && historyLoaded){
@@ -2239,12 +2245,16 @@ document.addEventListener("DOMContentLoaded", function(){
       const e = state.events[i];
       if(!(filter === "all" || (filter === "team_a" && e.team === "a") || (filter === "team_b" && e.team === "b") || e.type === filter)) continue;
       count++;
-      const li = el("li"), b = el("button", "event-row " + (e.team === "a" || e.team === "b" ? e.team : "sys") + (e.type === "pen" ? " pen" : "")); b.type = "button"; b.dataset.id = e.id;
+      const li = el("li"), b = el("button", "event-row " + (e.team === "a" || e.team === "b" ? e.team : "sys") + (e.type === "pen" ? " pen" : (e.type === "goal" ? " goal" : ""))); b.type = "button"; b.dataset.id = e.id;
       const st = el("strong"), subl = el("span"), team = state.names[e.team] || "";
       if(e.type === "goal"){
         st.textContent = "BUT - " + team + " (" + getPlayerName(e.team, e.scorer) + ")";
-        const as = [e.a1, e.a2].filter(Boolean).map(p => getPlayerName(e.team, p));
-        subl.textContent = as.length ? "Passes : " + as.join(", ") : "Sans aide";
+        if(e.a1 || e.a2){
+          subl.appendChild(document.createTextNode((e.a1 && e.a2) ? "Passes : " : "Passe : "));
+          if(e.a1) subl.appendChild(el("span", "as1", getPlayerName(e.team, e.a1)));
+          if(e.a1 && e.a2) subl.appendChild(document.createTextNode(", "));
+          if(e.a2) subl.appendChild(el("span", "as2", getPlayerName(e.team, e.a2)));
+        } else subl.textContent = "Sans aide";
       } else if(e.type === "pen"){
         st.textContent = "PUNITION - " + team + " (" + getPlayerName(e.team, e.player) + ")";
         subl.textContent = (e.min || 2) + " min - " + (e.reason || "Infraction");
