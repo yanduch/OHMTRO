@@ -42,11 +42,12 @@ button:disabled{cursor:not-allowed;opacity:.4}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
-/* En-tête */
+/* En-tête ajusté pour affichage complet du nom */
 .top{display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.6rem;flex-wrap:nowrap;width:100%;}
-.brand{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;min-width:0;flex:1;}
+.brand{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;min-width:0;flex:1 1 auto;overflow:hidden;}
 .brand img{height:1.8rem;width:auto;object-fit:contain;flex-shrink:0;}
-.select-top{font-size:clamp(0.7rem, 2.5vw, 0.85rem);font-weight:700;padding:.2rem .3rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;max-width:42%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+.select-top{font-size:clamp(0.75rem, 2.6vw, 0.85rem);font-weight:700;padding:.2rem .3rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;flex-shrink:0;}
+#orgSelectTop{flex-shrink:1;min-width:0;}
 .status{font-size:clamp(0.65rem, 2.2vw, 0.75rem);color:var(--muted);display:flex;align-items:center;gap:.25rem;text-align:right;white-space:nowrap;flex-shrink:0;margin-left:auto;}
 .status::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
@@ -132,7 +133,7 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .export-box{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.2rem}
 .export-btn{padding:.7rem .5rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:.4rem}
 
-.btn-login-bottom{margin-top:.8rem;width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:.9rem;}
+.btn-login-bottom{margin-top:1.2rem;width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:.9rem;}
 
 /* Titres Dépliables (Accordéon) */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
@@ -198,7 +199,7 @@ td.cur,th.cur{background:var(--crease)}
 .history-ctrls, .team-ctrls, .cat-ctrls, .org-ctrls{display:flex;gap:.3rem;align-items:center}
 .btn-hist-del{font-size:.65rem;padding:.2rem .4rem;border-radius:5px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
 
-.quiet{margin-top:1.2rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
+.quiet{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 .btn-stop-game{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:0;background:var(--red);color:#FFF;font-weight:700;font-size:1.1rem}
 
 /* Dialogues */
@@ -255,11 +256,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .roster-row{display:grid;grid-template-columns:2.5rem 1fr 4rem auto;gap:.3rem;align-items:center}
 .staff-row{display:grid;grid-template-columns:1fr 6rem auto;gap:.3rem;align-items:center}
 .roster-row input, .roster-row select, .staff-row input, .staff-row select{padding:.3rem;border:1px solid var(--line);border-radius:6px;background:var(--ice);color:#0F2236 !important;}
-
-.color-picker-row{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
-.color-picker-row input[type="color"]{-webkit-appearance:none;border:none;width:2.5rem;height:2.5rem;border-radius:8px;cursor:pointer;padding:0;background:transparent;}
-.color-picker-row input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
-.color-picker-row input[type="color"]::-webkit-color-swatch{border:1px solid var(--line);border-radius:8px;}
 
 /* Presence Checkbox List dans le Wizard */
 .presence-list{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;max-height:25vh;overflow-y:auto;background:var(--surface);padding:.5rem;border-radius:8px;border:1px solid var(--line);margin-top:.4rem;}
@@ -456,16 +452,19 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
+  <!-- Bouton Démarrer sous Historique -->
+  <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
+  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
+
   <div class="export-box">
     <button type="button" class="export-btn" id="btnExportPDF">📄 Imprimer / PDF</button>
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
-  <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
+  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️ Gestion</button>
 
-  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
-  <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
-  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:.5rem;">⚙️ Gestion</button>
+  <!-- Connexion déplacé complètement en bas -->
+  <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
 </div>
 
 <!-- Dialogue Gestion Principale -->
@@ -474,19 +473,21 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <h2>Gestion</h2>
     <p class="ctx">Paramètres généraux, organisations, catégories et sécurité.</p>
 
-    <div class="field-group" style="margin-top:0;">
-      <label>Message personnalisé 1 (Bandeau d'annonce) :</label>
+    <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;">🏢 Gestion des Organisations</button>
+    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
+    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
+
+    <!-- Configuration des messages déplacée sous Gestion des équipes -->
+    <div class="field-group" style="margin-top:1.2rem;background:var(--ice);padding:.75rem;border-radius:10px;border:1px solid var(--line);">
+      <label style="margin-bottom:.4rem;font-weight:700;">Configuration des messages :</label>
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message personnalisé 1 (Bandeau) :</label>
       <input type="text" id="customMessageInput1" placeholder="Ex: Prochain match Samedi 14h à Chavigny" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.5rem;">
-      <label>Message personnalisé 2 :</label>
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Message personnalisé 2 :</label>
       <input type="text" id="customMessageInput2" placeholder="Ex: Bienvenue à tous les supporters !" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
-      <small style="color:var(--muted);font-size:.75rem;">Laissez vide pour masquer le bandeau.</small>
+      <small style="color:var(--muted);font-size:.75rem;display:block;margin-top:.3rem;">Laissez vide pour masquer le bandeau.</small>
     </div>
 
-    <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🏢 Gestion des Organisations</button>
-    <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
-    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡️️ Gestion des équipes</button>
-
-    <div class="field-group" style="margin-top:1.2rem;">
+    <div class="field-group" style="margin-top:1rem;">
       <label>Temps de période par défaut (minutes) pour <span id="lblConfigOrgName">cette organisation</span> :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
         <option value="10">10 minutes</option>
@@ -961,7 +962,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         text.textContent = unitText + unitText; // Duplication pour boucle 50%
         wrap.classList.add("active");
         
-        // Vitesse constante calculée au pixel près (40 pixels par seconde)
         setTimeout(function(){
           var width = text.offsetWidth / 2;
           var pxPerSec = 40; 
@@ -1129,7 +1129,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("settingsSheet").close();
   });
 
-  // --- 1. GESTION DES ORGANISATIONS (AVEC ÉDITION) ---
+  // --- 1. GESTION DES ORGANISATIONS ---
   $("btnOpenOrgManage").addEventListener("click", function(){
     $("settingsSheet").close();
     renderOrgManageList();
@@ -1183,7 +1183,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // --- 2. GESTION DES CATÉGORIES (AVEC ÉDITION) ---
+  // --- 2. GESTION DES CATÉGORIES ---
   var manageCatOrgKey = currentOrg;
 
   $("btnOpenCategoriesManage").addEventListener("click", function(){
@@ -1853,7 +1853,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("feedFilter").addEventListener("change", renderEvents);
 
-  // --- RENDER ROSTER AVEC CARTE STATS INTERACTIVE ---
   function renderRosterList(id, list, side){
     var ul = $(id); ul.textContent = "";
     var drawerBox = $(side === "a" ? "playerCardBoxA" : "playerCardBoxB");
@@ -1934,7 +1933,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       }
     });
 
-    // Inclure le match en cours
     if(state.events && Array.isArray(state.events)){
       state.events.forEach(function(e){
         if(e.team === side){
