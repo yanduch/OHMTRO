@@ -47,18 +47,17 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .brand{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
 .brand img{height:2rem;width:auto;object-fit:contain}
 .select-top{font-size:.85rem;font-weight:700;padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;}
-.status{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;text-align:left}
+.status{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;text-align:left;margin-left:auto;}
 .status::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
-.btn-login{font-size:.6rem;padding:.15rem .4rem;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);margin-left:auto}
 
 /* Bandeau d'annonce défilant */
 .ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
 .ticker-wrap.active{display:flex;}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
 .ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;}
-.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker 20s linear infinite;}
+.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker linear infinite;}
 .ticker-text:hover{animation-play-state:paused;}
 @keyframes ticker {
   0% { transform: translate3d(0, 0, 0); }
@@ -131,6 +130,8 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 /* Section Exportation */
 .export-box{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.2rem}
 .export-btn{padding:.7rem .5rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:.4rem}
+
+.btn-login-bottom{margin-top:.8rem;width:100%;padding:.7rem;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:.9rem;}
 
 /* Titres Dépliables (Accordéon) */
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
@@ -255,7 +256,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media print {
   body { background:#FFF !important; color:#000 !important; font-size:12pt; }
   .wrap { max-width:100% !important; padding:0 !important; }
-  .btn-login, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top { display:none !important; }
+  .btn-login-bottom, .timer-ctrls, .btn-swap, .pad, .btn-stop-game, .quiet, .feed-filter, .export-box, .stats-card, #historyBlock, .select-top { display:none !important; }
   .board { border:2px solid #000 !important; background:#FFF !important; }
   .name { border:0 !important; font-size:1.8rem !important; }
   .events-list { border-top:2px solid #000; padding-top:10px; }
@@ -276,7 +277,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       </select>
     </div>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
-    <button type="button" class="btn-login" id="btnLogin">🔒 Connexion</button>
   </header>
 
   <!-- Bandeau Défilant de Message Personnalisé -->
@@ -440,6 +440,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
+  <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
+
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
   <button type="button" class="quiet" id="newGame">Commencer une nouvelle partie</button>
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:.5rem;">⚙️ Gestion</button>
@@ -461,10 +463,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🏢 Gestion des Organisations</button>
     <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
-    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡️ Banque d'équipes et alignements</button>
+    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡️ Gestion des équipes</button>
 
     <div class="field-group" style="margin-top:1.2rem;">
-      <label>Temps de période par défaut (minutes) :</label>
+      <label>Temps de période par défaut (minutes) pour <span id="lblConfigOrgName">cette organisation</span> :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
         <option value="10">10 minutes</option>
         <option value="12">12 minutes</option>
@@ -852,6 +854,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     myPresenceRef.onDisconnect().remove();
     myPresenceRef.set(true);
 
+    var matchedOrgObj = organizationsList.find(function(o){ return o.id === currentOrg; });
+    var orgDisplayName = matchedOrgObj ? matchedOrgObj.name : currentOrg.toUpperCase();
+    if($("lblConfigOrgName")) $("lblConfigOrgName").textContent = orgDisplayName;
+
     if(currentOrg === "lions"){
       $("ohmtroLogo").src = "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png";
       document.title = "Feuille de match - Lions de Chavigny (" + currentCat.toUpperCase() + ")";
@@ -898,6 +904,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       if(cfg.defaultPeriodMin){
         defaultPeriodSec = Number(cfg.defaultPeriodMin) * 60;
         $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
+      } else {
+        defaultPeriodSec = 1200;
+        $("defaultPeriodMinInput").value = "20";
       }
       
       var msg1 = cfg.customMessage1 || cfg.customMessage || "";
@@ -921,14 +930,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       }
       
       if(unitText){
-        text.textContent = unitText + unitText; // Dupliqué pour la boucle 50%
+        text.textContent = unitText + unitText; // Duplication pour boucle 50%
         wrap.classList.add("active");
         
-        // Ajustement dynamique de la vitesse constante (60px par seconde)
+        // Vitesse constante calculée au pixel près (40 pixels par seconde)
         setTimeout(function(){
           var width = text.offsetWidth / 2;
-          var speed = 60; // pixels par seconde
-          var duration = Math.max(8, width / speed);
+          var pxPerSec = 40; 
+          var duration = width / pxPerSec;
           text.style.animationDuration = duration + "s";
         }, 50);
       } else {
@@ -1279,6 +1288,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var ctrls = document.createElement("div"); ctrls.className = "team-ctrls";
 
       var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
+      btnEdit.style.fontSize = ".75rem"; btnEdit.style.padding = ".3rem .5rem";
       btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
         openTeamEditor(key);
@@ -1525,6 +1535,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var ctrls = document.createElement("div"); ctrls.className = "history-ctrls";
 
       var btnCons = document.createElement("button"); btnCons.type = "button"; btnCons.className = "btn-login";
+      btnCons.style.fontSize = ".75rem"; btnCons.style.padding = ".3rem .5rem";
       btnCons.textContent = "Consulter";
       btnCons.addEventListener("click", function(){
         state = sanitize(m);
