@@ -197,9 +197,9 @@ td.cur,th.cur{background:var(--crease)}
 .history-list, .team-manage-list, .cat-manage-list, .org-manage-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
 .history-item, .team-manage-item, .cat-manage-item, .org-manage-item{background:var(--surface);border-radius:10px;padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line)}
 .history-ctrls, .team-ctrls, .cat-ctrls, .org-ctrls{display:flex;gap:.3rem;align-items:center}
-.btn-hist-del{font-size:.7rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
+.btn-hist-del{font-size:.75rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:bold}
 
-.btn-edit{font-size:.85rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+.btn-edit{font-size:.75rem;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;line-height:1;font-weight:600;}
 .btn-edit:hover{background:var(--ice);}
 
 .quiet{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
@@ -553,7 +553,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Organisations (Interface nettoyée et harmonisée) -->
+<!-- Modale Gestion des Organisations (Garde les boutons Éditer & Supprimer) -->
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
@@ -574,7 +574,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Catégories (Interface nettoyée et harmonisée) -->
+<!-- Modale Gestion des Catégories (Garde les boutons Éditer & Supprimer) -->
 <dialog id="categoriesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Catégories</h2>
@@ -621,7 +621,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="team-manage-list" id="teamManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="teamManageBack">⬅️️ Retour</button>
+      <button type="button" class="act-2" id="teamManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
     </div>
   </div>
@@ -1241,6 +1241,17 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       
       var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
 
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
+      btnEdit.textContent = "✏️ Éditer";
+      btnEdit.addEventListener("click", function(){
+        var newName = prompt("Modifier le nom de l'organisation :", o.name);
+        if(newName && newName.trim()){
+          o.name = newName.trim();
+          dbOrgs.set(organizationsList);
+        }
+      });
+      ctrls.appendChild(btnEdit);
+
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
       btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
@@ -1308,11 +1319,26 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function renderCategoriesManageList(){
     var list = $("catManageList"); if(!list) return;
     list.textContent = "";
-    manageCategoriesList.forEach(function(cat){
+    manageCategoriesList.forEach(function(cat, index){
       var li = document.createElement("li"); li.className = "cat-manage-item";
       li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
       
       var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
+
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
+      btnEdit.textContent = "✏️ Éditer";
+      btnEdit.addEventListener("click", function(){
+        var newCatName = prompt("Nouveau nom pour la catégorie :", cat.toUpperCase());
+        if(newCatName && newCatName.trim()){
+          var cleanKey = newCatName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+          if(cleanKey){
+            manageCategoriesList[index] = cleanKey;
+            firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
+            renderCategoriesManageList();
+          }
+        }
+      });
+      ctrls.appendChild(btnEdit);
 
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
       btnDel.textContent = "🗑 Supprimer";
@@ -1819,7 +1845,6 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     var isStopped = state.events && state.events.some(function(e){ return e.type === "sys" && e.text && e.text.indexOf("ARRÊTÉE") !== -1; });
     var isGameActive = !isStopped && (state.timer.running || (state.timer.sec < defaultPeriodSec) || (sA > 0) || (sB > 0) || (state.events && state.events.length > 0));
     
-    // Alternance exacte des boutons :
     if(isGameActive){
       $("btnStopGame").style.display = "block";
       $("newGame").style.display = "none";
