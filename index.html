@@ -43,12 +43,12 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .wrap{max-width:34rem;margin:0 auto;padding:.75rem .75rem 2.5rem}
 
 /* En-tête */
-.top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem;flex-wrap:wrap;}
-.brand{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
-.brand img{height:2rem;width:auto;object-fit:contain}
-.select-top{font-size:.85rem;font-weight:700;padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;}
-.status{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;text-align:left;margin-left:auto;}
-.status::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--muted);flex:none}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.6rem;flex-wrap:nowrap;width:100%;}
+.brand{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;min-width:0;flex:1;}
+.brand img{height:1.8rem;width:auto;object-fit:contain;flex-shrink:0;}
+.select-top{font-size:clamp(0.7rem, 2.5vw, 0.85rem);font-weight:700;padding:.2rem .3rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;max-width:42%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+.status{font-size:clamp(0.65rem, 2.2vw, 0.75rem);color:var(--muted);display:flex;align-items:center;gap:.25rem;text-align:right;white-space:nowrap;flex-shrink:0;margin-left:auto;}
+.status::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
 
@@ -109,10 +109,11 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 .padcol{display:grid;gap:.4rem}
 .btn{border-radius:12px;font-family:var(--display);font-weight:700;letter-spacing:.01em}
 .padcol.a{--team:var(--team-a-color)} .padcol.b{--team:var(--team-b-color)}
-.btn.shot{min-height:4.5rem;font-size:1.5rem;background:var(--surface);border:3px solid var(--team);color:var(--team)}
-.btn.goal{min-height:4rem;font-size:1.5rem;background:var(--team);border:3px solid var(--team);color:#FFF}
-.btn.pen{min-height:2.8rem;font-size:1rem;background:var(--warn);border:0;color:#FFF}
-.btn.minus{min-height:2.4rem;font-family:var(--body);font-weight:500;font-size:.85rem;background:transparent;border:1px solid var(--line);color:var(--muted)}
+.btn.shot{min-height:4.2rem;font-size:1.4rem;background:var(--surface);border:3px solid var(--team);color:var(--team)}
+.btn.goal{min-height:3.8rem;font-size:1.4rem;background:var(--team);border:3px solid var(--team);color:#FFF}
+.btn.pen{min-height:2.6rem;font-size:.95rem;background:var(--warn);border:0;color:#FFF}
+.btn.minus{min-height:2.2rem;font-family:var(--body);font-weight:500;font-size:.8rem;background:transparent;border:1px solid var(--line);color:var(--muted)}
+.btn.minus-goal{min-height:2.2rem;font-family:var(--body);font-weight:600;font-size:.8rem;background:rgba(196,32,46,0.08);border:1px solid var(--red);color:var(--red)}
 .btn:active{transform:translateY(1px);filter:brightness(.94)}
 
 /* Carte Statistiques d'équipe */
@@ -142,11 +143,22 @@ h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 
 .toggle-block{transition:all .2s;overflow:hidden}
 .toggle-block.hidden{display:none !important}
 
-/* Alignements */
+/* Alignements et Fiche Joueur Interactive */
 .roster-container{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .roster-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:.4rem}
-.roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
+.roster-item{background:var(--surface);padding:.4rem .6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem;cursor:pointer;transition:background .15s;}
+.roster-item:hover, .roster-item.active{background:var(--crease);border:1px solid var(--blue);}
 .roster-item .pos{font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);background:var(--ice);padding:.1rem .3rem;border-radius:4px}
+
+.player-card-drawer{background:var(--surface);border:1.5px solid var(--blue);border-radius:10px;padding:.6rem .8rem;margin-top:.6rem;animation:fadeIn .2s linear;}
+.player-card-drawer h4{margin:0 0 .4rem;font-size:.9rem;font-family:var(--display);color:var(--blue);display:flex;align-items:center;justify-content:space-between;}
+.player-card-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.2rem;text-align:center;}
+.player-card-grid .p-stat{display:flex;flex-direction:column;align-items:center;}
+.player-card-grid .p-stat .p-lbl{font-size:.65rem;color:var(--muted);font-weight:bold;}
+.player-card-grid .p-stat .p-val{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--ink);}
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
 .staff-section{margin-top:.6rem;padding-top:.4rem;border-top:1px dashed var(--line)}
 .staff-title{font-size:.75rem;font-weight:bold;color:var(--muted);text-transform:uppercase;margin-bottom:.3rem}
 
@@ -249,6 +261,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .color-picker-row input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
 .color-picker-row input[type="color"]::-webkit-color-swatch{border:1px solid var(--line);border-radius:8px;}
 
+/* Presence Checkbox List dans le Wizard */
+.presence-list{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;max-height:25vh;overflow-y:auto;background:var(--surface);padding:.5rem;border-radius:8px;border:1px solid var(--line);margin-top:.4rem;}
+.presence-item{display:flex;align-items:center;gap:.4rem;font-size:.85rem;}
+.presence-item input[type="checkbox"]{width:1.1rem;height:1.1rem;}
+
 /* Preview de logo */
 .logo-upload-box{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem;}
 .logo-preview-img{max-height:3.5rem;width:auto;object-fit:contain;border-radius:6px;margin-top:.3rem;}
@@ -333,12 +350,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <button type="button" class="btn goal" data-act="goal" data-team="a">But</button>
       <button type="button" class="btn pen" data-act="pen" data-team="a">+ Punition</button>
       <button type="button" class="btn minus" data-act="unshot" data-team="a">Retirer un lancer</button>
+      <button type="button" class="btn minus-goal" data-act="ungoal" data-team="a">Retirer un but</button>
     </div>
     <div class="padcol b">
       <button type="button" class="btn shot" data-act="shot" data-team="b">+1 lancer</button>
       <button type="button" class="btn goal" data-act="goal" data-team="b">But</button>
       <button type="button" class="btn pen" data-act="pen" data-team="b">+ Punition</button>
       <button type="button" class="btn minus" data-act="unshot" data-team="b">Retirer un lancer</button>
+      <button type="button" class="btn minus-goal" data-act="ungoal" data-team="b">Retirer un but</button>
     </div>
   </section>
 
@@ -404,6 +423,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <div>
         <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
         <ul class="roster-list" id="rosterA"></ul>
+        <div id="playerCardBoxA"></div>
         <div class="staff-section" id="staffBoxA" style="display:none;">
           <div class="staff-title">Entraîneurs / Staff</div>
           <ul class="roster-list" id="staffA"></ul>
@@ -412,6 +432,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <div>
         <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
         <ul class="roster-list" id="rosterB"></ul>
+        <div id="playerCardBoxB"></div>
         <div class="staff-section" id="staffBoxB" style="display:none;">
           <div class="staff-title">Entraîneurs / Staff</div>
           <ul class="roster-list" id="staffB"></ul>
@@ -463,7 +484,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     <button type="button" class="act-1" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🏢 Gestion des Organisations</button>
     <button type="button" class="act-1" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
-    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡️ Gestion des équipes</button>
+    <button type="button" class="act-1" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡️️ Gestion des équipes</button>
 
     <div class="field-group" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) pour <span id="lblConfigOrgName">cette organisation</span> :</label>
@@ -489,7 +510,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
-    <p class="ctx">Gérez les organisations enregistrées (ex: OHMTRO, Lions).</p>
+    <p class="ctx">Gérez et éditez les organisations enregistrées.</p>
     
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
       <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
@@ -624,24 +645,28 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 <dialog id="newGameWizard">
   <div class="sheet-in">
     <h2>Nouvelle Partie</h2>
-    <p class="ctx">Sélectionnez les équipes et leurs couleurs pour ce match.</p>
+    <p class="ctx">Sélectionnez les équipes, les couleurs et les joueurs présents.</p>
     
     <div class="preset-box">
       <label>1. Équipe Visiteuse :</label>
       <select id="wizTeamB"><option value="">-- Choisir Équipe Visiteuse --</option></select>
       <div class="color-picker-row">
-        <label>Couleur pour ce match :</label>
+        <label>Couleur :</label>
         <input type="color" id="wizColorB" value="#F2707A">
       </div>
+      <label style="margin-top:.4rem;display:block;">Joueurs présents (Visiteur) :</label>
+      <div class="presence-list" id="wizPresenceListB"></div>
     </div>
 
     <div class="preset-box">
       <label>2. Équipe Locale :</label>
       <select id="wizTeamA"><option value="">-- Choisir Équipe Locale --</option></select>
       <div class="color-picker-row">
-        <label>Couleur pour ce match :</label>
+        <label>Couleur :</label>
         <input type="color" id="wizColorA" value="#6FA2EE">
       </div>
+      <label style="margin-top:.4rem;display:block;">Joueurs présents (Local) :</label>
+      <div class="presence-list" id="wizPresenceListA"></div>
     </div>
 
     <div class="actions">
@@ -787,6 +812,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var historyData = {};
   var timerInterval = null;
   var passwords = { admin: "hockey", marqueur: "buts", categories: {} };
+
+  var selectedPlayerA = null;
+  var selectedPlayerB = null;
 
   var isAdminGlobal = localStorage.getItem("ohmtro_admin_auth") === "true";
   var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
@@ -1017,8 +1045,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   function updateStatusDisplay(){
     var st = $("status");
-    var connText = onlineCount > 1 ? " (" + onlineCount + " connectés)" : "";
-    st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + " [" + currentCat.toUpperCase() + "]" + connText : "En direct [" + currentCat.toUpperCase() + "]" + connText;
+    var connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
+    st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + connText : "En direct" + connText;
     st.dataset.s = "live";
   }
 
@@ -1101,7 +1129,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     $("settingsSheet").close();
   });
 
-  // --- 1. GESTION DES ORGANISATIONS ---
+  // --- 1. GESTION DES ORGANISATIONS (AVEC ÉDITION) ---
   $("btnOpenOrgManage").addEventListener("click", function(){
     $("settingsSheet").close();
     renderOrgManageList();
@@ -1129,6 +1157,19 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       li.innerHTML = "<div><strong>" + o.name + "</strong> <small style='color:var(--muted);'>(" + o.id + ")</small></div>";
       
       var ctrls = document.createElement("div"); ctrls.className = "org-ctrls";
+
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
+      btnEdit.style.fontSize = ".7rem"; btnEdit.style.padding = ".2rem .4rem";
+      btnEdit.textContent = "✏️ Éditer";
+      btnEdit.addEventListener("click", function(){
+        var newName = prompt("Nouveau nom pour l'organisation :", o.name);
+        if(newName && newName.trim()){
+          o.name = newName.trim();
+          dbOrgs.set(organizationsList);
+        }
+      });
+      ctrls.appendChild(btnEdit);
+
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
       btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
@@ -1142,7 +1183,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     });
   }
 
-  // --- 2. GESTION DES CATÉGORIES ---
+  // --- 2. GESTION DES CATÉGORIES (AVEC ÉDITION) ---
   var manageCatOrgKey = currentOrg;
 
   $("btnOpenCategoriesManage").addEventListener("click", function(){
@@ -1191,11 +1232,28 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   function renderCategoriesManageList(){
     var list = $("catManageList"); if(!list) return;
     list.textContent = "";
-    manageCategoriesList.forEach(function(cat){
+    manageCategoriesList.forEach(function(cat, index){
       var li = document.createElement("li"); li.className = "cat-manage-item";
       li.innerHTML = "<strong>" + cat.toUpperCase() + "</strong>";
       
       var ctrls = document.createElement("div"); ctrls.className = "cat-ctrls";
+
+      var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-login";
+      btnEdit.style.fontSize = ".7rem"; btnEdit.style.padding = ".2rem .4rem";
+      btnEdit.textContent = "✏️ Éditer";
+      btnEdit.addEventListener("click", function(){
+        var newCatName = prompt("Nouveau nom pour la catégorie :", cat.toUpperCase());
+        if(newCatName && newCatName.trim()){
+          var cleanKey = newCatName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+          if(cleanKey){
+            manageCategoriesList[index] = cleanKey;
+            firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
+            renderCategoriesManageList();
+          }
+        }
+      });
+      ctrls.appendChild(btnEdit);
+
       var btnDel = document.createElement("button"); btnDel.type = "button"; btnDel.className = "btn-hist-del";
       btnDel.textContent = "🗑 Supprimer";
       btnDel.addEventListener("click", function(){
@@ -1708,8 +1766,8 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
     $("rosterTitleA").textContent = n.a;
     $("rosterTitleB").textContent = n.b;
-    renderRosterList("rosterA", state.rosters.a);
-    renderRosterList("rosterB", state.rosters.b);
+    renderRosterList("rosterA", state.rosters.a, "a");
+    renderRosterList("rosterB", state.rosters.b, "b");
 
     renderStaffList("staffA", "staffBoxA", state.staff ? state.staff.a : []);
     renderStaffList("staffB", "staffBoxB", state.staff ? state.staff.b : []);
@@ -1795,18 +1853,102 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 
   $("feedFilter").addEventListener("change", renderEvents);
 
-  function renderRosterList(id, list){
+  // --- RENDER ROSTER AVEC CARTE STATS INTERACTIVE ---
+  function renderRosterList(id, list, side){
     var ul = $(id); ul.textContent = "";
+    var drawerBox = $(side === "a" ? "playerCardBoxA" : "playerCardBoxB");
+    drawerBox.textContent = "";
+
     if(!list || !list.length){
       var empty = document.createElement("li"); empty.style.fontSize=".8rem"; empty.style.color="var(--muted)";
       empty.textContent = "Aucun joueur"; ul.appendChild(empty); return;
     }
-    list.forEach(function(p){
-      var li = document.createElement("li"); li.className = "roster-item";
+
+    var selectedId = side === "a" ? selectedPlayerA : selectedPlayerB;
+
+    list.forEach(function(p, idx){
+      var pId = p.no || ("p_" + idx);
+      var li = document.createElement("li"); li.className = "roster-item" + (selectedId === pId ? " active" : "");
       var numLabel = p.no ? "<b>#" + p.no + "</b> " : "";
       li.innerHTML = "<span>" + numLabel + p.name + "</span><span class='pos'>" + p.pos + "</span>";
+      
+      li.addEventListener("click", function(){
+        if(side === "a"){
+          selectedPlayerA = (selectedPlayerA === pId) ? null : pId;
+        } else {
+          selectedPlayerB = (selectedPlayerB === pId) ? null : pId;
+        }
+        renderRosterList(id, list, side);
+      });
+
       ul.appendChild(li);
     });
+
+    if(selectedId){
+      var pObj = list.find(function(p, idx){ return (p.no || ("p_" + idx)) === selectedId; });
+      if(pObj){
+        var stats = getSinglePlayerStats(side, selectedId);
+        var drawer = document.createElement("div"); drawer.className = "player-card-drawer";
+        drawer.innerHTML = "<h4><span>👤 " + (pObj.no ? "#" + pObj.no + " " : "") + pObj.name + "</span> <small style='font-size:.7rem;color:var(--muted);'>Fiche Joueur</small></h4>" +
+                           "<div class='player-card-grid'>" +
+                           "<div class='p-stat'><span class='p-lbl'>PJ</span><span class='p-val'>" + stats.pj + "</span></div>" +
+                           "<div class='p-stat'><span class='p-lbl'>B</span><span class='p-val'>" + stats.b + "</span></div>" +
+                           "<div class='p-stat'><span class='p-lbl'>A</span><span class='p-val'>" + stats.a + "</span></div>" +
+                           "<div class='p-stat'><span class='p-lbl'>PTS</span><span class='p-val'>" + (stats.b + stats.a) + "</span></div>" +
+                           "<div class='p-stat'><span class='p-lbl'>PUN</span><span class='p-val'>" + stats.pun + "m</span></div>" +
+                           "</div>";
+        drawerBox.appendChild(drawer);
+      }
+    }
+  }
+
+  function getSinglePlayerStats(side, pId){
+    var teamName = state.names[side];
+    var pj = 0, b = 0, a = 0, pun = 0;
+
+    Object.keys(historyData).forEach(function(key){
+      var m = historyData[key];
+      if(!m || !m.names) return;
+
+      var matchSide = null;
+      if(m.names.a === teamName) matchSide = "a";
+      else if(m.names.b === teamName) matchSide = "b";
+
+      if(matchSide){
+        var inRoster = m.rosters && m.rosters[matchSide] && m.rosters[matchSide].some(function(p, idx){ return (p.no || ("p_" + idx)) === pId || p.no === pId; });
+        if(inRoster){
+          pj++;
+          if(m.events && Array.isArray(m.events)){
+            m.events.forEach(function(e){
+              if(e.team === matchSide){
+                if(e.type === "goal"){
+                  if(e.scorer === pId) b++;
+                  if(e.a1 === pId || e.a2 === pId) a++;
+                } else if(e.type === "pen" && e.player === pId){
+                  pun += Number(e.min || 2);
+                }
+              }
+            });
+          }
+        }
+      }
+    });
+
+    // Inclure le match en cours
+    if(state.events && Array.isArray(state.events)){
+      state.events.forEach(function(e){
+        if(e.team === side){
+          if(e.type === "goal"){
+            if(e.scorer === pId) b++;
+            if(e.a1 === pId || e.a2 === pId) a++;
+          } else if(e.type === "pen" && e.player === pId){
+            pun += Number(e.min || 2);
+          }
+        }
+      });
+    }
+
+    return { pj: pj, b: b, a: a, pun: pun };
   }
 
   function renderStaffList(ulId, boxId, list){
@@ -1814,7 +1956,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     if(!list || !list.length){ box.style.display = "none"; return; }
     box.style.display = "block";
     list.forEach(function(s){
-      var li = document.createElement("li"); li.className = "roster-item";
+      var li = document.createElement("li"); li.className = "roster-item"; li.style.cursor = "default";
       li.innerHTML = "<span>" + s.name + "</span><span class='pos'>" + s.role + "</span>";
       ul.appendChild(li);
     });
@@ -1838,6 +1980,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   setupToggle("toggleGoaliesBtn", "goaliesBlock");
   setupToggle("toggleHistoryBtn", "historyBlock");
 
+  // --- NOUVELLE PARTIE WIZARD & PRÉSENCE DES JOUEURS ---
   $("newGame").addEventListener("click", function(){
     if(currentRole !== "admin") return;
     $("wizColorA").value = state.colors.a || "#6FA2EE";
@@ -1853,32 +1996,63 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     return presets[teamKey].color || null;
   }
 
+  function renderPresenceList(side, teamKey){
+    var listContainer = $(side === "a" ? "wizPresenceListA" : "wizPresenceListB");
+    listContainer.textContent = "";
+    if(!teamKey || !presets[teamKey] || !presets[teamKey].roster || !presets[teamKey].roster.length){
+      listContainer.innerHTML = "<small style='color:var(--muted);grid-column:1/-1;'>Aucun joueur prédéfini</small>";
+      return;
+    }
+    presets[teamKey].roster.forEach(function(p, idx){
+      var label = document.createElement("label"); label.className = "presence-item";
+      var chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = true;
+      chk.dataset.idx = idx; chk.className = "chk-presence-" + side;
+      label.appendChild(chk);
+      label.appendChild(document.createTextNode((p.no ? "#" + p.no + " " : "") + p.name));
+      listContainer.appendChild(label);
+    });
+  }
+
   $("wizTeamA").addEventListener("change", function(){
     var keyA = $("wizTeamA").value;
     var colorA = getTeamColor(keyA);
     if(colorA) $("wizColorA").value = colorA;
+    renderPresenceList("a", keyA);
   });
 
   $("wizTeamB").addEventListener("change", function(){
     var keyB = $("wizTeamB").value;
     var colorB = getTeamColor(keyB);
     if(colorB) $("wizColorB").value = colorB;
+    renderPresenceList("b", keyB);
   });
 
   $("wizStart").addEventListener("click", function(){
     var keyB = $("wizTeamB").value; var keyA = $("wizTeamA").value;
     state = blank();
     delete $("statsTeamSelect").dataset.userTouched;
+    
     if(keyB && presets[keyB]){
       state.names.b = presets[keyB].name;
       state.logos.b = presets[keyB].logo || "";
-      state.rosters.b = JSON.parse(JSON.stringify(presets[keyB].roster || []));
+      var fullRosterB = JSON.parse(JSON.stringify(presets[keyB].roster || []));
+      var presentRosterB = [];
+      document.querySelectorAll(".chk-presence-b").forEach(function(chk){
+        if(chk.checked){ presentRosterB.push(fullRosterB[Number(chk.dataset.idx)]); }
+      });
+      state.rosters.b = presentRosterB.length ? presentRosterB : fullRosterB;
       state.staff.b = JSON.parse(JSON.stringify(presets[keyB].staff || []));
     }
+
     if(keyA && presets[keyA]){
       state.names.a = presets[keyA].name;
       state.logos.a = presets[keyA].logo || "";
-      state.rosters.a = JSON.parse(JSON.stringify(presets[keyA].roster || []));
+      var fullRosterA = JSON.parse(JSON.stringify(presets[keyA].roster || []));
+      var presentRosterA = [];
+      document.querySelectorAll(".chk-presence-a").forEach(function(chk){
+        if(chk.checked){ presentRosterA.push(fullRosterA[Number(chk.dataset.idx)]); }
+      });
+      state.rosters.a = presentRosterA.length ? presentRosterA : fullRosterA;
       state.staff.a = JSON.parse(JSON.stringify(presets[keyA].staff || []));
     }
     
@@ -2167,6 +2341,24 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       state.shots[t][p] = Math.min(999, state.shots[t][p] + 1);
       commit();
       openGoal(g.id, true);
+    }
+    else if(act === "ungoal"){
+      var lastGoalIndex = -1;
+      for(var i = state.events.length - 1; i >= 0; i--){
+        if(state.events[i].type === "goal" && state.events[i].team === t){
+          lastGoalIndex = i;
+          break;
+        }
+      }
+      if(lastGoalIndex !== -1){
+        var removedGoal = state.events.splice(lastGoalIndex, 1)[0];
+        if(state.shots[t][removedGoal.period] > 0){
+          state.shots[t][removedGoal.period]--;
+        }
+        commit();
+      } else {
+        alert("Aucun but enregistré à retirer pour cette équipe.");
+      }
     }
     else if(act === "pen"){
       openPen(t);
