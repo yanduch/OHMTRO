@@ -65,7 +65,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* Tableau de pointage - Noms augmentés de 50% */
+/* Tableau de pointage - Noms des équipes */
 .board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .3rem 1rem;gap:.2rem;}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden;}
 .team-header{display:flex;align-items:center;justify-content:center;gap:.2rem;width:100%;overflow:hidden;}
@@ -204,7 +204,7 @@ td.cur,th.cur{background:var(--crease)}
 
 .quiet{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:500}
 
-/* Bouton Commencer une nouvelle partie agrandi & vert pastel */
+/* Bouton Commencer une nouvelle partie vert pastel */
 .btn-new-game-pastel{
   margin-top:1.2rem;
   width:100%;
@@ -224,6 +224,26 @@ td.cur,th.cur{background:var(--crease)}
 
 .btn-stop-game{margin-top:1rem;width:100%;min-height:3rem;border-radius:10px;border:0;background:var(--red);color:#FFF;font-weight:700;font-size:1.1rem}
 
+/* Style épuré et doux du sélecteur de couleur (supprime le cadre gras) */
+.color-picker-row{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
+.color-picker-row label{font-size:.85rem;font-weight:600;margin:0;}
+input[type="color"]{
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  appearance:none;
+  width:2.6rem;
+  height:2.2rem;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:transparent;
+  cursor:pointer;
+  padding:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
+input[type="color"]::-webkit-color-swatch{border:0;border-radius:6px;}
+input[type="color"]::-moz-color-swatch{border:0;border-radius:6px;}
+
 /* Dialogues */
 dialog{border:0;padding:0;color:var(--ink);background:var(--surface);width:100%;max-width:30rem;margin:auto auto 0;
   border-radius:18px 18px 0 0}
@@ -236,7 +256,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 .field-group{margin-top:1rem}
 .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem}
 
-.sheet-in input[type="text"], .sheet-in input[type="email"], .sheet-in input[type="password"], .sheet-in select, .sheet-in input[type="url"], .sheet-in textarea {
+.sheet-in input[type="text"], .sheet-in input[type="number"], .sheet-in input[type="email"], .sheet-in input[type="password"], .sheet-in select, .sheet-in input[type="url"], .sheet-in textarea {
   background: #FFFFFF !important;
   color: #0F2236 !important;
   -webkit-text-fill-color: #0F2236 !important;
@@ -474,7 +494,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <!-- Bouton Démarrer sous Historique - Version Vert Pastel & Plus Gros -->
+  <!-- Bouton Démarrer sous Historique -->
   <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA GAME</button>
 
@@ -509,6 +529,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       <small style="color:var(--muted);font-size:.75rem;display:block;margin-top:.3rem;">Laissez vide pour masquer le bandeau.</small>
     </div>
 
+    <!-- Réglage du Temps de Période (Sélection + Saisie Manuelle) -->
     <div class="field-group" style="margin-top:1rem;">
       <label>Temps de période par défaut (minutes) pour <span id="lblConfigOrgName">cette organisation</span> :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
@@ -517,7 +538,9 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <option value="15">15 minutes</option>
         <option value="18">18 minutes</option>
         <option value="20" selected>20 minutes</option>
+        <option value="custom">Personnalisé...</option>
       </select>
+      <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes (ex: 17)" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
     <button type="button" class="act-2" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
@@ -544,7 +567,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="org-manage-list" id="orgManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="orgManageBack">⬅️ Retour aux choix</button>
+      <button type="button" class="act-2" id="orgManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="orgManageClose">Fermer</button>
     </div>
   </div>
@@ -569,7 +592,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="cat-manage-list" id="catManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="catManageBack">⬅️ Retour aux choix</button>
+      <button type="button" class="act-2" id="catManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
     </div>
   </div>
@@ -597,7 +620,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <ul class="team-manage-list" id="teamManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="teamManageBack">⬅️ Retour aux choix</button>
+      <button type="button" class="act-2" id="teamManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
     </div>
   </div>
@@ -680,7 +703,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <label>Couleur :</label>
         <input type="color" id="wizColorB" value="#F2707A">
       </div>
-      <label style="margin-top:.4rem;display:block;">Joueurs présents (Visiteur) :</label>
+      <label style="margin-top:.6rem;display:block;">Joueurs présents (Visiteur) :</label>
       <div class="presence-list" id="wizPresenceListB"></div>
     </div>
 
@@ -691,7 +714,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
         <label>Couleur :</label>
         <input type="color" id="wizColorA" value="#6FA2EE">
       </div>
-      <label style="margin-top:.4rem;display:block;">Joueurs présents (Local) :</label>
+      <label style="margin-top:.6rem;display:block;">Joueurs présents (Local) :</label>
       <div class="presence-list" id="wizPresenceListA"></div>
     </div>
 
@@ -846,6 +869,16 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
   var assignedCat = sessionStorage.getItem("ohmtro_assigned_cat") || null;
 
+  // Gestion du temps personnalisé
+  $("defaultPeriodMinInput").addEventListener("change", function(){
+    if($("defaultPeriodMinInput").value === "custom"){
+      $("customPeriodMinInput").style.display = "block";
+      $("customPeriodMinInput").focus();
+    } else {
+      $("customPeriodMinInput").style.display = "none";
+    }
+  });
+
   // Écoute des organisations globales dans Firebase
   dbOrgs = firebase.database().ref("global/organizations");
   dbOrgs.on("value", function(snap){
@@ -956,11 +989,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     dbConfig.on("value", function(snap){
       var cfg = snap.val() || {};
       if(cfg.defaultPeriodMin){
-        defaultPeriodSec = Number(cfg.defaultPeriodMin) * 60;
-        $("defaultPeriodMinInput").value = cfg.defaultPeriodMin;
+        var mVal = String(cfg.defaultPeriodMin);
+        defaultPeriodSec = Number(mVal) * 60;
+        
+        var presetOpts = ["10", "12", "15", "18", "20"];
+        if(presetOpts.indexOf(mVal) !== -1){
+          $("defaultPeriodMinInput").value = mVal;
+          $("customPeriodMinInput").style.display = "none";
+        } else {
+          $("defaultPeriodMinInput").value = "custom";
+          $("customPeriodMinInput").value = mVal;
+          $("customPeriodMinInput").style.display = "block";
+        }
       } else {
         defaultPeriodSec = 1200;
         $("defaultPeriodMinInput").value = "20";
+        $("customPeriodMinInput").style.display = "none";
       }
       
       var msg1 = cfg.customMessage1 || cfg.customMessage || "";
@@ -1143,7 +1187,14 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   $("btnManageSettings").addEventListener("click", function(){ $("settingsSheet").showModal(); });
   $("settingsCancel").addEventListener("click", function(){ $("settingsSheet").close(); });
   $("settingsSave").addEventListener("click", function(){
-    var min = Number($("defaultPeriodMinInput").value);
+    var selVal = $("defaultPeriodMinInput").value;
+    var min = 20;
+    if(selVal === "custom"){
+      min = Number($("customPeriodMinInput").value) || 20;
+    } else {
+      min = Number(selVal);
+    }
+
     var msg1 = $("customMessageInput1").value.trim();
     var msg2 = $("customMessageInput2").value.trim();
     
