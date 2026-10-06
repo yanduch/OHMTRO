@@ -56,10 +56,13 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
 .ticker-wrap.active{display:flex;}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
-.ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;}
-.ticker-text{display:inline-block;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);animation:ticker linear infinite;}
+.ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 1.4rem,#000 calc(100% - 1.4rem),transparent);mask-image:linear-gradient(90deg,transparent,#000 1.4rem,#000 calc(100% - 1.4rem),transparent);}
+.ticker-text{display:inline-flex;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);will-change:transform;}
+.ticker-unit{flex:none;padding-right:3.5rem;}
 .ticker-text:hover{animation-play-state:paused;}
-@keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
+/* Le message entre par la droite, puis défile en boucle avec un espace entre deux passages */
+@keyframes tickerIn { from { transform: translate3d(var(--cw), 0, 0); } to { transform: translate3d(0, 0, 0); } }
+@keyframes tickerLoop { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(calc(-1 * var(--uw)), 0, 0); } }
 
 .board{display:grid;grid-template-columns:1fr 5.8rem 1fr;background:var(--surface);border-radius:14px;padding:.9rem .3rem 1rem;gap:.2rem;}
 .side{min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden;}
@@ -295,7 +298,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 /* --- Ajouts --- */
 .bump{animation:bump .25s ease-out}
 @keyframes bump { 0% { transform:scale(1.18); } 100% { transform:scale(1); } }
-@media (prefers-reduced-motion:reduce){ .bump{animation:none} .ticker-text{animation-duration:0s !important} }
+@media (prefers-reduced-motion:reduce){ .bump{animation:none} }
 .empty{font-size:.85rem;color:var(--muted);list-style:none;margin:0;padding:.2rem 0}
 body:not(.role-admin) .admin-only{display:none !important}
 .archive-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--warn);color:#FFF;border-radius:8px;padding:.4rem .6rem;margin-bottom:.8rem;font-size:.85rem;font-weight:600}
@@ -305,6 +308,41 @@ body:not(.role-admin) .admin-only{display:none !important}
 .row-del{border:0;background:transparent;color:var(--red);font-weight:bold;padding:.2rem .4rem}
 .cat-pwd-input{width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px}
 @media print { .archive-bar, .ticker-wrap { display:none !important; } }
+
+/* --- Boîtes de message et de confirmation --- */
+dialog.msg-box{margin:auto;border-radius:18px;max-width:22rem;width:calc(100% - 2rem);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+dialog.msg-box .sheet-in{padding:1.4rem 1.2rem 1.2rem}
+.msg-icon{width:3.4rem;height:3.4rem;border-radius:50%;margin:0 auto .7rem;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:2rem;line-height:1;color:#FFF;background:var(--ok)}
+.msg-box[data-kind="error"] .msg-icon{background:var(--red)}
+.msg-box[data-kind="info"] .msg-icon, .msg-box[data-kind="ask"] .msg-icon{background:var(--blue)}
+.msg-box[data-kind="danger"] .msg-icon{background:var(--red)}
+.msg-box h2{font-size:1.35rem;margin:0 0 .3rem}
+.msg-text{margin:0;font-size:1rem;white-space:pre-line;color:var(--ink)}
+.msg-box .actions{margin-top:1.1rem}
+.msg-box .actions.single{grid-template-columns:1fr}
+.msg-box .actions button{min-height:3rem}
+.act-1.is-danger{background:var(--red);color:#FFF}
+
+/* --- Gestion d'une organisation --- */
+.sheet-sub{font-family:var(--display);font-weight:600;font-size:1.1rem;margin:1.2rem 0 .5rem;padding-top:.8rem;border-top:1px solid var(--line);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.inline-row{display:flex;gap:.4rem;margin-bottom:.6rem}
+.inline-row input, .inline-row select, .full-input{flex:1;min-width:0;padding:.45rem;border:1px solid var(--line);border-radius:6px}
+.full-input{width:100%}
+.inline-row .act-1, .inline-row .act-2{padding:.4rem .8rem;font-size:.9rem;border-radius:8px;white-space:nowrap}
+.inline-row .act-2{border:1px solid var(--line)}
+
+/* --- Alignements : menus des équipes lisibles --- */
+#rosterTeamPickers select{background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;font-weight:600;opacity:1 !important}
+
+/* --- Gardiens --- */
+.g-select{width:100%;margin:.3rem 0 .1rem;padding:.3rem;font-size:.85rem;font-weight:600;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important}
+body.role-viewer .g-select{display:none}
+body:not(.role-viewer) .g-who{display:none}
+.g .g-who{font-weight:600;color:var(--ink)}
+.g .g-season{margin-top:.35rem;padding-top:.35rem;border-top:1px dashed var(--line);font-size:.8rem}
+.g .g-season:empty{display:none}
+.player-card-inline .p-grid.g-grid{grid-template-columns:repeat(4,1fr);row-gap:.35rem}
+.player-card-inline .p-grid.g-grid .p-stat .p-val{font-size:.95rem;white-space:nowrap}
 </style>
 </head>
 <body class="role-viewer">
@@ -327,7 +365,7 @@ body:not(.role-admin) .admin-only{display:none !important}
 
   <div class="archive-bar" id="archiveBar" hidden>
     <span id="archiveText">Partie archivée</span>
-    <button type="button" id="archiveBack">⬅ Retour au direct</button>
+    <button type="button" id="archiveBack">Retour au direct</button>
   </div>
 
   <section class="board" aria-label="Pointage">
@@ -475,8 +513,8 @@ body:not(.role-admin) .admin-only{display:none !important}
   <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">Arrêts des gardiens</h2>
   <div class="toggle-block hidden" id="goaliesBlock">
     <section class="goalies">
-      <div class="g"><h3 id="gNameA"></h3><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p></div>
-      <div class="g"><h3 id="gNameB"></h3><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p></div>
+      <div class="g"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, équipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p></div>
+      <div class="g"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, équipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p></div>
     </section>
   </div>
 
@@ -512,12 +550,10 @@ body:not(.role-admin) .admin-only{display:none !important}
 <dialog id="settingsSheet">
   <div class="sheet-in">
     <h2>Gestion</h2>
-    <p class="ctx">Paramètres généraux, messages, organisations, catégories et sécurité.</p>
+    <p class="ctx">Messages, organisations (avec leurs catégories et leurs équipes), paramètres et sécurité.</p>
 
     <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
-    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Gestion des Organisations</button>
-    <button type="button" class="act-1 admin-only" id="btnOpenCategoriesManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏷 Gestion des Catégories</button>
-    <button type="button" class="act-1 admin-only" id="btnOpenTeamsManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🛡 Gestion des équipes</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Organisations, catégories et équipes</button>
 
     <div class="field-group admin-only" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
@@ -590,7 +626,7 @@ body:not(.role-admin) .admin-only{display:none !important}
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="msgManageBack">⬅️ Retour</button>
+      <button type="button" class="act-2" id="msgManageBack">Retour</button>
       <button type="button" class="act-1" id="msgManageSave">Enregistrer les messages</button>
     </div>
   </div>
@@ -599,7 +635,7 @@ body:not(.role-admin) .admin-only{display:none !important}
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
-    <p class="ctx">Gérez les organisations enregistrées.</p>
+    <p class="ctx">Choisissez une organisation pour gérer son nom, ses catégories et ses équipes.</p>
     
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
       <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
@@ -609,41 +645,40 @@ body:not(.role-admin) .admin-only{display:none !important}
     <ul class="org-manage-list" id="orgManageList"></ul>
 
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="orgManageBack">⬅️ Retour</button>
+      <button type="button" class="act-2" id="orgManageBack">Retour</button>
       <button type="button" class="act-2" id="orgManageClose">Fermer</button>
     </div>
   </div>
 </dialog>
 
-<dialog id="editOrgSheet">
+<dialog id="orgDetailSheet">
   <div class="sheet-in">
-    <h2>Éditer l'Organisation</h2>
-    <div class="field-group" style="margin-top:0;">
-      <label>Nom de l'organisation :</label>
-      <input type="text" id="editOrgNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-    </div>
-    <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="editOrgCancel">Annuler</button>
-      <button type="button" class="act-1" id="editOrgSave">Enregistrer</button>
-    </div>
-  </div>
-</dialog>
+    <h2 id="orgDetailTitle">Organisation</h2>
+    <p class="ctx">Nom, catégories et équipes de cette organisation.</p>
 
-<dialog id="categoriesManageSheet">
-  <div class="sheet-in">
-    <h2>Gestion des Catégories</h2>
-    <div class="field-group" style="margin-top:0;margin-bottom:.8rem;">
-      <label>Organisation :</label>
-      <select id="catManageOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;"></select>
+    <label for="orgDetailNameInput" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">Nom de l'organisation :</label>
+    <div class="inline-row">
+      <input type="text" id="orgDetailNameInput">
+      <button type="button" class="act-2" id="orgDetailRename">Renommer</button>
     </div>
-    <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
-      <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C..." style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-      <button type="button" class="act-1" id="btnAddCat" style="padding:.4rem .8rem;font-size:.9rem;">➕ Ajouter</button>
+
+    <h3 class="sheet-sub">Catégories</h3>
+    <div class="inline-row">
+      <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C...">
+      <button type="button" class="act-1" id="btnAddCat">➕ Ajouter</button>
     </div>
     <ul class="cat-manage-list" id="catManageList"></ul>
+
+    <h3 class="sheet-sub">Équipes</h3>
+    <div class="inline-row">
+      <select id="teamManageCatSelect" aria-label="Filtrer les équipes par catégorie"></select>
+      <button type="button" class="act-1" id="btnAddNewTeam">➕ Créer</button>
+    </div>
+    <ul class="team-manage-list" id="teamManageList"></ul>
+
     <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="catManageBack">⬅️ Retour</button>
-      <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
+      <button type="button" class="act-2" id="orgDetailBack">Retour</button>
+      <button type="button" class="act-2" id="orgDetailClose">Fermer</button>
     </div>
   </div>
 </dialog>
@@ -658,28 +693,6 @@ body:not(.role-admin) .admin-only{display:none !important}
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="editCatCancel">Annuler</button>
       <button type="button" class="act-1" id="editCatSave">Enregistrer</button>
-    </div>
-  </div>
-</dialog>
-
-<dialog id="teamsManageSheet">
-  <div class="sheet-in">
-    <h2>Gestion des Équipes</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem;">
-      <div>
-        <label style="display:block;font-size:.75rem;font-weight:600;">Organisation :</label>
-        <select id="teamManageOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;"></select>
-      </div>
-      <div>
-        <label style="display:block;font-size:.75rem;font-weight:600;">Catégorie :</label>
-        <select id="teamManageCatSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;"></select>
-      </div>
-    </div>
-    <button type="button" class="act-1" id="btnAddNewTeam" style="width:100%;min-height:2.6rem;margin-bottom:.8rem;font-size:.9rem;">➕ Créer une nouvelle équipe</button>
-    <ul class="team-manage-list" id="teamManageList"></ul>
-    <div class="actions" style="margin-top:1.2rem;">
-      <button type="button" class="act-2" id="teamManageBack">⬅️ Retour</button>
-      <button type="button" class="act-2" id="teamsManageClose">Fermer</button>
     </div>
   </div>
 </dialog>
@@ -778,6 +791,10 @@ body:not(.role-admin) .admin-only{display:none !important}
       <label>Nom de l'équipe :</label>
       <input type="text" id="editTeamNameInput" maxlength="18" placeholder="Ex: Lions Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
+    <div class="field-group" style="margin-top:.6rem;">
+      <label for="editTeamCatSelect">Catégorie :</label>
+      <select id="editTeamCatSelect" class="full-input"></select>
+    </div>
     <div class="color-picker-row" style="margin:.6rem 0;">
       <label>Couleur par défaut :</label>
       <input type="color" id="presetTeamColor" value="#6FA2EE">
@@ -866,6 +883,28 @@ body:not(.role-admin) .admin-only{display:none !important}
   </div>
 </dialog>
 
+<!-- Boîte de message (remplace alert) -->
+<dialog id="noticeBox" class="msg-box" data-kind="ok">
+  <div class="sheet-in">
+    <div class="msg-icon" id="noticeIcon" aria-hidden="true">✓</div>
+    <p class="msg-text" id="noticeText" role="status"></p>
+    <div class="actions single"><button type="button" class="act-1" id="noticeOk">OK</button></div>
+  </div>
+</dialog>
+
+<!-- Boîte de confirmation (remplace confirm) -->
+<dialog id="confirmBox" class="msg-box" data-kind="ask">
+  <div class="sheet-in">
+    <div class="msg-icon" aria-hidden="true">?</div>
+    <h2 id="confirmTitle">Confirmation</h2>
+    <p class="msg-text" id="confirmText"></p>
+    <div class="actions">
+      <button type="button" class="act-2" id="confirmCancel">Annuler</button>
+      <button type="button" class="act-1" id="confirmOk">Confirmer</button>
+    </div>
+  </div>
+</dialog>
+
 <script>
 document.addEventListener("DOMContentLoaded", function(){
   "use strict";
@@ -893,10 +932,37 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function openDlg(id){
     const d = $(id); if(!d.open) d.showModal();
+    if($("noticeBox").open) raise($("noticeBox"));               // un message en cours reste visible par-dessus
     const a = document.activeElement;
     if(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) a.blur();   // évite l'ouverture du clavier sur mobile
   }
   function closeDlg(id){ const d = $(id); if(d.open) d.close(); }
+
+  /* Boîtes de message de l'application (remplacent alert et confirm du navigateur) */
+  let noticeTimer = null, askResolve = null;
+  function raise(d){ if(d.open) d.close(); d.showModal(); }     // repasse la boîte au premier plan
+  function notify(text, kind){                                   // kind : "ok" (se ferme seule), "info", "error"
+    kind = kind || "ok";
+    const d = $("noticeBox"); d.dataset.kind = kind;
+    $("noticeIcon").textContent = kind === "error" ? "!" : (kind === "info" ? "i" : "✓");
+    $("noticeText").textContent = text;
+    clearTimeout(noticeTimer); raise(d);
+    if(kind === "ok") noticeTimer = setTimeout(() => closeDlg("noticeBox"), 2200);
+  }
+  function ask(text, opts){                                      // renvoie une promesse : true si confirmé
+    opts = opts || {};
+    return new Promise(resolve => {
+      if(askResolve) askResolve(false);
+      askResolve = resolve;
+      const d = $("confirmBox"), ok = $("confirmOk");
+      d.dataset.kind = opts.danger ? "danger" : "ask";
+      $("confirmTitle").textContent = opts.title || "Confirmation";
+      $("confirmText").textContent = text;
+      ok.textContent = opts.ok || "Confirmer"; ok.classList.toggle("is-danger", !!opts.danger);
+      $("confirmCancel").textContent = opts.cancel || "Annuler";
+      d.returnValue = ""; if(!d.open) d.showModal();
+    });
+  }
   function swapDlg(from, to){ closeDlg(from); openDlg(to); }
 
   function fillSelect(sel, items, selected, placeholder){
@@ -981,6 +1047,7 @@ document.addEventListener("DOMContentLoaded", function(){
       colors: { a: DEF_A, b: DEF_B },
       rosters: { a: [], b: [] },
       staff: { a: [], b: [] },
+      goalies: { a: "", b: "" },         // gardien devant le filet (identifiant du joueur)
       shots: { a: [0,0,0,0], b: [0,0,0,0] },
       events: [],
       timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 },
@@ -1000,6 +1067,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(d.colors && typeof d.colors === "object"){ s.colors.a = hex(d.colors.a, DEF_A); s.colors.b = hex(d.colors.b, DEF_B); }
     if(d.rosters && typeof d.rosters === "object"){ s.rosters.a = toArr(d.rosters.a).map(normPlayer); s.rosters.b = toArr(d.rosters.b).map(normPlayer); }
     if(d.staff && typeof d.staff === "object"){ s.staff.a = toArr(d.staff.a).map(normStaff); s.staff.b = toArr(d.staff.b).map(normStaff); }
+    if(d.goalies && typeof d.goalies === "object"){ s.goalies.a = String(d.goalies.a || ""); s.goalies.b = String(d.goalies.b || ""); }
     s.period = int(d.period,0,3);
     ["a","b"].forEach(t => { for(let i = 0; i < 4; i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999); });
     s.events = toArr(d.events).filter(e => e && typeof e === "object" && e.type).map(e => {
@@ -1037,10 +1105,57 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   const getPlayerName = (team, pId) => playerLabel(state.rosters[team] || [], pId);
 
+  /* ---- Gardiens ---- */
+  // Gardien devant le filet : celui désigné par le marqueur, sinon le premier « G » de l'alignement
+  function goalieOf(s, side){
+    const r = s.rosters[side], cur = s.goalies[side];
+    if(cur && r.some((p, i) => pidOf(p, i) === cur)) return cur;
+    for(let i = 0; i < r.length; i++) if(r[i].pos === "G") return pidOf(r[i], i);
+    return "";
+  }
+  // Lancers reçus et buts accordés par gardien pour un match. Chaque lancer / but porte le gardien
+  // en poste au moment de l'action (champ « g ») ; sans cette information, il va au gardien désigné.
+  function goalieLines(s, side){
+    const opp = side === "a" ? "b" : "a", def = goalieOf(s, side), lines = {};
+    const line = pid => lines[pid] || (lines[pid] = { sa: 0, ga: 0 });
+    let total = 0;
+    for(let i = 0; i < s.events.length; i++){
+      const e = s.events[i];
+      if(e.team !== opp || (e.type !== "shot" && e.type !== "goal")) continue;
+      const l = line(e.g || def); l.sa++; total++; if(e.type === "goal") l.ga++;
+    }
+    const diff = sum(s.shots[opp]) - total;                 // anciens matchs : compteur et fil pas toujours alignés
+    if(diff){ const l = line(def); l.sa = Math.max(l.ga, l.sa + diff); }
+    return lines;
+  }
+  function goalieStats(side, pId, scope){
+    const st = { pj: 0, v: 0, d: 0, n: 0, sa: 0, ga: 0, bl: 0 }, teamName = state.names[side];
+    const add = (s, ms, lines, isFinal) => {
+      const l = lines[pId], inNet = goalieOf(s, ms) === pId;
+      if(!l && !inNet) return;
+      st.pj++; if(l){ st.sa += l.sa; st.ga += l.ga; }
+      if(isFinal && inNet){                                  // la décision va au gardien en poste à la fin
+        const opp = ms === "a" ? "b" : "a", gf = goalsOf(ms, null, s.events), ga = goalsOf(opp, null, s.events);
+        if(gf > ga) st.v++; else if(gf < ga) st.d++; else st.n++;
+        if(ga === 0 && Object.keys(lines).length <= 1) st.bl++;
+      }
+    };
+    if(scope !== "match"){
+      historyList.forEach(h => {
+        if(h.key === state.histKey) return;
+        const ms = h.a === teamName ? "a" : (h.b === teamName ? "b" : null); if(!ms) return;
+        add(h.s, ms, h.gl[ms] || (h.gl[ms] = goalieLines(h.s, ms)), true);
+      });
+    }
+    if(scope === "match" || isStarted(state)) add(state, side, goalieLines(state, side), state.finished);
+    return st;
+  }
+  const svPct = (sa, ga) => sa > 0 ? pct(Math.max(0, sa - ga), sa) : "–";
+
   function commit(){
     if(!canEdit()) return;
     state.updatedAt = now(); lastLocal = state.updatedAt;
-    db.set(state, err => { if(err) alert("Échec de l'enregistrement : " + (err.message || err)); });
+    db.set(state, err => { if(err) notify("Échec de l'enregistrement : " + (err.message || err), "error"); });
     render();
   }
 
@@ -1081,14 +1196,13 @@ document.addEventListener("DOMContentLoaded", function(){
     fillSelect($("orgSelectTop"), items, currentOrg);
   }
   function renderCategoriesDropdownTop(){
-    const items = categoriesList.map(c => ({ value: c, label: String(c).toUpperCase() }));
-    if(!items.some(i => i.value === currentCat)) items.push({ value: currentCat, label: currentCat.toUpperCase() });
-    fillSelect($("catSelectTop"), items, currentCat);
+    fillSelect($("catSelectTop"), categoriesList.map(c => ({ value: c, label: String(c).toUpperCase() })), currentCat);
   }
 
   const brandLogo = $("ohmtroLogo");
   brandLogo.addEventListener("error", () => { brandLogo.style.display = "none"; });
   brandLogo.addEventListener("load", () => { brandLogo.style.display = ""; });
+  if(brandLogo.complete && !brandLogo.naturalWidth) brandLogo.style.display = "none";   // échec survenu avant l'écoute
   function updateBrand(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const src = currentOrg === "lions" ? "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png"
@@ -1140,13 +1254,18 @@ document.addEventListener("DOMContentLoaded", function(){
     if(connected) announcePresence();
 
     state = blank(); presets = {}; presetByName = {}; presetsRev++;
+    if(nav !== "init" || !categoriesList.length) categoriesList = [currentCat];   // liste provisoire, le temps de charger celle de l'organisation
     renderOrgsDropdownTop(); renderCategoriesDropdownTop(); updateBrand(); updateRoleUI();
     render();
     attachListeners();
     if(needsHistory()) ensureHistory();
   }
 
-  on("orgSelectTop", "change", () => switchOrganization($("orgSelectTop").value, currentCat));
+  on("orgSelectTop", "change", () => {
+    // On vérifie d'abord les catégories de la nouvelle organisation pour ne pas garder une catégorie qu'elle n'a pas
+    const org = $("orgSelectTop").value, go = cats => switchOrganization(org, cats.indexOf(currentCat) !== -1 ? currentCat : cats[0]);
+    loadCats(org).then(go, () => go([currentCat]));
+  });
   on("catSelectTop", "change", () => switchOrganization(currentOrg, $("catSelectTop").value));
   window.addEventListener("popstate", () => {
     const p = new URLSearchParams(window.location.search);
@@ -1159,6 +1278,8 @@ document.addEventListener("DOMContentLoaded", function(){
     sub(dbCategories, snap => {
       const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
       categoriesList = val.length ? val : DEFAULT_CATS.slice();
+      // La catégorie affichée n'existe pas dans cette organisation : on bascule sur sa première catégorie
+      if(categoriesList.indexOf(currentCat) === -1){ switchOrganization(currentOrg, categoriesList[0], "init"); return; }
       renderCategoriesDropdownTop();
     });
 
@@ -1212,27 +1333,35 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Bandeau défilant ============ */
-  let tickerSig = null;
+  let tickerSig = null, tickerMsg = "", lastWidth = window.innerWidth, resizeTimer = null;
+  const TICKER_SPEED = 55;             // pixels par seconde
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
     if(org && org.msg && String(org.msg).trim()) messages.push(String(org.msg).trim());
     ["a","b"].forEach(t => {
       const p = presetByName[state.names[t]];
-      if(p && p.msg && String(p.msg).trim()) messages.push(state.names[t] + ": " + String(p.msg).trim());
+      if(p && p.msg && String(p.msg).trim()) messages.push(state.names[t] + " : " + String(p.msg).trim());
     });
-    const spaces = "\u00A0".repeat(13);
-    const full = messages.length ? messages.join(spaces) + spaces : "";
+    const full = messages.join("\u00A0\u00A0\u00A0•\u00A0\u00A0\u00A0");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
-    tickerSig = full;
-    const wrap = $("tickerWrap"), text = $("tickerText");
-    if(full){
-      text.textContent = full + full;
-      wrap.classList.add("active");
-      requestAnimationFrame(() => { text.style.animationDuration = Math.max(8, text.offsetWidth / 2 / 40) + "s"; });
-    } else {
-      wrap.classList.remove("active"); text.textContent = "";
-    }
+    tickerSig = full; tickerMsg = full;
+    layoutTicker();
+  }
+  // Le message entre par la droite, défile jusqu'au bout, puis recommence après un espace, sans coupure
+  function layoutTicker(){
+    const wrap = $("tickerWrap"), track = $("tickerText");
+    track.style.animation = "none"; track.textContent = "";
+    if(!tickerMsg){ wrap.classList.remove("active"); return; }
+    wrap.classList.add("active");
+    const unit = el("span", "ticker-unit", tickerMsg); track.appendChild(unit);
+    const cw = track.parentNode.clientWidth, uw = unit.offsetWidth;
+    if(!cw || !uw) return;
+    for(let n = Math.ceil(cw / uw); n > 0; n--) track.appendChild(unit.cloneNode(true));   // assez de copies pour remplir la largeur
+    track.style.setProperty("--cw", cw + "px"); track.style.setProperty("--uw", uw + "px");
+    const dIn = cw / TICKER_SPEED, dLoop = uw / TICKER_SPEED;
+    void track.offsetWidth;
+    track.style.animation = "tickerIn " + dIn.toFixed(2) + "s linear 1, tickerLoop " + dLoop.toFixed(2) + "s linear " + dIn.toFixed(2) + "s infinite";
   }
 
   /* ============ Connexion ============ */
@@ -1246,7 +1375,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("btnLogin", "click", () => {
     if(currentRole !== "viewer"){
-      demoteToViewer(); updateRoleUI(); render(); alert("Vous êtes déconnecté.");
+      demoteToViewer(); updateRoleUI(); render(); notify("Vous êtes déconnecté.");
     } else {
       $("loginPass").value = ""; openDlg("loginSheet");
     }
@@ -1264,16 +1393,16 @@ document.addEventListener("DOMContentLoaded", function(){
         let matchCatKey = null;
         if(p === passwords.marqueur || passwords.categories[currentCat] === p) matchCatKey = currentCat;
         else Object.keys(passwords.categories).some(k => { if(passwords.categories[k] === p){ matchCatKey = k; return true; } return false; });
-        if(!matchCatKey){ alert("Mot de passe marqueur incorrect."); return; }
+        if(!matchCatKey){ notify("Mot de passe marqueur incorrect.", "error"); return; }
         currentRole = "marqueur"; isAdminGlobal = false; assignedCat = matchCatKey; assignedOrg = currentOrg;
         store.set(sessionStorage, "ohmtro_role", "marqueur");
         store.set(sessionStorage, "ohmtro_assigned_cat", matchCatKey); store.set(sessionStorage, "ohmtro_assigned_org", currentOrg);
         if(matchCatKey !== currentCat) switchOrganization(currentOrg, matchCatKey);
-      } else { alert("Identifiants incorrects."); return; }
+      } else { notify("Identifiants incorrects.", "error"); return; }
       $("loginPass").value = "";
       if(archiveKey) exitArchive();
       updateRoleUI(); render(); closeDlg("loginSheet");
-    }).catch(() => alert("Connexion impossible pour le moment. Vérifiez votre réseau."))
+    }).catch(() => notify("Connexion impossible pour le moment. Vérifiez votre réseau.", "error"))
       .then(() => { btn.disabled = false; });
   });
 
@@ -1290,7 +1419,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const selVal = $("defaultPeriodMinInput").value;
     const min = int(selVal === "custom" ? ($("customPeriodMinInput").value || 20) : selVal, 1, 99);
     dbConfig.child("defaultPeriodMin").set(min);
-    alert("Paramètres enregistrés !"); closeDlg("settingsSheet");
+    closeDlg("settingsSheet"); notify("Paramètres enregistrés !");
   });
 
   /* ============ Exportation ============ */
@@ -1338,10 +1467,16 @@ document.addEventListener("DOMContentLoaded", function(){
               if(e.a2) get(e.a2).a++;
             } else if(e.type === "pen" && e.player){ get(e.player).pun += Number(e.min || 2); }
           });
+          const lines = goalieLines(s, t);
+          Object.keys(lines).forEach(pId => { if(!pId) return; const r = get(pId); r.sa = (r.sa || 0) + lines[pId].sa; r.ga = (r.ga || 0) + lines[pId].ga; });
         });
       });
-      csv += csvRow(["Equipe","No","Joueur","Pos","PJ","B","A","PTS","PUN (min)"]);
-      order.forEach(k => { const r = rows[k]; csv += csvRow([r.team, r.no, r.name, r.pos, r.pj, r.b, r.a, r.b + r.a, r.pun]); });
+      csv += csvRow(["Equipe","No","Joueur","Pos","PJ","B","A","PTS","PUN (min)","Lancers recus","Buts contre","Arrets","% arrets"]);
+      order.forEach(k => {
+        const r = rows[k], isG = r.sa != null;
+        csv += csvRow([r.team, r.no, r.name, r.pos, r.pj, r.b, r.a, r.b + r.a, r.pun,
+                       isG ? r.sa : "", isG ? r.ga : "", isG ? Math.max(0, r.sa - r.ga) : "", isG ? svPct(r.sa, r.ga) : ""]);
+      });
     } else {
       csv += csvRow(["Date","Match","Type","Temps","Periode","Equipe","Joueur","Aide1","Aide2","Detail"]);
       matches.forEach(x => {
@@ -1368,8 +1503,8 @@ document.addEventListener("DOMContentLoaded", function(){
     const reportType = $("exportReportType").value, scope = $("exportScope").value;
     closeDlg("exportSheet");
     const run = () => {
-      const matches = scope === "all" ? historyList.map(h => matchOf(h.m, h.at)) : [matchOf(state)];
-      if(!matches.length){ alert("Aucune partie dans l'historique."); return; }
+      const matches = scope === "all" ? historyList.map(h => ({ s: h.s, date: dateOf(h.at), label: h.a + " vs " + h.b })) : [matchOf(state)];
+      if(!matches.length){ notify("Aucune partie dans l'historique.", "info"); return; }
       downloadCsv("Rapport_" + reportType + "_" + scope + ".csv", buildCsv(reportType, matches));
     };
     if(scope === "all") withHistory(run); else run();
@@ -1421,28 +1556,38 @@ document.addEventListener("DOMContentLoaded", function(){
     if(msgSelectedTeamKey && msgTempTeams[msgSelectedTeamKey]){
       ref(msgSelectedOrgKey + "/teams_presets/" + msgSelectedTeamKey + "/msg").set($("msgTeamInput").value.trim());
     }
-    alert("Messages enregistrés !"); updateTickerDisplay(); swapDlg("messagesManageSheet", "settingsSheet");
+    updateTickerDisplay(); swapDlg("messagesManageSheet", "settingsSheet"); notify("Messages enregistrés !");
   });
 
-  /* ============ Gestion : organisations ============ */
-  let currentEditingOrgObj = null;
+  /* ============ Gestion : organisations (avec leurs catégories et leurs équipes) ============ */
+  let manageOrgKey = currentOrg, manageCategoriesList = [], currentEditingCatIndex = -1;
+  let manageTeamCatKey = "", manageTeamPresets = {}, manageTeamRef = null, editingTeamKey = null;
+
   const manageItem = (cls, labelNode, buttons) => {
     const li = el("li", cls), box = el("div"), ctrls = el("div", cls.replace("manage-item", "ctrls"));
     box.appendChild(labelNode); buttons.forEach(b => ctrls.appendChild(b));
     li.appendChild(box); li.appendChild(ctrls); return li;
   };
   const btn = (cls, text, fn) => { const b = el("button", cls, text); b.type = "button"; b.addEventListener("click", fn); return b; };
+  const loadCats = orgKey => ref(orgKey + "/categories").once("value").then(snap => {
+    const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
+    return val.length ? val : DEFAULT_CATS.slice();
+  });
+  const saveCats = () => ref(manageOrgKey + "/categories").set(manageCategoriesList);
+  const manageOrg = () => organizationsList.find(o => o.id === manageOrgKey);
 
+  /* --- Liste des organisations --- */
   on("btnOpenOrgManage", "click", () => { if(!isAdmin()) return; closeDlg("settingsSheet"); renderOrgManageList(); openDlg("orgManageSheet"); });
   on("orgManageClose", "click", () => closeDlg("orgManageSheet"));
   on("orgManageBack", "click", () => swapDlg("orgManageSheet", "settingsSheet"));
   on("btnAddOrg", "click", () => {
     if(!isAdmin()) return;
     const id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), name = $("newOrgNameInput").value.trim();
-    if(!id || !name) return;
-    if(organizationsList.some(o => o.id === id)){ alert("Cette clé d'organisation existe déjà."); return; }
+    if(!id || !name){ notify("Entrez une clé et un nom pour la nouvelle organisation.", "info"); return; }
+    if(organizationsList.some(o => o.id === id)){ notify("Cette clé d'organisation existe déjà.", "error"); return; }
     organizationsList.push({ id: id, name: name, msg: "" }); dbOrgs.set(organizationsList);
     $("newOrgIdInput").value = ""; $("newOrgNameInput").value = "";
+    renderOrgManageList();
   });
   function renderOrgManageList(){
     const list = $("orgManageList"); list.textContent = "";
@@ -1451,105 +1596,94 @@ document.addEventListener("DOMContentLoaded", function(){
       label.appendChild(el("strong", null, o.name)); label.appendChild(document.createTextNode(" "));
       const sm = el("small", null, "(" + o.id + ")"); sm.style.color = "var(--muted)"; label.appendChild(sm);
       list.appendChild(manageItem("org-manage-item", label, [
-        btn("btn-edit", "✏️ Éditer", () => { currentEditingOrgObj = o; $("editOrgNameInput").value = o.name; swapDlg("orgManageSheet", "editOrgSheet"); }),
+        btn("btn-edit", "⚙️ Gérer", () => openOrgDetail(o.id)),
         btn("btn-hist-del", "🗑 Supprimer", () => {
           if(!isAdmin()) return;
-          if(organizationsList.length <= 1){ alert("Conserver au moins une organisation."); return; }
-          if(confirm("Supprimer " + o.name + " ?")){ organizationsList = organizationsList.filter(x => x.id !== o.id); dbOrgs.set(organizationsList); }
+          if(organizationsList.length <= 1){ notify("Il faut conserver au moins une organisation.", "info"); return; }
+          ask("Supprimer l'organisation « " + o.name + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+            if(!ok) return;
+            organizationsList = organizationsList.filter(x => x.id !== o.id); dbOrgs.set(organizationsList); renderOrgManageList();
+          });
         })
       ]));
     });
   }
-  on("editOrgCancel", "click", () => swapDlg("editOrgSheet", "orgManageSheet"));
-  on("editOrgSave", "click", () => {
-    const v = $("editOrgNameInput").value.trim();
-    if(isAdmin() && v && currentEditingOrgObj){ currentEditingOrgObj.name = v; dbOrgs.set(organizationsList); }
-    renderOrgManageList(); swapDlg("editOrgSheet", "orgManageSheet");
-  });
 
-  /* ============ Gestion : catégories ============ */
-  let manageCatOrgKey = currentOrg, manageCategoriesList = [], currentEditingCatIndex = -1;
-  const loadCats = orgKey => ref(orgKey + "/categories").once("value").then(snap => {
-    const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
-    return val.length ? val : DEFAULT_CATS.slice();
-  });
-  const saveCats = () => ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-
-  on("btnOpenCategoriesManage", "click", () => {
+  /* --- Fiche d'une organisation : nom, catégories, équipes --- */
+  function openOrgDetail(orgKey){
     if(!isAdmin()) return;
-    closeDlg("settingsSheet"); manageCatOrgKey = currentOrg;
-    fillSelect($("catManageOrgSelect"), orgItems(), manageCatOrgKey);
-    loadCategoriesForOrg(manageCatOrgKey); openDlg("categoriesManageSheet");
+    manageOrgKey = orgKey;
+    const org = manageOrg();
+    $("orgDetailTitle").textContent = org ? org.name : orgKey;
+    $("orgDetailNameInput").value = org ? org.name : "";
+    $("newCatInput").value = "";
+    manageTeamCatKey = (orgKey === currentOrg) ? currentCat : "";
+    manageCategoriesList = []; renderCategoriesManageList(); fillTeamCatSelect();
+    loadCats(orgKey).then(list => {
+      if(orgKey !== manageOrgKey) return;
+      manageCategoriesList = list; renderCategoriesManageList(); fillTeamCatSelect();
+    });
+    loadTeamsForManage(orgKey);
+    swapDlg("orgManageSheet", "orgDetailSheet");
+  }
+  on("orgDetailRename", "click", () => {
+    const v = $("orgDetailNameInput").value.trim(), org = manageOrg();
+    if(!isAdmin() || !org) return;
+    if(!v){ notify("Le nom ne peut pas être vide.", "info"); return; }
+    org.name = v; dbOrgs.set(organizationsList); $("orgDetailTitle").textContent = v;
+    notify("Organisation renommée.");
   });
-  on("categoriesManageClose", "click", () => closeDlg("categoriesManageSheet"));
-  on("catManageBack", "click", () => swapDlg("categoriesManageSheet", "settingsSheet"));
-  on("catManageOrgSelect", "change", () => { manageCatOrgKey = $("catManageOrgSelect").value; loadCategoriesForOrg(manageCatOrgKey); });
-  function loadCategoriesForOrg(orgKey){
-    manageCategoriesList = []; renderCategoriesManageList();
-    loadCats(orgKey).then(list => { if(orgKey !== manageCatOrgKey) return; manageCategoriesList = list; renderCategoriesManageList(); });
+  on("orgDetailBack", "click", () => { stopTeamsManage(); renderOrgManageList(); swapDlg("orgDetailSheet", "orgManageSheet"); });
+  on("orgDetailClose", "click", () => { stopTeamsManage(); closeDlg("orgDetailSheet"); });
+
+  /* --- Catégories de l'organisation --- */
+  const catItems = () => manageCategoriesList.map(c => ({ value: c, label: c.toUpperCase() }));
+  function fillTeamCatSelect(){
+    fillSelect($("teamManageCatSelect"), catItems(), manageTeamCatKey, "Toutes les catégories");
+    manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList();
   }
   on("btnAddCat", "click", () => {
     if(!isAdmin()) return;
     const val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""); if(!val) return;
-    if(manageCategoriesList.indexOf(val) !== -1){ alert("Cette catégorie existe déjà."); return; }
-    manageCategoriesList.push(val); saveCats(); $("newCatInput").value = ""; renderCategoriesManageList();
+    if(manageCategoriesList.indexOf(val) !== -1){ notify("Cette catégorie existe déjà.", "error"); return; }
+    manageCategoriesList.push(val); saveCats(); $("newCatInput").value = ""; renderCategoriesManageList(); fillTeamCatSelect();
   });
   function renderCategoriesManageList(){
     const list = $("catManageList"); list.textContent = "";
     manageCategoriesList.forEach((cat, index) => {
       list.appendChild(manageItem("cat-manage-item", el("strong", null, cat.toUpperCase()), [
-        btn("btn-edit", "✏ Éditer", () => { currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); swapDlg("categoriesManageSheet", "editCatSheet"); }),
+        btn("btn-edit", "✏️ Éditer", () => { currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); swapDlg("orgDetailSheet", "editCatSheet"); }),
         btn("btn-hist-del", "🗑 Supprimer", () => {
           if(!isAdmin()) return;
-          if(manageCategoriesList.length <= 1){ alert("Conserver au moins une catégorie."); return; }
-          if(confirm("Supprimer la catégorie " + cat.toUpperCase() + " ?\nSes parties et son historique ne seront plus accessibles.")){
-            manageCategoriesList = manageCategoriesList.filter(c => c !== cat); saveCats(); renderCategoriesManageList();
-          }
+          if(manageCategoriesList.length <= 1){ notify("Il faut conserver au moins une catégorie.", "info"); return; }
+          ask("Supprimer la catégorie " + cat.toUpperCase() + " ?\nSes parties et son historique ne seront plus accessibles.", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+            if(!ok) return;
+            manageCategoriesList = manageCategoriesList.filter(c => c !== cat); saveCats(); renderCategoriesManageList(); fillTeamCatSelect();
+          });
         })
       ]));
     });
   }
-  on("editCatCancel", "click", () => swapDlg("editCatSheet", "categoriesManageSheet"));
+  on("editCatCancel", "click", () => swapDlg("editCatSheet", "orgDetailSheet"));
   on("editCatSave", "click", () => {
     const cleanK = $("editCatNameInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-    const old = manageCategoriesList[currentEditingCatIndex];
-    if(isAdmin() && cleanK && old && cleanK !== old){
-      if(manageCategoriesList.indexOf(cleanK) !== -1) alert("Cette catégorie existe déjà.");
-      else if(confirm("Renommer " + old.toUpperCase() + " en " + cleanK.toUpperCase() + " ?\nLa partie en cours, l'historique et le mot de passe restent liés à l'ancien nom (" + old.toUpperCase() + ").")){
-        manageCategoriesList[currentEditingCatIndex] = cleanK; saveCats();
-      }
-    }
-    renderCategoriesManageList(); swapDlg("editCatSheet", "categoriesManageSheet");
+    const idx = currentEditingCatIndex, old = manageCategoriesList[idx];
+    swapDlg("editCatSheet", "orgDetailSheet");
+    if(!isAdmin() || !cleanK || !old || cleanK === old) return;
+    if(manageCategoriesList.indexOf(cleanK) !== -1){ notify("Cette catégorie existe déjà.", "error"); return; }
+    ask("Renommer " + old.toUpperCase() + " en " + cleanK.toUpperCase() + " ?\nLa partie en cours, l'historique et le mot de passe restent liés à l'ancien nom (" + old.toUpperCase() + ").", { title: "Renommer", ok: "Renommer" }).then(ok => {
+      if(!ok) return;
+      manageCategoriesList[idx] = cleanK; saveCats(); renderCategoriesManageList(); fillTeamCatSelect();
+    });
   });
 
-  /* ============ Gestion : équipes ============ */
-  let manageTeamOrgKey = currentOrg, manageTeamCatKey = currentCat, manageTeamPresets = {}, manageTeamRef = null, editingTeamKey = null;
+  /* --- Équipes de l'organisation --- */
   const onManageTeams = snap => { manageTeamPresets = snap.val() || {}; renderTeamsManageList(); };
   function stopTeamsManage(){ if(manageTeamRef){ manageTeamRef.off("value", onManageTeams); manageTeamRef = null; } }
   function loadTeamsForManage(orgKey){
     stopTeamsManage(); manageTeamPresets = {}; renderTeamsManageList();
     manageTeamRef = ref(orgKey + "/teams_presets"); manageTeamRef.on("value", onManageTeams);
   }
-  function populateCatSelectForTeams(orgKey, selectedCatKey){
-    loadCats(orgKey).then(cats => {
-      if(orgKey !== manageTeamOrgKey) return;
-      fillSelect($("teamManageCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), selectedCatKey, "Toutes les catégories");
-      manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList();
-    });
-  }
-  on("btnOpenTeamsManage", "click", () => {
-    if(!isAdmin()) return;
-    closeDlg("settingsSheet"); manageTeamOrgKey = currentOrg; manageTeamCatKey = currentCat;
-    fillSelect($("teamManageOrgSelect"), orgItems(), manageTeamOrgKey);
-    populateCatSelectForTeams(manageTeamOrgKey, manageTeamCatKey);
-    loadTeamsForManage(manageTeamOrgKey); openDlg("teamsManageSheet");
-  });
-  on("teamsManageClose", "click", () => { stopTeamsManage(); closeDlg("teamsManageSheet"); });
-  on("teamManageBack", "click", () => { stopTeamsManage(); swapDlg("teamsManageSheet", "settingsSheet"); });
-  on("teamManageOrgSelect", "change", () => {
-    manageTeamOrgKey = $("teamManageOrgSelect").value; manageTeamCatKey = "";
-    populateCatSelectForTeams(manageTeamOrgKey, ""); loadTeamsForManage(manageTeamOrgKey);
-  });
   on("teamManageCatSelect", "change", () => { manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList(); });
 
   function renderTeamsManageList(){
@@ -1563,10 +1697,14 @@ document.addEventListener("DOMContentLoaded", function(){
       const label = document.createDocumentFragment(), dot = el("span", "color-dot");
       dot.style.background = hex(team.color, DEF_A);
       label.appendChild(dot); label.appendChild(el("strong", null, team.name || key));
+      if(!manageTeamCatKey && team.category){ const sm = el("small", null, " " + String(team.category).toUpperCase()); sm.style.color = "var(--muted)"; label.appendChild(sm); }
       list.appendChild(manageItem("team-manage-item", label, [
         btn("btn-edit", "✏️ Éditer", () => openTeamEditor(key)),
         btn("btn-hist-del", "🗑 Supprimer", () => {
-          if(isAdmin() && confirm("Supprimer " + (team.name || key) + " ?")) ref(manageTeamOrgKey + "/teams_presets/" + key).remove();
+          if(!isAdmin()) return;
+          ask("Supprimer l'équipe « " + (team.name || key) + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+            if(ok) ref(manageOrgKey + "/teams_presets/" + key).remove();
+          });
         })
       ]));
     });
@@ -1576,14 +1714,17 @@ document.addEventListener("DOMContentLoaded", function(){
   function openTeamEditor(key){
     if(!isAdmin()) return;
     editingTeamKey = key;
-    const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, roster: [], staff: [] };
+    const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, category: manageTeamCatKey || manageCategoriesList[0] || "", roster: [], staff: [] };
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
     $("editTeamNameInput").value = team.name || ""; $("teamLogoInput").value = team.logo || ""; $("presetTeamColor").value = hex(team.color, DEF_A);
+    const cats = catItems(), cat = team.category || "";
+    if(cat && !cats.some(c => c.value === cat)) cats.push({ value: cat, label: String(cat).toUpperCase() });
+    fillSelect($("editTeamCatSelect"), cats, cat, "Toutes les catégories");
     updateLogoPreview();
     const roster = toArr(team.roster), staff = toArr(team.staff);
     $("rosterForm").textContent = ""; roster.forEach(p => addRosterRow(p.no, p.name, p.pos)); if(!roster.length) addRosterRow("","","A");
     $("staffForm").textContent = ""; staff.forEach(s => addStaffRow(s.name, s.role));
-    swapDlg("teamsManageSheet", "rosterSheet");
+    swapDlg("orgDetailSheet", "rosterSheet");
   }
   function updateLogoPreview(){
     const url = $("teamLogoInput").value.trim(), img = $("logoPreview");
@@ -1612,17 +1753,17 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   on("addPlayerBtn", "click", () => addRosterRow("","","A"));
   on("addStaffBtn", "click", () => addStaffRow("","Entraîneur-chef"));
-  on("rsCancel", "click", () => swapDlg("rosterSheet", "teamsManageSheet"));
+  on("rsCancel", "click", () => swapDlg("rosterSheet", "orgDetailSheet"));
   on("rsSave", "click", () => {
     if(!isAdmin()) return;
-    const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ alert("Nom obligatoire."); return; }
+    const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ notify("Le nom de l'équipe est obligatoire.", "info"); return; }
     const existing = editingTeamKey ? manageTeamPresets[editingTeamKey] : null;
-    const category = existing ? (existing.category || "") : (manageTeamCatKey || currentCat);
+    const category = $("editTeamCatSelect").value;
     let key = editingTeamKey;
     if(!key){
       // Nouvelle équipe : ne jamais écraser une équipe existante du même nom (autre catégorie, par exemple)
       key = teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
-      if(manageTeamPresets[key]) key += "_" + category;
+      if(manageTeamPresets[key] && category) key += "_" + category;
       if(manageTeamPresets[key]) key += "_" + uid().slice(-4);
     }
     const roster = [], staff = [], seen = {}; let dup = "";
@@ -1630,16 +1771,19 @@ document.addEventListener("DOMContentLoaded", function(){
       const n = no(r.querySelector(".r-no").value), nm = r.querySelector(".r-name").value.trim(), ps = r.querySelector(".r-pos").value;
       if(n || nm){ if(n){ if(seen[n]) dup = n; seen[n] = true; } roster.push({ no: n, name: nm, pos: ps }); }
     });
-    if(dup && !confirm("Le numéro " + dup + " est utilisé par plus d'un joueur : leurs statistiques seront confondues. Enregistrer quand même ?")) return;
     $("staffForm").querySelectorAll(".staff-row").forEach(r => {
       const nm = r.querySelector(".s-name").value.trim(), rl = r.querySelector(".s-role").value;
       if(nm) staff.push({ name: nm, role: rl });
     });
-    ref(manageTeamOrgKey + "/teams_presets/" + key).set({
-      name: teamName, msg: (existing && existing.msg) || "", logo: $("teamLogoInput").value.trim(),
-      color: $("presetTeamColor").value, category: category, roster: roster, staff: staff
-    });
-    alert("Équipe enregistrée !"); swapDlg("rosterSheet", "teamsManageSheet");
+    const save = () => {
+      ref(manageOrgKey + "/teams_presets/" + key).set({
+        name: teamName, msg: (existing && existing.msg) || "", logo: $("teamLogoInput").value.trim(),
+        color: $("presetTeamColor").value, category: category, roster: roster, staff: staff
+      });
+      notify("Équipe enregistrée !"); swapDlg("rosterSheet", "orgDetailSheet");
+    };
+    if(dup) ask("Le numéro " + dup + " est utilisé par plus d'un joueur : leurs statistiques seront confondues.\nEnregistrer quand même ?", { ok: "Enregistrer" }).then(ok => { if(ok) save(); });
+    else save();
   });
 
   /* ============ Gestion : mots de passe ============ */
@@ -1656,14 +1800,14 @@ document.addEventListener("DOMContentLoaded", function(){
         group.appendChild(label); group.appendChild(input); container.appendChild(group);
       });
       openDlg("passwordsSheet");
-    }).catch(() => alert("Impossible de charger les mots de passe."));
+    }).catch(() => notify("Impossible de charger les mots de passe.", "error"));
   });
   on("pwdCancel", "click", () => closeDlg("passwordsSheet"));
   on("pwdSave", "click", () => {
     if(!isAdmin()) return;
     const newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: $("catPasswordsContainer").dataset.marqueur || "buts", categories: {} };
     document.querySelectorAll(".cat-pwd-input").forEach(inp => { newP.categories[inp.dataset.cat] = inp.value.trim() || "buts"; });
-    dbPasswords.set(newP); alert("Mots de passe enregistrés !"); closeDlg("passwordsSheet");
+    dbPasswords.set(newP); closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
   });
 
   /* ============ Chronomètre ============ */
@@ -1732,10 +1876,14 @@ document.addEventListener("DOMContentLoaded", function(){
     commit(); closeDlg("timerSheet");
   });
 
-  on("btnStopGame", "click", () => { if(canEdit() && confirm("Arrêter la partie maintenant ?")) finishGame(); });
+  on("btnStopGame", "click", () => {
+    if(!canEdit()) return;
+    ask("Arrêter la partie maintenant ?", { title: "Arrêter la partie", ok: "Arrêter", danger: true }).then(ok => { if(ok && canEdit()) finishGame(); });
+  });
 
   /* ============ Historique ============ */
   const needsHistory = () => !$("statsBlock").classList.contains("hidden") || !$("historyBlock").classList.contains("hidden") ||
+                             !$("goaliesBlock").classList.contains("hidden") ||
                              (rosterScope === "all" && !$("rosterBlock").classList.contains("hidden"));
 
   // L'historique complet n'est téléchargé que lorsqu'une section en a besoin
@@ -1746,7 +1894,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const val = snap.val() || {};
       historyList = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
       historyLoaded = true;
-      renderHistory(); renderStats();
+      renderHistory(); renderStats(); renderGoalies();
       if(rosterScope === "all" && isOpen("rosterBlock")) renderRosters();
       const w = historyWaiters; historyWaiters = []; w.forEach(fn => fn());
     });
@@ -1758,7 +1906,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!m || typeof m !== "object") return null;
     const names = m.names || {}, events = toArr(m.events);
     const shots = t => sum(toArr(m.shots && m.shots[t]));
-    return { key: key, m: m, at: Number(m.updatedAt) || Number(key) || 0,
+    return { key: key, m: m, s: sanitize(m), gl: {}, at: Number(m.updatedAt) || Number(key) || 0,
              a: str(names.a, "Local"), b: str(names.b, "Visiteur"), events: events,
              gA: goalsOf("a", null, events), gB: goalsOf("b", null, events), sA: shots("a"), sB: shots("b") };
   }
@@ -1776,7 +1924,7 @@ document.addEventListener("DOMContentLoaded", function(){
       ctrls.appendChild(btn("btn-edit", "Consulter", () => consultMatch(h)));
       ctrls.appendChild(btn("btn-hist-del", "🗑 Supprimer", () => {
         if(currentRole === "viewer") return;
-        if(confirm("Supprimer ce match de l'historique ?")) dbHistory.child(h.key).remove();
+        ask("Supprimer ce match de l'historique ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => { if(ok) dbHistory.child(h.key).remove(); });
       }));
       li.appendChild(box); li.appendChild(ctrls); frag.appendChild(li);
     }
@@ -1792,12 +1940,14 @@ document.addEventListener("DOMContentLoaded", function(){
       $("archiveBar").hidden = false; render(); window.scrollTo(0, 0);
       return;
     }
-    const msg = (isStarted(state) && !state.finished)
-      ? "Une partie est EN COURS. La remplacer par cette partie archivée ? Les données non sauvegardées seront perdues."
-      : "Charger cette partie dans le tableau en direct pour la consulter ou la corriger ?";
-    if(!confirm(msg)) return;
-    state = sanitize(h.m); state.timer.running = false; state.histKey = h.key;
-    commit(); window.scrollTo(0, 0);
+    const live = isStarted(state) && !state.finished;
+    ask(live ? "Une partie est EN COURS.\nLa remplacer par cette partie archivée ? Les données non sauvegardées seront perdues."
+             : "Charger cette partie dans le tableau en direct pour la consulter ou la corriger ?",
+        { title: "Charger la partie", ok: live ? "Remplacer" : "Charger", danger: live }).then(ok => {
+      if(!ok || !canEdit()) return;
+      state = sanitize(h.m); state.timer.running = false; state.histKey = h.key;
+      commit(); window.scrollTo(0, 0);
+    });
   }
   function exitArchive(){
     if(!archiveKey) return;
@@ -1813,8 +1963,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!state.histKey) state.histKey = String(Date.now());
     commit();
     dbHistory.child(state.histKey).set(state, err => {
-      alert(err ? "Échec de la sauvegarde : " + (err.message || err)
-                : "Partie sauvegardée dans l'historique ! Le tableau reste modifiable à l'écran.");
+      if(err) notify("Échec de la sauvegarde : " + (err.message || err), "error");
+      else notify("Partie sauvegardée dans l'historique !\nLe tableau reste modifiable à l'écran.");
     });
   });
 
@@ -1874,8 +2024,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const segBtns = $("seg").children;
     for(let i = 0; i < segBtns.length; i++) segBtns[i].setAttribute("aria-pressed", String(Number(segBtns[i].dataset.p) === state.period));
 
-    setText("gNameA", "Gardien, " + n.a); setText("gNameB", "Gardien, " + n.b);
-    goalie("A", sB, gB); goalie("B", sA, gA);
+    renderGoalies();
 
     renderShotsTable();
     renderEvents();
@@ -1885,12 +2034,38 @@ document.addEventListener("DOMContentLoaded", function(){
     updateTickerDisplay();
   }
 
-  function goalie(side, shotsAgainst, goalsAgainst){
-    if(!shotsAgainst){ setText("sv"+side, "–"); setText("svSub"+side, "Aucun lancer reçu"); return; }
-    const saves = Math.max(0, shotsAgainst - goalsAgainst);
-    setText("sv"+side, pct(saves, shotsAgainst));
-    setText("svSub"+side, saves + " arrêts / " + shotsAgainst + " lancers");
+  /* Cartes « Arrêts des gardiens » : gardien en poste, ce match, puis cumul de la saison */
+  function renderGoalies(){
+    const open = isOpen("goaliesBlock");
+    ["a","b"].forEach(side => {
+      const U = side.toUpperCase(), roster = state.rosters[side], cur = goalieOf(state, side);
+      setText("gName" + U, state.names[side]);
+      setText("gWho" + U, cur ? "Gardien : " + playerLabel(roster, cur) : "Gardien non désigné");
+      const l = goalieLines(state, side)[cur] || { sa: 0, ga: 0 };
+      if(!l.sa){ setText("sv" + U, "–"); setText("svSub" + U, "Aucun lancer reçu"); }
+      else { setText("sv" + U, svPct(l.sa, l.ga)); setText("svSub" + U, Math.max(0, l.sa - l.ga) + " arrêts / " + l.sa + " lancers"); }
+      if(!open) return;
+
+      // Menu du gardien en poste (marqueur / admin) : les « G » de l'alignement, sinon tous les joueurs
+      const sel = $("gSel" + U); let items = [];
+      roster.forEach((p, i) => { if(p.pos === "G") items.push({ value: pidOf(p, i), label: (p.no ? "#" + p.no + " " : "") + p.name }); });
+      if(!items.length) items = roster.map((p, i) => ({ value: pidOf(p, i), label: (p.no ? "#" + p.no + " " : "") + p.name }));
+      const sig = JSON.stringify(items) + "|" + cur;
+      if(sel.dataset.sig !== sig){ sel.dataset.sig = sig; fillSelect(sel, items, cur, cur ? null : "Choisir le gardien"); }
+
+      let season = "";
+      if(cur && historyLoaded){
+        const st = goalieStats(side, cur, "all");
+        if(st.pj) season = "Saison : " + st.pj + " PJ · " + st.v + "-" + st.d + "-" + st.n + " · " + svPct(st.sa, st.ga) +
+                           " · MOY " + (st.ga / st.pj).toFixed(2).replace(".", ",") + (st.bl ? " · " + st.bl + " BL" : "");
+      }
+      setText("svSeason" + U, season);
+    });
   }
+  ["a","b"].forEach(side => on("gSel" + side.toUpperCase(), "change", e => {
+    if(!canEdit()) return;
+    state.goalies[side] = e.target.value; commit();
+  }));
 
   function renderShotsTable(){
     const frag = document.createDocumentFragment();
@@ -1959,10 +2134,20 @@ document.addEventListener("DOMContentLoaded", function(){
       frag.appendChild(li);
 
       if(isCardOpen){
-        const st = playerStats(side, pId, rosterScope), card = el("div", "player-card-inline"), h4 = el("h4"), grid = el("div", "p-grid");
-        h4.appendChild(el("span", null, "👤 " + (p.no ? "#" + p.no + " " : "") + p.name));
+        const isG = p.pos === "G", card = el("div", "player-card-inline"), h4 = el("h4"), grid = el("div", "p-grid" + (isG ? " g-grid" : ""));
+        h4.appendChild(el("span", null, (isG ? "🥅 " : "👤 ") + (p.no ? "#" + p.no + " " : "") + p.name));
         h4.appendChild(el("small", null, "(" + (rosterScope === "match" ? "Ce match" : "Saison") + ")"));
-        [["PJ", st.pj], ["B", st.b], ["A", st.a], ["PTS", st.b + st.a], ["PUN", st.pun + "m"]].forEach(c => {
+        let cells;
+        if(isG){
+          // Gardien : fiche, blanchissages, moyenne de buts accordés par match, lancers reçus, buts contre, arrêts, % d'arrêts
+          const g = goalieStats(side, pId, rosterScope);
+          cells = [["PJ", g.pj], ["V-D-N", g.v + "-" + g.d + "-" + g.n], ["BL", g.bl], ["MOY", g.pj ? (g.ga / g.pj).toFixed(2).replace(".", ",") : "–"],
+                   ["LAN", g.sa], ["BC", g.ga], ["ARR", Math.max(0, g.sa - g.ga)], ["% ARR", svPct(g.sa, g.ga)]];
+        } else {
+          const st = playerStats(side, pId, rosterScope);
+          cells = [["PJ", st.pj], ["B", st.b], ["A", st.a], ["PTS", st.b + st.a], ["PUN", st.pun + "m"]];
+        }
+        cells.forEach(c => {
           const cell = el("div", "p-stat"); cell.appendChild(el("span", "p-lbl", c[0])); cell.appendChild(el("span", "p-val", c[1])); grid.appendChild(cell);
         });
         card.appendChild(h4); card.appendChild(grid); frag.appendChild(card);
@@ -2050,7 +2235,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   setupToggle("toggleStatsBtn", "statsBlock", () => { ensureHistory(); renderStats(); });
   setupToggle("toggleRosterBtn", "rosterBlock", () => { if(rosterScope === "all") ensureHistory(); renderRosters(); });
-  setupToggle("toggleGoaliesBtn", "goaliesBlock");
+  setupToggle("toggleGoaliesBtn", "goaliesBlock", () => { ensureHistory(); renderGoalies(); });
   setupToggle("toggleHistoryBtn", "historyBlock", () => { ensureHistory(); renderHistory(); });
 
   /* ============ Nouvelle partie ============ */
@@ -2092,7 +2277,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("wizStart", "click", () => {
     if(!isAdmin()) return;
     const keys = { a: $("wizTeamA").value, b: $("wizTeamB").value };
-    if(keys.a && keys.a === keys.b){ alert("Choisissez deux équipes différentes."); return; }
+    if(keys.a && keys.a === keys.b){ notify("Choisissez deux équipes différentes.", "info"); return; }
     state = blank(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
     ["a","b"].forEach(t => {
       const p = presets[keys[t]]; if(!p) return;
@@ -2159,7 +2344,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!canEdit() || !curGoal) return;
     const qNo = no($("quickNo").value), qNm = $("quickName").value.trim(); if(!qNo && !qNm) return;
     const roster = state.rosters[curGoal.team];
-    if(qNo && roster.some(p => p.no === qNo)){ alert("Le numéro " + qNo + " est déjà dans l'alignement."); return; }
+    if(qNo && roster.some(p => p.no === qNo)){ notify("Le numéro " + qNo + " est déjà dans l'alignement.", "info"); return; }
     roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
     $("quickNo").value = ""; $("quickName").value = ""; renderPlayerPickGrid();
   });
@@ -2171,15 +2356,18 @@ document.addEventListener("DOMContentLoaded", function(){
     closeDlg("goalSheet");
   });
   on("gsDelete", "click", () => {
-    if(curGoal && canEdit()){
-      const g = findEvent(curGoal.id);
-      if(g && confirm("Supprimer ce but ?")){
-        state.events = state.events.filter(x => x.id !== g.id);
+    if(!curGoal || !canEdit()){ closeDlg("goalSheet"); return; }
+    const id = curGoal.id;
+    ask("Supprimer ce but ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+      if(!ok) return;
+      const g = findEvent(id);
+      if(g && canEdit()){
+        state.events = state.events.filter(x => x.id !== id);
         if(state.shots[g.team] && state.shots[g.team][g.period] > 0) state.shots[g.team][g.period]--;
         commit();
-      } else if(g) return;
-    }
-    closeDlg("goalSheet");
+      }
+      closeDlg("goalSheet");
+    });
   });
 
   /* ============ Punitions ============ */
@@ -2220,11 +2408,13 @@ document.addEventListener("DOMContentLoaded", function(){
     closeDlg("penSheet");
   });
   on("penDelete", "click", () => {
-    if(curPen && canEdit() && !curPen.isNew){
-      if(!confirm("Supprimer cette punition ?")) return;
-      state.events = state.events.filter(x => x.id !== curPen.id); commit();
-    }
-    closeDlg("penSheet");
+    if(!curPen || !canEdit() || curPen.isNew){ closeDlg("penSheet"); return; }
+    const id = curPen.id;
+    ask("Supprimer cette punition ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+      if(!ok) return;
+      if(canEdit()){ state.events = state.events.filter(x => x.id !== id); commit(); }
+      closeDlg("penSheet");
+    });
   });
 
   /* ============ Pavé de saisie ============ */
@@ -2234,10 +2424,13 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!canEdit()) return;
     const b = e.target.closest("button[data-act]"); if(!b) return;
     const t = b.dataset.team, p = state.period, act = b.dataset.act, curTime = formatTime(remaining());
+    const net = goalieOf(state, t === "a" ? "b" : "a");        // gardien adverse en poste au moment de l'action
 
     if(act === "shot"){
       state.shots[t][p] = Math.min(999, state.shots[t][p] + 1);
-      state.events.push({ id: uid(), type: "shot", team: t, period: p, time: curTime, t: now() }); commit();
+      const sh = { id: uid(), type: "shot", team: t, period: p, time: curTime, t: now() };
+      if(net) sh.g = net;
+      state.events.push(sh); commit();
     } else if(act === "unshot"){
       if(state.shots[t][p] > goalsOf(t,p)){
         state.shots[t][p]--;
@@ -2247,10 +2440,11 @@ document.addEventListener("DOMContentLoaded", function(){
       }
     } else if(act === "goal"){
       const g = { id: uid(), type: "goal", team: t, period: p, time: curTime, scorer: "", a1: "", a2: "", t: now() };
+      if(net) g.g = net;
       state.events.push(g); state.shots[t][p] = Math.min(999, state.shots[t][p] + 1); commit(); openGoal(g.id, true);
     } else if(act === "ungoal"){
       const i = lastEventIndex(x => x.type === "goal" && x.team === t);
-      if(i === -1){ alert("Aucun but à retirer."); return; }
+      if(i === -1){ notify("Aucun but à retirer.", "info"); return; }
       const removed = state.events.splice(i, 1)[0];
       if(state.shots[t][removed.period] > 0) state.shots[t][removed.period]--;
       commit();
@@ -2267,7 +2461,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("btnSwapSides", "click", () => {
     if(!canEdit()) return;
-    ["names","logos","colors","rosters","staff","shots"].forEach(k => { const tmp = state[k].a; state[k].a = state[k].b; state[k].b = tmp; });
+    ["names","logos","colors","rosters","staff","goalies","shots"].forEach(k => { const tmp = state[k].a; state[k].a = state[k].b; state[k].b = tmp; });
     state.events.forEach(e => { if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a"; });
     if(openCardId) openCardId = null;
     commit();
@@ -2282,6 +2476,19 @@ document.addEventListener("DOMContentLoaded", function(){
     });
     inp.addEventListener("keydown", e => { if(e.key === "Enter") inp.blur(); });
   });
+
+  /* ============ Boîtes de message ============ */
+  on("noticeOk", "click", () => { clearTimeout(noticeTimer); closeDlg("noticeBox"); });
+  on("noticeBox", "click", e => { if(e.target === $("noticeBox")){ clearTimeout(noticeTimer); closeDlg("noticeBox"); } });
+  on("confirmOk", "click", () => $("confirmBox").close("ok"));
+  on("confirmCancel", "click", () => $("confirmBox").close(""));
+  on("confirmBox", "close", () => { const r = askResolve; askResolve = null; if(r) r($("confirmBox").returnValue === "ok"); });
+
+  window.addEventListener("resize", () => {
+    if(window.innerWidth === lastWidth) return;                  // sur mobile, le défilement déclenche aussi « resize »
+    lastWidth = window.innerWidth; clearTimeout(resizeTimer); resizeTimer = setTimeout(layoutTicker, 200);
+  });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutTicker);
 
   /* ============ Démarrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
