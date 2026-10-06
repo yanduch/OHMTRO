@@ -366,6 +366,10 @@ body:not(.role-viewer) .g-who{display:none}
   :root:not([data-theme="light"]) .event-row .info span.as1{color:#96C2FF}
   :root:not([data-theme="light"]) .event-row .info span.as2{color:#D1A6ED}
 }
+
+/* --- Changement de gardien depuis le pavé de saisie --- */
+.btn.goalie{min-height:2.6rem;font-family:var(--body);font-weight:600;font-size:.85rem;background:var(--crease);border:1px solid var(--line);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 .4rem}
+.actions.single{grid-template-columns:1fr}
 </style>
 </head>
 <body class="role-viewer">
@@ -436,6 +440,7 @@ body:not(.role-viewer) .g-who{display:none}
       <button type="button" class="btn shot" data-act="shot" data-team="a">+1 lancer</button>
       <button type="button" class="btn goal" data-act="goal" data-team="a">But</button>
       <button type="button" class="btn pen" data-act="pen" data-team="a">+ Punition</button>
+      <button type="button" class="btn goalie" data-act="goalie" data-team="a" id="padGoalieA">🥅 Gardien</button>
       <button type="button" class="btn minus" data-act="unshot" data-team="a">Retirer un lancer</button>
       <button type="button" class="btn minus-goal" data-act="ungoal" data-team="a">Retirer un but</button>
     </div>
@@ -443,6 +448,7 @@ body:not(.role-viewer) .g-who{display:none}
       <button type="button" class="btn shot" data-act="shot" data-team="b">+1 lancer</button>
       <button type="button" class="btn goal" data-act="goal" data-team="b">But</button>
       <button type="button" class="btn pen" data-act="pen" data-team="b">+ Punition</button>
+      <button type="button" class="btn goalie" data-act="goalie" data-team="b" id="padGoalieB">🥅 Gardien</button>
       <button type="button" class="btn minus" data-act="unshot" data-team="b">Retirer un lancer</button>
       <button type="button" class="btn minus-goal" data-act="ungoal" data-team="b">Retirer un but</button>
     </div>
@@ -866,6 +872,15 @@ body:not(.role-viewer) .g-who{display:none}
   </div>
 </dialog>
 
+<dialog id="goalieSheet">
+  <div class="sheet-in">
+    <h2 id="goalieTitle">Gardien</h2>
+    <p class="ctx">Choisissez le gardien devant le filet. Les lancers déjà reçus restent au gardien précédent.</p>
+    <div class="player-pick-grid" id="goaliePickGrid"></div>
+    <div class="actions single"><button type="button" class="act-2" id="goalieCancel">Annuler</button></div>
+  </div>
+</dialog>
+
 <dialog id="penSheet">
   <div class="sheet-in">
     <h2 id="penTitle">Punition</h2>
@@ -887,9 +902,8 @@ body:not(.role-viewer) .g-who{display:none}
         <select id="penReason" style="width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:#0F2236;">
           <option value="Accrochage">Accrochage</option>
           <option value="Bâton élevé">Bâton élevé</option>
-          <option value="Coup de bâton">Coup de bâton</option>
           <option value="Cinglage">Cinglage</option>
-          <option value="Rétention">Rétention</option>
+          <option value="Retenue">Retenue</option>
           <option value="Trébuchement">Trébuchement</option>
           <option value="Rudesse">Rudesse</option>
           <option value="Obstruction">Obstruction</option>
@@ -2066,6 +2080,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const U = side.toUpperCase(), roster = state.rosters[side], cur = goalieOf(state, side);
       setText("gName" + U, state.names[side]);
       setText("gWho" + U, cur ? "Gardien : " + playerLabel(roster, cur) : "Gardien");
+      setText("padGoalie" + U, "🥅 " + (cur ? playerLabel(roster, cur) : "Gardien"));
       const l = goalieLines(state, side)[cur] || { sa: 0, ga: 0 };
       if(!l.sa){ setText("sv" + U, "–"); setText("svSub" + U, "Aucun lancer reçu"); }
       else { setText("sv" + U, svPct(l.sa, l.ga)); const sv = Math.max(0, l.sa - l.ga); setText("svSub" + U, sv + (sv > 1 ? " arrêts / " : " arrêt / ") + l.sa + (l.sa > 1 ? " lancers" : " lancer")); }
@@ -2074,9 +2089,7 @@ document.addEventListener("DOMContentLoaded", function(){
       // Menu du gardien en poste (marqueur / admin), modifiable en tout temps pendant la partie
       const lab = p => (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur");
       // Seuls les gardiens sont proposés ; sans gardien dans l'alignement, le menu affiche « Gardien »
-      const items = [];
-      roster.forEach((p, i) => { if(p.pos === "G") items.push({ value: pidOf(p, i), label: lab(p) }); });
-      absentGoalies(side).forEach((p, i) => items.push({ value: "abs:" + i, label: lab(p) + " (absent de l'alignement)" }));
+      const items = goalieChoices(side);
       const sel = $("gSel" + U), sig = JSON.stringify(items) + "|" + cur;
       if(sel.dataset.sig !== sig){ sel.dataset.sig = sig; fillSelect(sel, items, cur, cur ? null : "Gardien"); }
 
@@ -2095,19 +2108,51 @@ document.addEventListener("DOMContentLoaded", function(){
     return (preset ? toArr(preset.roster).map(normPlayer) : []).filter(p =>
       p.pos === "G" && !r.some(m => p.no ? m.no === p.no : (!m.no && m.name === p.name)));
   }
-  ["a","b"].forEach(side => on("gSel" + side.toUpperCase(), "change", e => {
-    if(!canEdit()){ render(); return; }
-    let val = e.target.value;
+  // Gardiens offerts : ceux de l'alignement, puis ceux de l'équipe absents de l'alignement
+  function goalieChoices(side){
+    const lab = p => (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur"), items = [];
+    state.rosters[side].forEach((p, i) => { if(p.pos === "G") items.push({ value: pidOf(p, i), label: lab(p) }); });
+    absentGoalies(side).forEach((p, i) => items.push({ value: "abs:" + i, label: lab(p) + " (absent de l'alignement)" }));
+    return items;
+  }
+  // Changement de gardien, possible en tout temps pour le marqueur et l'administrateur
+  function setGoalie(side, val){
+    if(!canEdit() || !val) return false;
     if(val.indexOf("abs:") === 0){                             // gardien absent de l'alignement : on l'y ajoute
-      const p = absentGoalies(side)[Number(val.slice(4))]; if(!p){ render(); return; }
+      const p = absentGoalies(side)[Number(val.slice(4))]; if(!p) return false;
       state.rosters[side].push(p); val = pidOf(p, state.rosters[side].length - 1);
     }
-    if(!val){ render(); return; }
     // Les lancers déjà reçus restent au gardien précédent (ou vont au premier gardien désigné s'il n'y en avait pas)
     const prev = goalieOf(state, side) || val, opp = side === "a" ? "b" : "a";
+    if(prev === val && state.goalies[side] === val) return false;
     state.events.forEach(ev => { if(ev.team === opp && (ev.type === "shot" || ev.type === "goal") && !ev.g) ev.g = prev; });
     state.goalies[side] = val; commit();
-  }));
+    return true;
+  }
+  ["a","b"].forEach(side => on("gSel" + side.toUpperCase(), "change", e => { if(!setGoalie(side, e.target.value)) render(); }));
+
+  function openGoalieSheet(side){
+    if(!canEdit()) return;
+    const grid = $("goaliePickGrid"), items = goalieChoices(side), cur = goalieOf(state, side);
+    $("goalieTitle").textContent = "Gardien - " + state.names[side];
+    grid.textContent = ""; grid.dataset.side = side;
+    if(!items.length){
+      const p = el("p", "empty", "Aucun gardien dans cette équipe. Ajoutez un joueur à la position G dans la fiche de l'équipe (Gestion).");
+      p.style.gridColumn = "1/-1"; grid.appendChild(p);
+    }
+    items.forEach(it => {
+      const b = el("button", "btn-player" + (it.value === cur ? " buteur" : "")); b.type = "button"; b.dataset.val = it.value;
+      b.appendChild(el("span", null, it.label));
+      if(it.value === cur) b.appendChild(el("span", "role-tag", "🥅 En poste"));
+      grid.appendChild(b);
+    });
+    openDlg("goalieSheet");
+  }
+  on("goaliePickGrid", "click", e => {
+    const b = e.target.closest("button[data-val]"); if(!b) return;
+    setGoalie($("goaliePickGrid").dataset.side, b.dataset.val); closeDlg("goalieSheet");
+  });
+  on("goalieCancel", "click", () => closeDlg("goalieSheet"));
 
   function renderShotsTable(){
     const frag = document.createDocumentFragment();
@@ -2449,7 +2494,8 @@ document.addEventListener("DOMContentLoaded", function(){
     $("penTitle").textContent = "Punition - " + state.names[curPen.team];
     $("penCtx").textContent = PLONG[curPen.period] + " (" + curPen.time + ")";
     $("penMin").value = String(curPen.min); if(!$("penMin").value) $("penMin").value = "2";
-    $("penReason").value = curPen.reason; if(!$("penReason").value) $("penReason").value = "Autre";
+    $("penReason").value = curPen.reason === "Rétention" ? "Retenue" : curPen.reason;   // ancien libellé
+    if(!$("penReason").value) $("penReason").value = "Autre";
     $("penDelete").hidden = curPen.isNew;
     renderPenPlayerGrid(); openDlg("penSheet");
   }
@@ -2518,6 +2564,8 @@ document.addEventListener("DOMContentLoaded", function(){
       const removed = state.events.splice(i, 1)[0];
       if(state.shots[t][removed.period] > 0) state.shots[t][removed.period]--;
       commit();
+    } else if(act === "goalie"){
+      openGoalieSheet(t);
     } else if(act === "pen"){
       openPen(t);
     }
