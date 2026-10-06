@@ -553,7 +553,7 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Organisations (Garde les boutons Éditer & Supprimer) -->
+<!-- Modale Gestion des Organisations -->
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
@@ -574,7 +574,25 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   </div>
 </dialog>
 
-<!-- Modale Gestion des Catégories (Garde les boutons Éditer & Supprimer) -->
+<!-- Modale d'Édition d'Organisation (Stylisée sans prompt) -->
+<dialog id="editOrgSheet">
+  <div class="sheet-in">
+    <h2>Éditer l'Organisation</h2>
+    <p class="ctx">Saisissez le nouveau nom pour l'organisation.</p>
+
+    <div class="field-group" style="margin-top:0;">
+      <label>Nom de l'organisation :</label>
+      <input type="text" id="editOrgNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="editOrgCancel">Annuler</button>
+      <button type="button" class="act-1" id="editOrgSave">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modale Gestion des Catégories -->
 <dialog id="categoriesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Catégories</h2>
@@ -595,6 +613,24 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="catManageBack">⬅️ Retour</button>
       <button type="button" class="act-2" id="categoriesManageClose">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modale d'Édition de Catégorie (Stylisée sans prompt) -->
+<dialog id="editCatSheet">
+  <div class="sheet-in">
+    <h2>Éditer la Catégorie</h2>
+    <p class="ctx">Saisissez le nouveau nom de la catégorie.</p>
+
+    <div class="field-group" style="margin-top:0;">
+      <label>Nom de la catégorie :</label>
+      <input type="text" id="editCatNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="editCatCancel">Annuler</button>
+      <button type="button" class="act-1" id="editCatSave">Enregistrer</button>
     </div>
   </div>
 </dialog>
@@ -869,6 +905,10 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
   var isAdminGlobal = localStorage.getItem("ohmtro_admin_auth") === "true";
   var currentRole = isAdminGlobal ? "admin" : (sessionStorage.getItem("ohmtro_role") || "viewer");
   var assignedCat = sessionStorage.getItem("ohmtro_assigned_cat") || null;
+
+  // Variables de ciblage pour l'édition dynamique
+  var currentEditingOrgObj = null;
+  var currentEditingCatIndex = -1;
 
   // Gestion du temps personnalisé
   $("defaultPeriodMinInput").addEventListener("change", function(){
@@ -1244,11 +1284,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
       btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
-        var newName = prompt("Modifier le nom de l'organisation :", o.name);
-        if(newName && newName.trim()){
-          o.name = newName.trim();
-          dbOrgs.set(organizationsList);
-        }
+        currentEditingOrgObj = o;
+        $("editOrgNameInput").value = o.name;
+        $("orgManageSheet").close();
+        $("editOrgSheet").showModal();
+        setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
       });
       ctrls.appendChild(btnEdit);
 
@@ -1264,6 +1304,22 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
     });
   }
+
+  $("editOrgCancel").addEventListener("click", function(){
+    $("editOrgSheet").close();
+    $("orgManageSheet").showModal();
+  });
+
+  $("editOrgSave").addEventListener("click", function(){
+    var newName = $("editOrgNameInput").value.trim();
+    if(newName && currentEditingOrgObj){
+      currentEditingOrgObj.name = newName;
+      dbOrgs.set(organizationsList);
+    }
+    $("editOrgSheet").close();
+    renderOrgManageList();
+    $("orgManageSheet").showModal();
+  });
 
   // --- 2. GESTION DES CATÉGORIES ---
   var manageCatOrgKey = currentOrg;
@@ -1328,15 +1384,11 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       var btnEdit = document.createElement("button"); btnEdit.type = "button"; btnEdit.className = "btn-edit";
       btnEdit.textContent = "✏️ Éditer";
       btnEdit.addEventListener("click", function(){
-        var newCatName = prompt("Nouveau nom pour la catégorie :", cat.toUpperCase());
-        if(newCatName && newCatName.trim()){
-          var cleanKey = newCatName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-          if(cleanKey){
-            manageCategoriesList[index] = cleanKey;
-            firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
-            renderCategoriesManageList();
-          }
-        }
+        currentEditingCatIndex = index;
+        $("editCatNameInput").value = cat.toUpperCase();
+        $("categoriesManageSheet").close();
+        $("editCatSheet").showModal();
+        setTimeout(function(){ if(document.activeElement) document.activeElement.blur(); }, 50);
       });
       ctrls.appendChild(btnEdit);
 
@@ -1353,6 +1405,25 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
       ctrls.appendChild(btnDel); li.appendChild(ctrls); list.appendChild(li);
     });
   }
+
+  $("editCatCancel").addEventListener("click", function(){
+    $("editCatSheet").close();
+    $("categoriesManageSheet").showModal();
+  });
+
+  $("editCatSave").addEventListener("click", function(){
+    var newCatName = $("editCatNameInput").value.trim();
+    if(newCatName && currentEditingCatIndex >= 0){
+      var cleanKey = newCatName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if(cleanKey){
+        manageCategoriesList[currentEditingCatIndex] = cleanKey;
+        firebase.database().ref(manageCatOrgKey + "/categories").set(manageCategoriesList);
+      }
+    }
+    $("editCatSheet").close();
+    renderCategoriesManageList();
+    $("categoriesManageSheet").showModal();
+  });
 
   // --- 3. GESTION DES ÉQUIPES ---
   var manageTeamOrgKey = currentOrg;
