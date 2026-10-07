@@ -756,10 +756,14 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <h2>Gestion des Organisations</h2>
     <p class="ctx">Choisissez une organisation pour gérer son nom, ses catégories et ses équipes.</p>
     
-    <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
+    <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">Nouvelle organisation :</label>
+    <div style="display:flex;gap:.4rem;margin-bottom:.4rem;">
       <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
       <input type="text" id="newOrgNameInput" placeholder="Nom complet" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-      <button type="button" class="act-1" id="btnAddOrg" style="padding:.4rem .8rem;font-size:.9rem;">➕</button>
+    </div>
+    <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
+      <input type="text" id="newOrgCatInput" placeholder="Première catégorie (ex: M15)" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+      <button type="button" class="act-1" id="btnAddOrg" style="padding:.4rem .8rem;font-size:.9rem;white-space:nowrap;">➕ Créer</button>
     </div>
     <ul class="org-manage-list" id="orgManageList"></ul>
 
@@ -2001,10 +2005,13 @@ document.addEventListener("DOMContentLoaded", function(){
   on("btnAddOrg", "click", () => {
     if(!isSuper()) return;
     const id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), name = $("newOrgNameInput").value.trim();
-    if(!id || !name){ notify("Entrez une clé et un nom pour la nouvelle organisation.", "info"); return; }
+    // La première catégorie est demandée à la création : une nouvelle organisation n'hérite d'aucune catégorie par défaut
+    const cat = $("newOrgCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if(!id || !name || !cat){ notify("Entrez une clé, un nom et une première catégorie pour la nouvelle organisation.", "info"); return; }
     if(organizationsList.some(o => o.id === id)){ notify("Cette clé d'organisation existe déjà.", "error"); return; }
     organizationsList.push({ id: id, name: name, msg: "" }); dbOrgs.set(organizationsList);
-    $("newOrgIdInput").value = ""; $("newOrgNameInput").value = "";
+    ref(id + "/categories").set([cat]);
+    $("newOrgIdInput").value = ""; $("newOrgNameInput").value = ""; $("newOrgCatInput").value = "";
     renderOrgManageList();
   });
   function renderOrgManageList(){
