@@ -428,6 +428,8 @@ body:not(.is-super) .super-only{display:none !important}
 .stats-team-name{margin:.1rem 0 .6rem;font-family:var(--display);font-size:1.25rem;line-height:1.1}
 .stats-team-name:empty{display:none}
 body:not(.role-marqueur) .marqueur-only{display:none !important}
+
+.btn-timer-toggle:disabled{opacity:.3;cursor:not-allowed}
 </style>
 </head>
 <body class="role-viewer">
@@ -911,6 +913,12 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <div class="presence-list" id="wizPresenceListA"></div>
     </div>
 
+    <div class="preset-box">
+      <label for="wizPeriodMin">3. Durée d'une période (minutes) :</label>
+      <input type="number" id="wizPeriodMin" min="1" max="99" inputmode="numeric" class="full-input" style="background:#FFF;color:#0F2236;">
+      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Pour cette partie seulement. Le temps reste modifiable en touchant le chronomètre.</small>
+    </div>
+
     <div class="actions">
       <button type="button" class="act-2" id="wizCancel">Annuler</button>
       <button type="button" class="act-1" id="wizStart">Lancer le match</button>
@@ -1226,6 +1234,7 @@ document.addEventListener("DOMContentLoaded", function(){
       finished: false,
       histKey: "",
       id: "",
+      periodSec: 0,                      // durée d'une période pour cette partie (0 = durée par défaut de l'organisation)
       playedAt: 0,                       // date de la partie dans l'historique (ne change pas quand on la corrige)
       updatedAt: 0
     };
@@ -1254,6 +1263,7 @@ document.addEventListener("DOMContentLoaded", function(){
     s.histKey = typeof d.histKey === "string" ? d.histKey : "";
     s.id = typeof d.id === "string" ? d.id : "";
     s.playedAt = Number(d.playedAt) || 0;
+    s.periodSec = int(d.periodSec, 0, 5940);
     const last = s.events[s.events.length - 1];
     // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
     s.finished = (typeof d.finished === "boolean") ? d.finished
@@ -1265,10 +1275,12 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   function isStarted(s){
-    return s.timer.running || s.timer.sec < defaultPeriodSec || s.period > 0 || sum(s.shots.a) > 0 || sum(s.shots.b) > 0 || s.events.length > 0;
+    return s.timer.running || s.timer.sec < perSec(s) || s.period > 0 || sum(s.shots.a) > 0 || sum(s.shots.b) > 0 || s.events.length > 0;
   }
   // Une partie est « à l'écran » dès que des équipes sont choisies ; elle est « en cours » tant qu'elle n'est pas terminée
-  const hasGame = s => isStarted(s) || !!(s.teamKeys.a || s.teamKeys.b) || s.names.a !== "Local" || s.names.b !== "Visiteur";
+  // (une partie lancée sans choisir d'équipes compte aussi : elle porte un identifiant)
+  const hasGame = s => isStarted(s) || !!s.id || !!(s.teamKeys.a || s.teamKeys.b) || s.names.a !== "Local" || s.names.b !== "Visiteur";
+  const perSec = s => (s && s.periodSec) || defaultPeriodSec;   // durée d'une période pour cette partie
   const isLive = s => hasGame(s) && !s.finished;
   function goalsOf(t, p, events){
     let n = 0; const evs = events || state.events;
@@ -1638,14 +1650,6 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
-    const mine = myLiveKey();
-    Object.keys(liveGames).forEach(k => {
-      const g = liveGames[k];
-      if(!g || k === mine || !g.cat || now() - (Number(g.at) || 0) > LIVE_STALE) return;
-      const p = g.team && presets[g.team], cat = String(g.cat).toUpperCase();
-      messages.push(p && p.name ? "🔴 Présentement en cours dans " + cat + " : l'équipe " + p.name + " — sélectionnez-la juste ici ⬆⬆⬆"
-                                : "🔴 Présentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " — sélectionnez la catégorie juste ici ⬆⬆⬆");
-    });
     msgsOf(org).forEach(m => messages.push(m));
     // Messages des équipes : celles du match, et toujours l'équipe du tableau affiché (même sans partie lancée)
     const shown = [];
@@ -1658,6 +1662,15 @@ document.addEventListener("DOMContentLoaded", function(){
     addTeam(pa); addTeam(pb);
     // Aucune équipe reconnue à l'écran (tableau vierge) : on affiche les messages des équipes de l'organisation dans cette catégorie
     if(!shown.length) boardTeams(currentCat).forEach(k => addTeam(presets[k]));
+    // Puis l'annonce des autres parties en cours dans l'organisation
+    const mine = myLiveKey();
+    Object.keys(liveGames).forEach(k => {
+      const g = liveGames[k];
+      if(!g || k === mine || !g.cat || now() - (Number(g.at) || 0) > LIVE_STALE) return;
+      const p = g.team && presets[g.team], cat = String(g.cat).toUpperCase();
+      messages.push(p && p.name ? "🔴 Présentement en cours dans " + cat + " : l'équipe " + p.name + " — sélectionnez-la juste ici ⬆⬆⬆"
+                                : "🔴 Présentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " — sélectionnez la catégorie juste ici ⬆⬆⬆");
+    });
     const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
     tickerSig = full; tickerMsg = messages;
@@ -2136,12 +2149,13 @@ document.addEventListener("DOMContentLoaded", function(){
   function openTeamEditor(key){
     if(!can("teams")) return;
     editingTeamKey = key;
-    const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, category: manageTeamCatKey || manageCategoriesList[0] || "", roster: [], staff: [] };
+    const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, category: manageTeamCatKey || "", roster: [], staff: [] };
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
     $("editTeamNameInput").value = team.name || ""; $("teamLogoInput").value = team.logo || ""; $("presetTeamColor").value = hex(team.color, DEF_A);
     const cats = catItems(), cat = team.category || "";
     if(cat && !cats.some(c => c.value === cat)) cats.push({ value: cat, label: String(cat).toUpperCase() });
-    fillSelect($("editTeamCatSelect"), cats, cat, "Toutes les catégories");
+    // Nouvelle équipe : la catégorie doit être choisie ; une ancienne équipe sans catégorie reste « Toutes les catégories »
+    fillSelect($("editTeamCatSelect"), cats, cat, key ? "Toutes les catégories" : "Veuillez choisir une catégorie");
     $("editTeamOwn").checked = !!team.own;
     updateLogoPreview();
     const roster = toArr(team.roster), staff = toArr(team.staff);
@@ -2182,6 +2196,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ notify("Le nom de l'équipe est obligatoire.", "info"); return; }
     const existing = editingTeamKey ? manageTeamPresets[editingTeamKey] : null;
     const category = $("editTeamCatSelect").value;
+    if(!editingTeamKey && !category){ notify("Il n'est pas possible de créer une équipe sans choisir sa catégorie.", "info"); return; }
     let key = editingTeamKey;
     if(!key){
       // Nouvelle équipe : ne jamais écraser une équipe existante du même nom (autre catégorie, par exemple)
@@ -2265,7 +2280,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function handleTimerEnd(){
     state.timer.running = false;
     if(state.period < 2){
-      state.period++; state.timer.sec = defaultPeriodSec; commit();
+      state.period++; state.timer.sec = perSec(state); commit();
     } else if(state.period === 2 && goalsOf("a") === goalsOf("b")){
       state.timer.sec = 0; commit(); openDlg("overtimeSheet");
     } else {
@@ -2284,12 +2299,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("overtimeYes", "click", () => {
     closeDlg("overtimeSheet"); if(!canEdit()) return;
-    state.period = 3; state.timer.sec = defaultPeriodSec; state.timer.running = false; state.finished = false; commit();
+    state.period = 3; state.timer.sec = perSec(state); state.timer.running = false; state.finished = false; commit();
   });
   on("overtimeNo", "click", () => { closeDlg("overtimeSheet"); if(canEdit()) finishGame(); });
 
   on("btnTimerToggle", "click", () => {
-    if(!canEdit()) return;
+    if(!canEdit() || !hasGame(state)) return;
     if(state.timer.running){ state.timer.sec = remaining(); state.timer.running = false; }
     else {
       if(state.timer.sec <= 0){ openTimerSheet(); return; }     // chrono à zéro : on demande le temps à remettre
@@ -2299,10 +2314,10 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   on("btnTimerReset", "click", () => {
     if(!canEdit()) return;
-    state.timer.running = false; state.timer.sec = defaultPeriodSec; commit();
+    state.timer.running = false; state.timer.sec = perSec(state); commit();
   });
   function openTimerSheet(){
-    const cur = remaining() || defaultPeriodSec;
+    const cur = remaining() || perSec(state);
     $("timerMin").value = Math.floor(cur / 60); $("timerSec").value = cur % 60;
     openDlg("timerSheet");
   }
@@ -2586,9 +2601,9 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function render(){
     const n = state.names, started = isStarted(state), game = hasGame(state);
-    const na = game ? n.a : "", nb = game ? n.b : "";        // tableau vide : on n'écrit pas « Local » / « Visiteur »
-    if($("nameA").value !== na) $("nameA").value = na;        // les noms viennent des équipes choisies au lancement de la partie
-    if($("nameB").value !== nb) $("nameB").value = nb;
+    if($("nameA").value !== n.a) $("nameA").value = n.a;      // les noms viennent des équipes choisies au lancement de la partie
+    if($("nameB").value !== n.b) $("nameB").value = n.b;      // (« Local » et « Visiteur » par défaut)
+    $("btnTimerToggle").disabled = !game;                     // pas de chronomètre tant qu'aucune partie n'est lancée
     document.documentElement.classList.toggle("no-teams", !game);
     applyInv(); updateStatusDisplay();
     if(game !== lastGameMode){                                // changement de mode : « Ce match » pendant une partie, « Tout (Saison) » sinon
@@ -2720,9 +2735,8 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function renderShotsTable(){
     const frag = document.createDocumentFragment();
-    const game = hasGame(state);
     sides().forEach(t => {
-      const tr = el("tr"), th = el("th", null, game ? state.names[t] : "—"); th.scope = "row"; tr.appendChild(th);
+      const tr = el("tr"), th = el("th", null, state.names[t]); th.scope = "row"; tr.appendChild(th);
       state.shots[t].forEach((v,i) => tr.appendChild(el("td", i === state.period ? "cur" : null, v)));
       tr.appendChild(el("td", "tot", sum(state.shots[t]))); frag.appendChild(tr);
     });
@@ -2935,6 +2949,7 @@ document.addEventListener("DOMContentLoaded", function(){
       $("wizTeamA").value = boardTeam; wizSyncColor("a");
     }
     renderPresenceList("a", $("wizTeamA").value); renderPresenceList("b", $("wizTeamB").value);
+    $("wizPeriodMin").value = Math.round(defaultPeriodSec / 60);
     openDlg("newGameWizard");
   });
   on("wizCancel", "click", () => closeDlg("newGameWizard"));
@@ -2965,6 +2980,8 @@ document.addEventListener("DOMContentLoaded", function(){
   function startGame(keys, other){
     const wasLinked = isLinked();
     state = blank(); state.id = uid(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
+    state.periodSec = int($("wizPeriodMin").value || Math.round(defaultPeriodSec / 60), 1, 99) * 60;   // durée choisie pour cette partie
+    state.timer.sec = state.periodSec;
     ["a","b"].forEach(t => {
       const p = presets[keys[t]]; if(!p) return;
       const full = toArr(p.roster).map(normPlayer), present = [];
