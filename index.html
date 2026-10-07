@@ -52,6 +52,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .status::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
 .status[data-s="offline"]::before{background:var(--warn)}
+.status[data-s="live"]{color:var(--ok);font-weight:700}
 
 .ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
 .ticker-wrap.active{display:flex;}
@@ -96,7 +97,7 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
-body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #resetBoard, body.role-viewer #askSave, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #resetBoard, body.role-viewer #askSave, body.role-viewer #btnManageSettings, body.role-marqueur #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
@@ -404,6 +405,29 @@ body:not(.role-viewer) .g-who{display:none}
 
 /* --- Éléments réservés au super administrateur --- */
 body:not(.is-super) .super-only{display:none !important}
+
+/* --- Local à droite, visiteur à gauche (convention du hockey) ; « Inverser » échange les côtés sur l'appareil du marqueur --- */
+.board .side.b{order:1} .board .center{order:2} .board .side.a{order:3}
+.pad .padcol.b{order:1} .pad .padcol.a{order:2}
+.roster-container .roster-col.b{order:1} .roster-container .roster-col.a{order:2}
+.goalies .g.b{order:1} .goalies .g.a{order:2}
+.inv .board .side.a{order:1} .inv .board .side.b{order:3}
+.inv .pad .padcol.a{order:1} .inv .pad .padcol.b{order:2}
+.inv .roster-container .roster-col.a{order:1} .inv .roster-container .roster-col.b{order:2}
+.inv .goalies .g.a{order:1} .inv .goalies .g.b{order:2}
+.btn-swap[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.side-tag{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1;margin-bottom:.15rem}
+.no-teams .side-tag{visibility:hidden}
+
+/* --- Sans partie à l'écran --- */
+.no-teams #feedSection, .no-teams #goaliesSection{display:none}
+.no-teams .roster-container{grid-template-columns:1fr}
+.no-teams .roster-scope-btn-group{display:none}
+.roster-title{font-size:.9rem;margin:.2rem 0}
+.roster-title.hl, .stats-team-name{color:var(--blue);font-weight:700}
+.stats-team-name{margin:.1rem 0 .6rem;font-family:var(--display);font-size:1.25rem;line-height:1.1}
+.stats-team-name:empty{display:none}
+body:not(.role-marqueur) .marqueur-only{display:none !important}
 </style>
 </head>
 <body class="role-viewer">
@@ -432,6 +456,7 @@ body:not(.is-super) .super-only{display:none !important}
 
   <section class="board" aria-label="Pointage">
     <div class="side a">
+      <span class="side-tag">Local</span>
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoA">
         <input class="name" id="nameA" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
@@ -450,6 +475,7 @@ body:not(.is-super) .super-only{display:none !important}
     </div>
 
     <div class="side b">
+      <span class="side-tag">Visiteur</span>
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoB">
         <input class="name" id="nameB" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
@@ -467,7 +493,7 @@ body:not(.is-super) .super-only{display:none !important}
       <button type="button" data-p="2">3</button>
       <button type="button" data-p="3" id="btnOt">Prol.</button>
     </div>
-    <button type="button" class="btn-swap" id="btnSwapSides" title="Inverser les côtés de la glace">🔄 Inverser</button>
+    <button type="button" class="btn-swap" id="btnSwapSides" title="Inverser les côtés à l'écran (sur cet appareil seulement)" aria-pressed="false">🔄 Inverser</button>
   </div>
 
   <section class="pad" id="pad" aria-label="Saisie">
@@ -497,6 +523,7 @@ body:not(.is-super) .super-only{display:none !important}
     </table>
   </div>
 
+  <div id="feedSection">
   <div class="feed-header">
     <h2>Match pas à pas</h2>
     <select id="feedFilter" class="feed-filter">
@@ -510,17 +537,16 @@ body:not(.is-super) .super-only{display:none !important}
     </select>
   </div>
   <ul class="events-list" id="eventsList"></ul>
+  </div>
 
   <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
   <div class="toggle-block hidden" id="statsBlock">
     <section class="stats-card">
       <div class="stats-card-header">
         <h3>Statistiques d'équipe</h3>
-        <select id="statsTeamSelect" class="stats-team-select">
-          <option value="a" id="stOptA">Équipe Locale</option>
-          <option value="b" id="stOptB">Équipe Visiteuse</option>
-        </select>
+        <select id="statsTeamSelect" class="stats-team-select" aria-label="Équipe"></select>
       </div>
+      <p class="stats-team-name" id="statsTeamName"></p>
 
       <div class="stats-grid">
         <div class="stat-item"><div class="lbl">PJ</div><div class="val" id="stPJ">0</div></div>
@@ -548,23 +574,20 @@ body:not(.is-super) .super-only{display:none !important}
         <button type="button" id="btnScopeMatch" class="active">Ce match</button>
         <button type="button" id="btnScopeAll">Tout (Saison)</button>
       </div>
-      <div id="rosterTeamPickers" style="display:flex;gap:.4rem;">
-        <select id="rosterSelectTeamA" style="flex:1;padding:.3rem;font-size:.8rem;border-radius:6px;border:1px solid var(--line);"></select>
-        <select id="rosterSelectTeamB" style="flex:1;padding:.3rem;font-size:.8rem;border-radius:6px;border:1px solid var(--line);"></select>
-      </div>
+      <p class="ctx" id="rosterHint" style="margin:.2rem 0 0;"></p>
     </div>
 
-    <div class="roster-container">
-      <div>
-        <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleA">Local</h3>
+    <div class="roster-container" id="rosterContainer">
+      <div class="roster-col a" id="rosterColA">
+        <h3 class="roster-title" id="rosterTitleA"></h3>
         <ul class="roster-list" id="rosterA"></ul>
         <div class="staff-section" id="staffBoxA" style="display:none;">
           <div class="staff-title">Entraîneurs / Staff</div>
           <ul class="roster-list" id="staffA"></ul>
         </div>
       </div>
-      <div>
-        <h3 style="font-size:.9rem;margin:.2rem 0;" id="rosterTitleB">Visiteur</h3>
+      <div class="roster-col b" id="rosterColB">
+        <h3 class="roster-title" id="rosterTitleB"></h3>
         <ul class="roster-list" id="rosterB"></ul>
         <div class="staff-section" id="staffBoxB" style="display:none;">
           <div class="staff-title">Entraîneurs / Staff</div>
@@ -574,12 +597,15 @@ body:not(.is-super) .super-only{display:none !important}
     </div>
   </div>
 
+  <div id="goaliesSection">
   <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">Arrêts des gardiens</h2>
   <div class="toggle-block hidden" id="goaliesBlock">
     <section class="goalies">
-      <div class="g"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, équipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p></div>
-      <div class="g"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, équipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p></div>
+      <div class="g a"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, équipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p></div>
+      <div class="g b"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, équipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p></div>
     </section>
+  </div>
+
   </div>
 
   <h2 class="toggle-title collapsed" id="toggleHistoryBtn">Historique des parties</h2>
@@ -587,7 +613,7 @@ body:not(.is-super) .super-only{display:none !important}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <button type="button" class="btn-new-game-pastel admin-only" id="newGame">➕ Commencer une nouvelle partie</button>
+  <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
   <button type="button" class="btn-reset-board" id="askSave" style="display:none">💾 Enregistrer la partie dans l'historique…</button>
   <button type="button" class="btn-reset-board" id="resetBoard" style="display:none">🧹 Réinitialiser l'affichage</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
@@ -597,6 +623,7 @@ body:not(.is-super) .super-only{display:none !important}
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
+  <button type="button" class="btn-reset-board marqueur-only" id="btnTeamMessages">📢 Messages de l'équipe</button>
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️️ Gestion</button>
   <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
 </div>
@@ -618,9 +645,9 @@ body:not(.is-super) .super-only{display:none !important}
     <h2>Gestion</h2>
     <p class="ctx">Messages, organisations (avec leurs catégories et leurs équipes), paramètres et sécurité.</p>
 
-    <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
+    <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des messages</button>
     <button type="button" class="act-1" id="btnOpenHistoryManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#2E63C6;color:#FFF;">🗂️ Gestion de l'historique</button>
-    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Organisation, catégories et équipes</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#8E44AD;color:#FFF;">🏢 Organisation, catégories et équipes</button>
 
     <div class="field-group admin-only" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
@@ -675,7 +702,7 @@ body:not(.is-super) .super-only{display:none !important}
 
 <dialog id="messagesManageSheet">
   <div class="sheet-in">
-    <h2>Gestion des Messages</h2>
+    <h2>Gestion des messages</h2>
     <p class="ctx">Les messages défilent dans le bandeau l'un à la suite de l'autre : ceux de l'organisation, puis ceux des équipes en présence.</p>
 
     <div class="preset-box" id="msgOrgBox">
@@ -746,25 +773,38 @@ body:not(.is-super) .super-only{display:none !important}
     <h2 id="orgDetailTitle">Organisation</h2>
     <p class="ctx">Nom, catégories et équipes de cette organisation.</p>
 
+    <div id="odName">
     <label for="orgDetailNameInput" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">Nom de l'organisation :</label>
     <div class="inline-row">
       <input type="text" id="orgDetailNameInput">
       <button type="button" class="act-2" id="orgDetailRename">Renommer</button>
     </div>
+    </div>
 
+    <div class="super-only" id="odPerms">
+    <h3 class="sheet-sub">Droits de l'administrateur de l'organisation</h3>
+    <label class="check-row"><input type="checkbox" id="permOrgName"><span>Modifier le nom de l'organisation</span></label>
+    <label class="check-row"><input type="checkbox" id="permCategories"><span>Gérer les catégories</span></label>
+    <label class="check-row"><input type="checkbox" id="permTeams"><span>Gérer les équipes</span></label>
+    </div>
+
+    <div id="odCats">
     <h3 class="sheet-sub">Catégories</h3>
     <div class="inline-row">
       <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C...">
       <button type="button" class="act-1" id="btnAddCat">➕ Ajouter</button>
     </div>
     <ul class="cat-manage-list" id="catManageList"></ul>
+    </div>
 
+    <div id="odTeams">
     <h3 class="sheet-sub">Équipes</h3>
     <div class="inline-row">
       <select id="teamManageCatSelect" aria-label="Filtrer les équipes par catégorie"></select>
       <button type="button" class="act-1" id="btnAddNewTeam">➕ Créer</button>
     </div>
     <ul class="team-manage-list" id="teamManageList"></ul>
+    </div>
 
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="orgDetailBack">Retour</button>
@@ -1155,6 +1195,14 @@ document.addEventListener("DOMContentLoaded", function(){
 
   const isAdmin = () => currentRole === "admin";
   const isSuper = () => currentRole === "admin" && isAdminGlobal;
+  // Droits accordés par le super administrateur à l'administrateur de l'organisation
+  const normPerms = v => ({ orgName: !!(v && v.orgName), categories: !!(v && v.categories), teams: !(v && v.teams === false) });
+  let adminPerms = normPerms(null);
+  const can = p => isSuper() || (isAdmin() && !!adminPerms[p]);
+  // « Inverser » : échange les côtés à l'écran, sur l'appareil du marqueur seulement (jamais pour les spectateurs)
+  let inverted = store.get(sessionStorage, "ohmtro_inv") === "1";
+  const invOn = () => inverted && currentRole !== "viewer" && !archiveKey;
+  const sides = () => invOn() ? ["a","b"] : ["b","a"];       // de gauche à droite : visiteur puis local, sauf inversion
   const roleLabel = () => isSuper() ? "SUPER ADMIN" : currentRole.toUpperCase();
   const canEdit = () => currentRole !== "viewer" && !archiveKey;
   let editEntry = null;                // partie de l'historique en cours de modification : { key, m, at }
@@ -1219,6 +1267,9 @@ document.addEventListener("DOMContentLoaded", function(){
   function isStarted(s){
     return s.timer.running || s.timer.sec < defaultPeriodSec || s.period > 0 || sum(s.shots.a) > 0 || sum(s.shots.b) > 0 || s.events.length > 0;
   }
+  // Une partie est « à l'écran » dès que des équipes sont choisies ; elle est « en cours » tant qu'elle n'est pas terminée
+  const hasGame = s => isStarted(s) || !!(s.teamKeys.a || s.teamKeys.b) || s.names.a !== "Local" || s.names.b !== "Visiteur";
+  const isLive = s => hasGame(s) && !s.finished;
   function goalsOf(t, p, events){
     let n = 0; const evs = events || state.events;
     for(let i = 0; i < evs.length; i++){ const e = evs[i]; if(e.type === "goal" && e.team === t && (p == null || e.period === p)) n++; }
@@ -1259,8 +1310,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if(diff){ const l = line(def); l.sa = Math.max(l.ga, l.sa + diff); }
     return lines;
   }
-  function goalieStats(side, pId, scope){
-    const st = { pj: 0, v: 0, d: 0, n: 0, sa: 0, ga: 0, bl: 0 }, teamName = state.names[side];
+  function goalieStats(ctx, pId, scope){
+    const st = { pj: 0, v: 0, d: 0, n: 0, sa: 0, ga: 0, bl: 0 }, teamName = ctx.name, side = ctx.side;
     const add = (s, ms, lines, isFinal) => {
       const l = lines[pId], inNet = goalieOf(s, ms) === pId;
       if(!l && !inNet) return;
@@ -1278,7 +1329,7 @@ document.addEventListener("DOMContentLoaded", function(){
         add(h.s, ms, h.gl[ms] || (h.gl[ms] = goalieLines(h.s, ms)), true);
       });
     }
-    if(scope === "match" || isStarted(state)) add(state, side, goalieLines(state, side), state.finished);
+    if(side && (scope === "match" || isStarted(state))) add(state, side, goalieLines(state, side), state.finished);
     return st;
   }
   const svPct = (sa, ga) => sa > 0 ? pct(Math.max(0, sa - ga), sa) : "–";
@@ -1288,7 +1339,24 @@ document.addEventListener("DOMContentLoaded", function(){
     state.updatedAt = now(); lastLocal = state.updatedAt;
     if(editEntry) editEntry.m = state;
     db.set(state, err => { if(err) notify("Échec de l'enregistrement : " + (err.message || err), "error"); });
+    updateLiveIndex();
     render();
+  }
+
+  /* Parties en cours dans l'organisation : petite liste lue par tous les appareils, pour l'annoncer dans le bandeau */
+  let liveGames = {}, liveSig = "", liveAt = 0;
+  const LIVE_STALE = 6 * 3600000;      // une partie sans activité depuis 6 h n'est plus annoncée
+  const myLiveKey = () => currentCat + (isLinked() ? "__" + boardLink.team : (boardTeam ? "__" + boardTeam : ""));
+  function updateLiveIndex(){
+    if(editEntry || archiveKey) return;
+    const key = myLiveKey(), r = ref(currentOrg + "/live/" + key);
+    if(isLive(state)){
+      const sig = key + "|" + state.names.a + "|" + state.names.b;
+      if(sig !== liveSig || now() - liveAt > 300000){
+        liveSig = sig; liveAt = now();
+        r.set({ cat: currentCat, team: isLinked() ? boardLink.team : boardTeam, a: state.names.a, b: state.names.b, at: liveAt });
+      }
+    } else if(liveSig || liveGames[key]){ liveSig = ""; r.remove(); }
   }
 
   /* ============ Connexion, présence, statut ============ */
@@ -1303,14 +1371,24 @@ document.addEventListener("DOMContentLoaded", function(){
     const st = $("status");
     if(!connected){ st.textContent = "Hors ligne"; st.dataset.s = "offline"; return; }
     const connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
-    st.textContent = (currentRole !== "viewer") ? "En direct - " + roleLabel() + connText : "En direct" + connText;
-    st.dataset.s = "live";
+    // « En direct » (voyant vert) seulement quand une partie est en cours sur ce tableau
+    const live = isLive(state) && !editEntry && !archiveKey;
+    const txt = (live ? "En direct" : "Aucune partie") + (currentRole !== "viewer" ? " - " + roleLabel() : "") + connText;
+    if(st.textContent !== txt) st.textContent = txt;
+    st.dataset.s = live ? "live" : "idle";
+  }
+  function applyInv(){
+    document.documentElement.classList.toggle("inv", invOn());
+    $("btnSwapSides").setAttribute("aria-pressed", String(invOn()));
+  }
+  function updatePermUI(){
+    $("btnOpenOrgManage").style.display = (can("orgName") || can("categories") || can("teams")) ? "" : "none";
   }
 
   function updateRoleUI(){
     document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "");
     $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + roleLabel() + ")" : "🔒 Connexion";
-    updateStatusDisplay();
+    updateStatusDisplay(); applyInv(); updatePermUI();
   }
 
   function demoteToViewer(){
@@ -1394,7 +1472,7 @@ document.addEventListener("DOMContentLoaded", function(){
     dbConfig = ref(currentOrg + "/config");
     dbCategories = ref(currentOrg + "/categories");
 
-    presets = {}; presetByName = {}; presetsRev++; presetsLoaded = false;
+    presets = {}; presetByName = {}; presetsRev++; presetsLoaded = false; liveGames = {}; adminPerms = normPerms(null);
     if(nav !== "init" || !categoriesList.length) categoriesList = [currentCat];   // liste provisoire, le temps de charger celle de l'organisation
     renderOrgsDropdownTop(); renderCategoriesDropdownTop(); updateBrand();
     attachBoard(wantedTeam, nav);        // tableau présumé ; corrigé au besoin dès que les équipes sont chargées
@@ -1420,7 +1498,7 @@ document.addEventListener("DOMContentLoaded", function(){
     boardBase = catBase() + (boardTeam ? "/boards/" + boardTeam : "");
     boardLink = null; linkStale = false; pendingSnap = null; linkKnown = !boardTeam;
     archiveKey = null; liveState = null; setArchiveBar(null);
-    lastLocal = 0; openCardId = null; state = blank();
+    lastLocal = 0; openCardId = null; state = blank(); liveSig = "";
     setUrl(nav); checkMarqueurScope();
 
     dbPresence = ref(boardBase + "/presence");
@@ -1504,8 +1582,11 @@ document.addEventListener("DOMContentLoaded", function(){
       renderCategoriesDropdownTop();
     });
 
+    sub(ref(currentOrg + "/live"), snap => { const v = snap.val(); liveGames = (v && typeof v === "object") ? v : {}; updateTickerDisplay(); });
+
     sub(dbConfig, snap => {
       const cfg = snap.val() || {};
+      adminPerms = normPerms(cfg.adminPerms); updatePermUI();
       const min = int(cfg.defaultPeriodMin || 20, 1, 99), mVal = String(min);
       defaultPeriodSec = min * 60;
       if(["10","12","15","18","20"].indexOf(mVal) !== -1){
@@ -1557,6 +1638,14 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
+    const mine = myLiveKey();
+    Object.keys(liveGames).forEach(k => {
+      const g = liveGames[k];
+      if(!g || k === mine || !g.cat || now() - (Number(g.at) || 0) > LIVE_STALE) return;
+      const p = g.team && presets[g.team], cat = String(g.cat).toUpperCase();
+      messages.push(p && p.name ? "🔴 Présentement en cours dans " + cat + " : l'équipe " + p.name + " — sélectionnez-la juste ici ⬆⬆⬆"
+                                : "🔴 Présentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " — sélectionnez la catégorie juste ici ⬆⬆⬆");
+    });
     msgsOf(org).forEach(m => messages.push(m));
     // Messages des équipes : celles du match, et toujours l'équipe du tableau affiché (même sans partie lancée)
     const shown = [];
@@ -1657,7 +1746,7 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   /* ============ Gestion : paramètres ============ */
-  on("btnManageSettings", "click", () => { if(canEdit()) openDlg("settingsSheet"); });
+  on("btnManageSettings", "click", () => { if(isAdmin() && canEdit()) openDlg("settingsSheet"); });
   on("settingsCancel", "click", () => closeDlg("settingsSheet"));
   on("defaultPeriodMinInput", "change", () => {
     const custom = $("defaultPeriodMinInput").value === "custom";
@@ -1792,16 +1881,21 @@ document.addEventListener("DOMContentLoaded", function(){
   on("msgOrgAdd", "click", () => msgRow("msgOrgList", "", ORG_PH).focus());
   on("msgTeamAdd", "click", () => msgRow("msgTeamList", "", TEAM_PH).focus());
 
-  on("btnOpenMessagesManage", "click", () => {
+  function openMessages(){
     if(!canEdit()) return;
     closeDlg("settingsSheet");
     const selOrg = $("msgOrgSelect");
     fillSelect(selOrg, orgItems(), currentOrg);
     selOrg.disabled = !isSuper();
+    $("msgOrgBox").style.display = isAdmin() ? "" : "none";   // le marqueur ne gère que les messages de son équipe
+    $("msgCatSelect").disabled = !isAdmin();
     msgSelectedOrgKey = selOrg.value || currentOrg;
     loadOrgMessageData(msgSelectedOrgKey);
     openDlg("messagesManageSheet");
-  });
+  }
+  on("btnOpenMessagesManage", "click", openMessages);
+  on("btnTeamMessages", "click", openMessages);
+  const msgLeave = () => { if(isAdmin()) swapDlg("messagesManageSheet", "settingsSheet"); else closeDlg("messagesManageSheet"); };
   on("msgOrgSelect", "change", () => { msgSelectedOrgKey = $("msgOrgSelect").value; loadOrgMessageData(msgSelectedOrgKey); });
   let msgCatKey = "", msgToken = 0;
   function loadOrgMessageData(orgKey){
@@ -1809,11 +1903,13 @@ document.addEventListener("DOMContentLoaded", function(){
     msgSelectedTeamKey = ""; msgTempTeams = {}; msgDirtyTeams = {};
     msgFill("msgOrgList", msgsOf(org), ORG_PH, !isAdmin());
     msgCatKey = orgKey === currentOrg ? currentCat : "";
+    const lockCat = !isAdmin();
     fillSelect($("msgCatSelect"), msgCatKey ? [{ value: msgCatKey, label: msgCatKey.toUpperCase() }] : [], msgCatKey);
     fillSelect($("msgTeamSelect"), [], null, "Chargement...");
     msgFill("msgTeamList", [], TEAM_PH, true);
     loadCats(orgKey).then(cats => {
       if(token !== msgToken) return;                // l'utilisateur a changé d'organisation entre-temps
+      if(lockCat) cats = [currentCat];
       if(cats.indexOf(msgCatKey) === -1) msgCatKey = cats[0];
       fillSelect($("msgCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), msgCatKey);
       fillMsgTeams();
@@ -1827,6 +1923,7 @@ document.addEventListener("DOMContentLoaded", function(){
   // Équipes de la catégorie choisie (une équipe sans catégorie apparaît dans toutes)
   function fillMsgTeams(){
     const items = Object.keys(msgTempTeams).filter(k => { const t = msgTempTeams[k]; return t && t.name && (!t.category || t.category === msgCatKey); })
+                        .filter(k => isAdmin() || !boardTeam || k === boardTeam)      // marqueur d'une équipe : la sienne seulement
                         .map(k => ({ value: k, label: msgTempTeams[k].name }))
                         .sort((x, y) => x.label.localeCompare(y.label, "fr", { numeric: true }));
     const sel = $("msgTeamSelect");
@@ -1846,7 +1943,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(JSON.stringify(msgs) !== JSON.stringify(msgsOf(t))){ t.msgs = msgs; t.msg = msgs[0] || ""; msgDirtyTeams[msgSelectedTeamKey] = true; }
   }
   on("msgTeamSelect", "change", () => { stashTeamMsgs(); msgSelectedTeamKey = $("msgTeamSelect").value; showTeamMsg(); });
-  on("msgManageBack", "click", () => swapDlg("messagesManageSheet", "settingsSheet"));
+  on("msgManageBack", "click", msgLeave);
   on("msgManageSave", "click", () => {
     if(!canEdit()) return;
     if(isAdmin()){
@@ -1859,7 +1956,7 @@ document.addEventListener("DOMContentLoaded", function(){
       ref(base + "/msgs").set(t.msgs); ref(base + "/msg").set(t.msg);
     });
     msgDirtyTeams = {};
-    updateTickerDisplay(); swapDlg("messagesManageSheet", "settingsSheet"); notify("Messages enregistrés !");
+    updateTickerDisplay(); msgLeave(); notify("Messages enregistrés !");
   });
 
   /* ============ Gestion : organisations (avec leurs catégories et leurs équipes) ============ */
@@ -1925,6 +2022,14 @@ document.addEventListener("DOMContentLoaded", function(){
     $("orgDetailTitle").textContent = org ? org.name : orgKey;
     $("orgDetailNameInput").value = org ? org.name : "";
     $("newCatInput").value = "";
+    $("odName").style.display = can("orgName") ? "" : "none";
+    $("odCats").style.display = can("categories") ? "" : "none";
+    $("odTeams").style.display = can("teams") ? "" : "none";
+    if(isSuper()){
+      const show = p => { $("permOrgName").checked = p.orgName; $("permCategories").checked = p.categories; $("permTeams").checked = p.teams; };
+      show(orgKey === currentOrg ? adminPerms : normPerms(null));
+      if(orgKey !== currentOrg) ref(orgKey + "/config/adminPerms").once("value").then(s => { if(orgKey === manageOrgKey) show(normPerms(s.val())); });
+    }
     manageTeamCatKey = (orgKey === currentOrg) ? currentCat : "";
     manageCategoriesList = []; renderCategoriesManageList(); fillTeamCatSelect();
     loadCats(orgKey).then(list => {
@@ -1934,9 +2039,13 @@ document.addEventListener("DOMContentLoaded", function(){
     loadTeamsForManage(orgKey);
     swapDlg("orgManageSheet", "orgDetailSheet");
   }
+  ["permOrgName","permCategories","permTeams"].forEach(id => on(id, "change", () => {
+    if(!isSuper()) return;
+    ref(manageOrgKey + "/config/adminPerms").set({ orgName: $("permOrgName").checked, categories: $("permCategories").checked, teams: $("permTeams").checked });
+  }));
   on("orgDetailRename", "click", () => {
     const v = $("orgDetailNameInput").value.trim(), org = manageOrg();
-    if(!isAdmin() || !org) return;
+    if(!can("orgName") || !org) return;
     if(!v){ notify("Le nom ne peut pas être vide.", "info"); return; }
     org.name = v; dbOrgs.set(organizationsList); $("orgDetailTitle").textContent = v;
     notify("Organisation renommée.");
@@ -1955,7 +2064,7 @@ document.addEventListener("DOMContentLoaded", function(){
     manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList();
   }
   on("btnAddCat", "click", () => {
-    if(!isAdmin()) return;
+    if(!can("categories")) return;
     const val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""); if(!val) return;
     if(manageCategoriesList.indexOf(val) !== -1){ notify("Cette catégorie existe déjà.", "error"); return; }
     manageCategoriesList.push(val); saveCats(); $("newCatInput").value = ""; renderCategoriesManageList(); fillTeamCatSelect();
@@ -1966,7 +2075,7 @@ document.addEventListener("DOMContentLoaded", function(){
       list.appendChild(manageItem("cat-manage-item", el("strong", null, cat.toUpperCase()), [
         btn("btn-edit", "✏️ Éditer", () => { currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); swapDlg("orgDetailSheet", "editCatSheet"); }),
         btn("btn-hist-del", "🗑 Supprimer", () => {
-          if(!isAdmin()) return;
+          if(!can("categories")) return;
           if(manageCategoriesList.length <= 1){ notify("Il faut conserver au moins une catégorie.", "info"); return; }
           ask("Supprimer la catégorie " + cat.toUpperCase() + " ?\nSes parties et son historique ne seront plus accessibles.", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
             if(!ok) return;
@@ -1981,7 +2090,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const cleanK = $("editCatNameInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
     const idx = currentEditingCatIndex, old = manageCategoriesList[idx];
     swapDlg("editCatSheet", "orgDetailSheet");
-    if(!isAdmin() || !cleanK || !old || cleanK === old) return;
+    if(!can("categories") || !cleanK || !old || cleanK === old) return;
     if(manageCategoriesList.indexOf(cleanK) !== -1){ notify("Cette catégorie existe déjà.", "error"); return; }
     ask("Renommer " + old.toUpperCase() + " en " + cleanK.toUpperCase() + " ?\nLa partie en cours, l'historique et le mot de passe restent liés à l'ancien nom (" + old.toUpperCase() + ").", { title: "Renommer", ok: "Renommer" }).then(ok => {
       if(!ok) return;
@@ -2014,7 +2123,7 @@ document.addEventListener("DOMContentLoaded", function(){
       list.appendChild(manageItem("team-manage-item", label, [
         btn("btn-edit", "✏️ Éditer", () => openTeamEditor(key)),
         btn("btn-hist-del", "🗑 Supprimer", () => {
-          if(!isAdmin()) return;
+          if(!can("teams")) return;
           ask("Supprimer l'équipe « " + (team.name || key) + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
             if(ok) ref(manageOrgKey + "/teams_presets/" + key).remove();
           });
@@ -2025,7 +2134,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("btnAddNewTeam", "click", () => openTeamEditor(null));
   function openTeamEditor(key){
-    if(!isAdmin()) return;
+    if(!can("teams")) return;
     editingTeamKey = key;
     const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, category: manageTeamCatKey || manageCategoriesList[0] || "", roster: [], staff: [] };
     $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
@@ -2069,7 +2178,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("addStaffBtn", "click", () => addStaffRow("","Entraîneur-chef"));
   on("rsCancel", "click", () => swapDlg("rosterSheet", "orgDetailSheet"));
   on("rsSave", "click", () => {
-    if(!isAdmin()) return;
+    if(!can("teams")) return;
     const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ notify("Le nom de l'équipe est obligatoire.", "info"); return; }
     const existing = editingTeamKey ? manageTeamPresets[editingTeamKey] : null;
     const category = $("editTeamCatSelect").value;
@@ -2305,7 +2414,7 @@ document.addEventListener("DOMContentLoaded", function(){
   /* ============ Gestion de l'historique ============ */
   let hmOrg = currentOrg, hmCat = currentCat, hmList = [], hmToken = 0;
   on("btnOpenHistoryManage", "click", () => {
-    if(currentRole === "viewer") return;
+    if(!isAdmin()) return;
     closeDlg("settingsSheet");
     hmOrg = currentOrg; hmCat = currentCat;
     fillSelect($("hmOrgSelect"), orgItems(), hmOrg);
@@ -2415,8 +2524,37 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   /* ============ Statistiques d'équipe ============ */
+  // Menu du Résumé statistiques : les deux équipes du match, ou toutes les équipes de la catégorie quand le tableau est vide
+  function refreshStatsSelect(){
+    const sel = $("statsTeamSelect"), bt = presets[boardTeam]; let items, def;
+    const star = p => (bt && p === bt) ? "★ " : "";
+    if(hasGame(state)){
+      const pa = presetFor("a"), pb = presetFor("b");
+      items = [{ value: "b", label: star(pb) + state.names.b + " (Visiteur)" }, { value: "a", label: star(pa) + state.names.a + " (Local)" }];
+      def = (bt && pb === bt && pa !== bt) ? "b" : "a";      // l'équipe choisie dans le menu du haut passe en premier
+    } else {
+      items = Object.keys(presets).filter(k => { const p = presets[k]; return p && p.name && (!p.category || p.category === currentCat); })
+                    .sort((x, y) => (presets[y].own ? 1 : 0) - (presets[x].own ? 1 : 0) || String(presets[x].name).localeCompare(String(presets[y].name), "fr", { numeric: true }))
+                    .map(k => ({ value: "k:" + k, label: star(presets[k]) + presets[k].name }));
+      def = (bt && items.some(i => i.value === "k:" + boardTeam)) ? "k:" + boardTeam : (items[0] ? items[0].value : null);
+    }
+    const sig = JSON.stringify(items) + "|" + def;
+    if(sel.dataset.sig === sig) return;
+    sel.dataset.sig = sig;
+    const prev = sel.value, keep = sel.dataset.userTouched && items.some(i => i.value === prev);
+    if(!keep) delete sel.dataset.userTouched;
+    fillSelect(sel, items, keep ? prev : def);
+  }
+  // Équipe visée : { name, side (a / b pendant une partie, sinon null), preset }
+  function statsTarget(){
+    const v = $("statsTeamSelect").value || "";
+    if(v === "a" || v === "b") return { name: state.names[v], side: v, preset: presetFor(v) };
+    const p = v.indexOf("k:") === 0 ? presets[v.slice(2)] : null;
+    return (p && p.name) ? { name: p.name, side: null, preset: p } : null;
+  }
   function renderStats(){
-    const name = state.names[$("statsTeamSelect").value];
+    const target = statsTarget(), name = target ? target.name : null;
+    setText("statsTeamName", name || "");
     let pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, shotsAgainst = 0; const res = [];
     historyList.forEach(h => {
       const side = h.a === name ? "a" : (h.b === name ? "b" : null); if(!side) return;
@@ -2434,24 +2572,36 @@ document.addEventListener("DOMContentLoaded", function(){
     setText("stGAA", pj > 0 ? (bc / pj).toFixed(2) : "0.00");
     setText("stSV", shotsAgainst > 0 ? Math.round(saves / shotsAgainst * 100) + "%" : "0%");
   }
-  on("statsTeamSelect", "change", () => { $("statsTeamSelect").dataset.userTouched = "1"; renderStats(); });
+  on("statsTeamSelect", "change", () => {
+    $("statsTeamSelect").dataset.userTouched = "1"; renderStats();
+    if(!hasGame(state)){ openCardId = null; if(isOpen("rosterBlock")) renderRosters(); }   // tableau vide : l'alignement suit l'équipe choisie
+  });
 
   /* ============ Rendu principal ============ */
   const rootStyle = document.documentElement.style, painted = { ca: "", cb: "" };
+  let lastGameMode = null;
   const isOpen = id => !$(id).classList.contains("hidden");
   function setLogo(img, url){ url = url || ""; if(img.getAttribute("src") !== url) img.setAttribute("src", url); }
   ["logoA","logoB"].forEach(id => $(id).addEventListener("error", () => { if($(id).getAttribute("src")) $(id).setAttribute("src", ""); }));
 
   function render(){
-    const n = state.names, started = isStarted(state);
-    if($("nameA").value !== n.a) $("nameA").value = n.a;      // les noms viennent des équipes choisies au lancement de la partie
-    if($("nameB").value !== n.b) $("nameB").value = n.b;
+    const n = state.names, started = isStarted(state), game = hasGame(state);
+    const na = game ? n.a : "", nb = game ? n.b : "";        // tableau vide : on n'écrit pas « Local » / « Visiteur »
+    if($("nameA").value !== na) $("nameA").value = na;        // les noms viennent des équipes choisies au lancement de la partie
+    if($("nameB").value !== nb) $("nameB").value = nb;
+    document.documentElement.classList.toggle("no-teams", !game);
+    applyInv(); updateStatusDisplay();
+    if(game !== lastGameMode){                                // changement de mode : « Ce match » pendant une partie, « Tout (Saison) » sinon
+      lastGameMode = game; rosterScope = game ? "match" : "all"; openCardId = null;
+      $("btnScopeMatch").classList.toggle("active", game); $("btnScopeAll").classList.toggle("active", !game);
+      if(!game && isOpen("rosterBlock")) ensureHistory();
+    }
     setLogo($("logoA"), state.logos.a); setLogo($("logoB"), state.logos.b);
     if(painted.ca !== state.colors.a){ painted.ca = state.colors.a; rootStyle.setProperty("--team-a-color", state.colors.a); }
     if(painted.cb !== state.colors.b){ painted.cb = state.colors.b; rootStyle.setProperty("--team-b-color", state.colors.b); }
 
     setText("optTeamA", n.a); setText("optTeamB", n.b);
-    setText("stOptA", n.a + " (Local)"); setText("stOptB", n.b + " (Visiteur)");
+    refreshStatsSelect();
 
     const gA = goalsOf("a"), gB = goalsOf("b"), sA = sum(state.shots.a), sB = sum(state.shots.b);
     $("btnOt").disabled = (gA !== gB);
@@ -2479,7 +2629,6 @@ document.addEventListener("DOMContentLoaded", function(){
     renderShotsTable();
     renderEvents();
     if(isOpen("rosterBlock")) renderRosters();
-    if(!$("statsTeamSelect").dataset.userTouched) $("statsTeamSelect").value = "a";
     if(isOpen("statsBlock")) renderStats();
     updateTickerDisplay();
   }
@@ -2506,7 +2655,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
       let season = "";
       if(cur && historyLoaded){
-        const st = goalieStats(side, cur, "all");
+        const st = goalieStats({ name: state.names[side], side: side }, cur, "all");
         if(st.pj) season = "Saison : " + st.pj + " PJ · " + st.v + "-" + st.d + "-" + st.n + " · " + svPct(st.sa, st.ga) +
                            " · MOY " + (st.ga / st.pj).toFixed(2).replace(".", ",") + (st.bl ? " · " + st.bl + " BL" : "");
       }
@@ -2534,9 +2683,13 @@ document.addEventListener("DOMContentLoaded", function(){
       state.rosters[side].push(p); val = pidOf(p, state.rosters[side].length - 1);
     }
     // Les lancers déjà reçus restent au gardien précédent (ou vont au premier gardien désigné s'il n'y en avait pas)
-    const prev = goalieOf(state, side) || val, opp = side === "a" ? "b" : "a";
+    const before = goalieOf(state, side), prev = before || val, opp = side === "a" ? "b" : "a";
     if(prev === val && state.goalies[side] === val) return false;
     state.events.forEach(ev => { if(ev.team === opp && (ev.type === "shot" || ev.type === "goal") && !ev.g) ev.g = prev; });
+    // Pendant la partie, le changement est inscrit dans le match pas à pas
+    if(isStarted(state) && before !== val){
+      state.events.push({ id: uid(), type: "goalie", team: side, period: state.period, time: formatTime(remaining()), player: val, prev: before || "", t: now() });
+    }
     state.goalies[side] = val; commit();
     return true;
   }
@@ -2567,8 +2720,9 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function renderShotsTable(){
     const frag = document.createDocumentFragment();
-    ["a","b"].forEach(t => {
-      const tr = el("tr"), th = el("th", null, state.names[t]); th.scope = "row"; tr.appendChild(th);
+    const game = hasGame(state);
+    sides().forEach(t => {
+      const tr = el("tr"), th = el("th", null, game ? state.names[t] : "—"); th.scope = "row"; tr.appendChild(th);
       state.shots[t].forEach((v,i) => tr.appendChild(el("td", i === state.period ? "cur" : null, v)));
       tr.appendChild(el("td", "tot", sum(state.shots[t]))); frag.appendChild(tr);
     });
@@ -2576,25 +2730,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Alignements ============ */
-  function refreshPresetPicker(sel, currentName){
-    const sig = presetsRev + "|" + currentCat;
-    if(sel.dataset.sig === sig) return;
-    sel.dataset.sig = sig;
-    const prev = sel.value, items = []; let byName = null;
-    Object.keys(presets).forEach(k => {
-      const p = presets[k];
-      if(p && p.name && (!p.category || p.category === currentCat)){ items.push({ value: k, label: p.name }); if(p.name === currentName) byName = k; }
-    });
-    fillSelect(sel, items, items.some(i => i.value === prev) ? prev : byName);
-  }
-  ["rosterSelectTeamA","rosterSelectTeamB"].forEach(id => on(id, "change", renderRosters));
-
-  function activeRoster(side, started){
-    if(!started){
-      const p = presets[$(side === "a" ? "rosterSelectTeamA" : "rosterSelectTeamB").value];
-      const r = p ? toArr(p.roster).map(normPlayer) : [];
-      return r.length ? r : state.rosters[side];
-    }
+  function activeRoster(side){
     if(rosterScope !== "all") return state.rosters[side];      // « Ce match » : joueurs présents
     // « Tout (Saison) » : toute l'équipe enregistrée, plus les joueurs ajoutés pendant le match
     const preset = presetFor(side), full = preset ? toArr(preset.roster).map(normPlayer) : [];
@@ -2605,15 +2741,25 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   function renderRosters(){
-    const started = isStarted(state), selA = $("rosterSelectTeamA"), selB = $("rosterSelectTeamB");
-    $("rosterTeamPickers").style.display = started ? "none" : "flex";
-    if(!started){ refreshPresetPicker(selA, state.names.a); refreshPresetPicker(selB, state.names.b); }
-    const title = (sel, fb) => (!started && sel.selectedOptions[0]) ? sel.selectedOptions[0].text : fb;
-    setText("rosterTitleA", title(selA, state.names.a)); setText("rosterTitleB", title(selB, state.names.b));
-    renderRosterList("rosterA", activeRoster("a", started), "a");
-    renderRosterList("rosterB", activeRoster("b", started), "b");
-    renderStaffList("staffA", "staffBoxA", state.staff.a);
-    renderStaffList("staffB", "staffBoxB", state.staff.b);
+    const bt = presets[boardTeam];
+    if(!hasGame(state)){
+      // Tableau vide : alignement complet de l'équipe choisie dans le Résumé statistiques, statistiques de la saison
+      const t = statsTarget(), p = t && t.preset;
+      $("rosterColB").style.display = "none";
+      setText("rosterTitleA", t ? t.name : ""); $("rosterTitleA").classList.add("hl");
+      setText("rosterHint", t ? "Équipe choisie dans le Résumé statistiques. Touchez un joueur pour voir ses statistiques de la saison." : "Aucune équipe enregistrée dans cette catégorie.");
+      renderRosterList("rosterA", p ? toArr(p.roster).map(normPlayer) : [], { name: t ? t.name : "", side: null });
+      renderStaffList("staffA", "staffBoxA", p ? toArr(p.staff).map(normStaff) : []);
+      return;
+    }
+    $("rosterColB").style.display = ""; setText("rosterHint", "");
+    ["a","b"].forEach(side => {
+      const U = side.toUpperCase();
+      setText("rosterTitle" + U, state.names[side] + (side === "a" ? " (Local)" : " (Visiteur)"));
+      $("rosterTitle" + U).classList.toggle("hl", !!bt && presetFor(side) === bt);
+      renderRosterList("roster" + U, activeRoster(side), { name: state.names[side], side: side });
+      renderStaffList("staff" + U, "staffBox" + U, state.staff[side]);
+    });
   }
 
   function setScope(scope){
@@ -2627,7 +2773,8 @@ document.addEventListener("DOMContentLoaded", function(){
   on("btnScopeMatch", "click", () => setScope("match"));
   on("btnScopeAll", "click", () => setScope("all"));
 
-  function renderRosterList(id, list, side){
+  function renderRosterList(id, list, ctx){
+    const side = ctx.side || "k", scope = ctx.side ? rosterScope : "all";
     const ul = $(id); ul.textContent = "";
     if(!list || !list.length){ ul.appendChild(el("li", "empty", "Aucun joueur")); return; }
     const frag = document.createDocumentFragment();
@@ -2643,15 +2790,15 @@ document.addEventListener("DOMContentLoaded", function(){
       if(isCardOpen){
         const isG = p.pos === "G", card = el("div", "player-card-inline"), h4 = el("h4"), grid = el("div", "p-grid" + (isG ? " g-grid" : ""));
         h4.appendChild(el("span", null, (isG ? "🥅 " : "👤 ") + (p.no ? "#" + p.no + " " : "") + p.name));
-        h4.appendChild(el("small", null, "(" + (rosterScope === "match" ? "Ce match" : "Saison") + ")"));
+        h4.appendChild(el("small", null, "(" + (scope === "match" ? "Ce match" : "Saison") + ")"));
         let cells;
         if(isG){
           // Gardien : fiche, blanchissages, moyenne de buts accordés par match, lancers reçus, buts contre, arrêts, % d'arrêts
-          const g = goalieStats(side, pId, rosterScope);
+          const g = goalieStats(ctx, pId, scope);
           cells = [["PJ", g.pj], ["V-D-N", g.v + "-" + g.d + "-" + g.n], ["BL", g.bl], ["MOY", g.pj ? (g.ga / g.pj).toFixed(2).replace(".", ",") : "–"],
                    ["LAN", g.sa], ["BC", g.ga], ["ARR", Math.max(0, g.sa - g.ga)], ["% ARR", svPct(g.sa, g.ga)]];
         } else {
-          const st = playerStats(side, pId, rosterScope);
+          const st = playerStats(ctx, pId, scope);
           cells = [["PJ", st.pj], ["B", st.b], ["A", st.a], ["PTS", st.b + st.a], ["PUN", st.pun + "m"]];
         }
         cells.forEach(c => {
@@ -2663,8 +2810,8 @@ document.addEventListener("DOMContentLoaded", function(){
     ul.appendChild(frag);
   }
 
-  function playerStats(side, pId, scope){
-    let b = 0, a = 0, pun = 0, pj = 0; const teamName = state.names[side];
+  function playerStats(ctx, pId, scope){
+    let b = 0, a = 0, pun = 0, pj = 0; const teamName = ctx.name, side = ctx.side;
     const scan = (events, matchSide) => {
       for(let i = 0; i < events.length; i++){
         const e = events[i]; if(e.team !== matchSide) continue;
@@ -2679,7 +2826,7 @@ document.addEventListener("DOMContentLoaded", function(){
         if(ms){ pj++; scan(h.events, ms); }
       });
     }
-    if(scope === "match" || isStarted(state)){ pj++; scan(state.events, side); }
+    if(side && (scope === "match" || isStarted(state))){ pj++; scan(state.events, side); }
     return { pj: pj, b: b, a: a, pun: pun };
   }
 
@@ -2715,6 +2862,9 @@ document.addEventListener("DOMContentLoaded", function(){
       } else if(e.type === "pen"){
         st.textContent = "PUNITION - " + team + " (" + getPlayerName(e.team, e.player) + ")";
         subl.textContent = (e.min || 2) + " min - " + (e.reason || "Infraction");
+      } else if(e.type === "goalie"){
+        st.textContent = "GARDIEN - " + team + " (" + getPlayerName(e.team, e.player) + ")";
+        subl.textContent = e.prev ? "Changement de gardien, remplace " + getPlayerName(e.team, e.prev) : "Entre devant le filet";
       } else if(e.type === "shot"){
         st.textContent = "LANCER - " + team; subl.textContent = "Lancer au but";
       } else {
@@ -2754,7 +2904,9 @@ document.addEventListener("DOMContentLoaded", function(){
     const items = []; let selected = null;
     Object.keys(presets).forEach(k => {
       const p = presets[k]; if(!p || !p.name) return;
-      items.push({ value: k, label: p.name + (p.category ? " (" + String(p.category).toUpperCase() + ")" : "") });
+      const inCat = !p.category || p.category === currentCat;
+      if(!isAdmin() && !inCat) return;                         // marqueur : équipes de sa catégorie seulement
+      items.push({ value: k, label: p.name + (isAdmin() && p.category ? " (" + String(p.category).toUpperCase() + ")" : "") });
       if(p.name === currentName && (selected == null || p.category === currentCat)) selected = k;
     });
     fillSelect($(selectId), items, selected, "-- Choisir une équipe --");
@@ -2775,7 +2927,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   on("newGame", "click", () => {
-    if(!isAdmin() || editEntry) return;
+    if(!canEdit() || editEntry) return;
     populateWizTeamSelect("wizTeamA", state.names.a); populateWizTeamSelect("wizTeamB", state.names.b);
     $("wizColorA").value = state.colors.a; $("wizColorB").value = state.colors.b;
     // Tableau d'équipe : l'équipe du tableau est proposée d'office comme équipe locale
@@ -2790,7 +2942,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("wizTeamB", "change", () => { renderPresenceList("b", $("wizTeamB").value); wizSyncColor("b"); });
 
   on("wizStart", "click", () => {
-    if(!isAdmin()) return;
+    if(!canEdit()) return;
     const keys = { a: $("wizTeamA").value, b: $("wizTeamB").value };
     if(keys.a && keys.a === keys.b){ notify("Choisissez deux équipes différentes.", "info"); return; }
     // Confrontation entre deux équipes de l'organisation : une seule partie, affichée sur les deux tableaux
@@ -3021,11 +3173,9 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   on("btnSwapSides", "click", () => {
-    if(!canEdit()) return;
-    ["names","logos","colors","rosters","staff","goalies","teamKeys","shots"].forEach(k => { const tmp = state[k].a; state[k].a = state[k].b; state[k].b = tmp; });
-    state.events.forEach(e => { if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a"; });
-    if(openCardId) openCardId = null;
-    commit();
+    if(currentRole === "viewer") return;
+    inverted = !inverted; store.set(sessionStorage, "ohmtro_inv", inverted ? "1" : "0");
+    applyInv(); renderShotsTable();
   });
 
   /* ============ Boîtes de message ============ */
