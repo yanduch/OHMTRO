@@ -842,17 +842,29 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
-    <div class="field-group super-only">
+
+    <div class="field-group super-only" style="margin-top:.6rem;">
       <label for="pwdSuperInput">Super administrateur (toutes les organisations) :</label>
       <input type="password" id="pwdSuperInput" autocomplete="off" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
-    <div class="field-group" style="margin-top:.8rem;">
+
+    <div class="preset-box" style="margin-top:1rem;">
+      <div class="super-only" style="margin-bottom:.7rem;">
+        <label for="pwdOrgSelect" style="font-weight:700;">Organisation :</label>
+        <select id="pwdOrgSelect" style="background:#FFF;color:#0F2236;"></select>
+      </div>
+
       <label for="pwdAdminInput">Administrateur de <span id="pwdOrgName">l'organisation</span> (utilisateur : admin) :</label>
-      <input type="password" id="pwdAdminInput" autocomplete="off" placeholder="Vide = aucun administrateur" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+      <input type="password" id="pwdAdminInput" autocomplete="off" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+      <small class="super-only" style="display:block;margin-top:.25rem;color:var(--muted);font-size:.78rem;">Laissé vide, l'organisation n'a pas d'administrateur.</small>
+
+      <label for="pwdMarkerSelect" style="margin-top:.9rem;font-weight:700;">Marqueur (utilisateur : marqueur) :</label>
+      <select id="pwdMarkerSelect" style="background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
+      <label for="pwdMarkerInput">Mot de passe de ce marqueur :</label>
+      <input type="password" id="pwdMarkerInput" autocomplete="off" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
-    <hr style="border:0;border-top:1px solid var(--line);margin:1.2rem 0;">
-    <h3 style="font-size:1rem;margin:0 0 .4rem;">Mots de passe Marqueurs</h3>
-    <div id="catPasswordsContainer"></div>
+    <p class="ctx" style="margin:.6rem 0 0;font-size:.8rem;">Vous pouvez modifier plusieurs mots de passe avant d'enregistrer : tout est sauvegardé d'un coup.</p>
+
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="pwdCancel">Annuler</button>
       <button type="button" class="act-1" id="pwdSave">Enregistrer</button>
@@ -2258,43 +2270,104 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   /* ============ Gestion : mots de passe ============ */
-  let pwdLoaded = null;
+  // Le super administrateur choisit l'organisation dans une liste ; l'administrateur ne voit que la sienne.
+  // Plusieurs mots de passe (et plusieurs organisations) peuvent être modifiés avant d'enregistrer.
+  let pwdSuper = "", pwdOrg = "", pwdMarker = "", pwdOrgs = {}, pwdToken = 0;
+  const pwdOrgLabel = k => { const o = organizationsList.find(x => x.id === k); return o ? o.name : String(k).toUpperCase(); };
+
+  // Garde en mémoire ce qui est écrit dans les champs de l'organisation et du marqueur affichés
+  function pwdStash(){
+    const o = pwdOrgs[pwdOrg]; if(!o) return;
+    o.admin = $("pwdAdminInput").value.trim();
+    if(pwdMarker) o.vals[pwdMarker] = $("pwdMarkerInput").value.trim();
+  }
+  function pwdShowMarker(){
+    const o = pwdOrgs[pwdOrg], has = !!(o && pwdMarker);
+    $("pwdMarkerInput").value = has ? o.vals[pwdMarker] : ""; $("pwdMarkerInput").disabled = !has;
+  }
+  function pwdShowOrg(){
+    const o = pwdOrgs[pwdOrg];
+    $("pwdOrgName").textContent = pwdOrgLabel(pwdOrg);
+    $("pwdAdminInput").value = o ? o.admin : ""; $("pwdAdminInput").disabled = !o;
+    const items = o ? o.items.map(it => ({ value: it.id, label: it.label })) : [];
+    pwdMarker = items.length ? items[0].value : "";
+    fillSelect($("pwdMarkerSelect"), items, pwdMarker, items.length ? null : (o ? "Aucun marqueur" : "Chargement..."));
+    pwdShowMarker();
+  }
+  // Mots de passe, catégories et équipes d'une organisation : un marqueur par catégorie, ou un par équipe
+  // quand la catégorie compte plusieurs équipes de l'organisation
+  function pwdLoadOrg(orgKey){
+    pwdOrg = orgKey; pwdMarker = "";
+    pwdShowOrg();
+    if(pwdOrgs[orgKey]) return Promise.resolve();
+    const token = ++pwdToken;
+    return Promise.all([ref(orgKey + "/passwords").once("value"), loadCats(orgKey), ref(orgKey + "/teams_presets").once("value")]).then(r => {
+      const v = r[0].val() || {}, cats = r[1], teams = r[2].val() || {}, items = [], vals = {};
+      const pw = { legacyAdmin: v.admin || "", orgAdmin: typeof v.orgAdmin === "string" ? v.orgAdmin : "", marqueur: v.marqueur || "buts",
+                   categories: (v.categories && typeof v.categories === "object") ? v.categories : {},
+                   teams: (v.teams && typeof v.teams === "object") ? v.teams : {} };
+      cats.forEach(cat => {
+        const own = Object.keys(teams).filter(k => { const p = teams[k]; return p && p.name && p.own && (!p.category || p.category === cat); })
+                          .sort((x, y) => String(teams[x].name).localeCompare(String(teams[y].name), "fr", { numeric: true }));
+        const catPwd = pw.categories[cat] || pw.marqueur;
+        if(own.length < 2){ items.push({ id: "cat:" + cat, label: cat.toUpperCase() }); vals["cat:" + cat] = catPwd; }
+        else own.forEach(k => {
+          if(vals["team:" + k] != null) return;
+          items.push({ id: "team:" + k, label: cat.toUpperCase() + " - " + teams[k].name }); vals["team:" + k] = pw.teams[k] || catPwd;
+        });
+      });
+      pwdOrgs[orgKey] = { pw: pw, items: items, vals: vals, init: Object.assign({}, vals), admin: pw.orgAdmin };
+      if(token === pwdToken && pwdOrg === orgKey) pwdShowOrg();
+    });
+  }
+
   on("btnOpenPasswords", "click", () => {
     if(!isAdmin()) return;
-    loadPasswords().then(passwords => {
+    pwdOrgs = {};
+    Promise.all([loadPasswords(), pwdLoadOrg(currentOrg)]).then(r => {
+      pwdSuper = r[0].superPwd;
       closeDlg("settingsSheet");
-      const org = organizationsList.find(o => o.id === currentOrg);
-      $("pwdOrgName").textContent = org ? org.name : currentOrg.toUpperCase();
-      $("pwdSuperInput").value = isSuper() ? passwords.superPwd : ""; $("pwdAdminInput").value = passwords.orgAdmin;
-      const container = $("catPasswordsContainer"); container.textContent = "";
-      container.dataset.marqueur = passwords.marqueur; pwdLoaded = passwords;
-      const field = (text, cls, key, val) => {
-        const group = el("div", "field-group"), label = el("label", null, text), input = el("input", "cat-pwd-input " + cls);
-        input.type = "password"; input.dataset.key = key; input.value = val;
-        group.appendChild(label); group.appendChild(input); container.appendChild(group); addEye(input);
-      };
-      categoriesList.forEach(cat => {
-        const teams = boardTeams(cat), catPwd = passwords.categories[cat] || passwords.marqueur;
-        if(teams.length < 2) field("Marqueur - " + cat.toUpperCase() + " :", "pwd-cat", cat, catPwd);
-        else teams.forEach(k => field("Marqueur - " + cat.toUpperCase() + " - " + presets[k].name + " :", "pwd-team", k, passwords.teams[k] || catPwd));
-      });
+      $("pwdSuperInput").value = isSuper() ? pwdSuper : "";
+      fillSelect($("pwdOrgSelect"), orgItems(), currentOrg);
       hidePasswords("passwordsSheet"); openDlg("passwordsSheet");
     }).catch(() => notify("Impossible de charger les mots de passe.", "error"));
   });
+  on("pwdOrgSelect", "change", () => {
+    if(!isSuper()) return;
+    pwdStash();
+    pwdLoadOrg($("pwdOrgSelect").value).catch(() => notify("Impossible de charger les mots de passe de cette organisation.", "error"));
+  });
+  on("pwdMarkerSelect", "change", () => { pwdStash(); pwdMarker = $("pwdMarkerSelect").value; pwdShowMarker(); });
   on("pwdCancel", "click", () => closeDlg("passwordsSheet"));
   on("pwdSave", "click", () => {
     if(!isAdmin()) return;
-    const old = pwdLoaded || { categories: {}, teams: {} };
-    const orgAdmin = $("pwdAdminInput").value.trim(), sup = $("pwdSuperInput").value.trim() || old.superPwd || "hockey";
-    if(isSuper() && orgAdmin && orgAdmin === sup){ notify("Le mot de passe de l'administrateur de l'organisation doit être différent de celui du super administrateur.", "info"); return; }
-    if(!isSuper() && !orgAdmin){ notify("Le mot de passe administrateur ne peut pas être vide.", "info"); return; }
-    if(!isSuper() && orgAdmin === old.superPwd){ notify("Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
+    pwdStash();
+    const sup = isSuper() ? ($("pwdSuperInput").value.trim() || pwdSuper) : pwdSuper, writes = [];
+    const keys = Object.keys(pwdOrgs).filter(k => isSuper() || k === currentOrg);
+    for(let n = 0; n < keys.length; n++){
+      const k = keys[n], o = pwdOrgs[k], where = isSuper() ? " (" + pwdOrgLabel(k) + ")" : "";
+      const changed = Object.keys(o.vals).filter(id => o.vals[id] !== o.init[id]), adminChanged = o.admin !== o.pw.orgAdmin;
+      if(isSuper() && o.admin && o.admin === sup){
+        notify("Le mot de passe de l'administrateur" + where + " doit être différent de celui du super administrateur.", "info"); return;
+      }
+      if(!adminChanged && !changed.length) continue;
+      if(!isSuper() && adminChanged){
+        if(!o.admin){ notify("Le mot de passe administrateur ne peut pas être vide.", "info"); return; }
+        if(o.admin === sup){ notify("Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
+      }
+      const empty = changed.filter(id => !o.vals[id])[0];
+      if(empty){
+        const it = o.items.filter(x => x.id === empty)[0];
+        notify("Le mot de passe du marqueur " + (it ? it.label : "") + where + " ne peut pas être vide.", "info"); return;
+      }
+      const newP = { admin: o.pw.legacyAdmin || "", orgAdmin: o.admin, marqueur: o.pw.marqueur,
+                     categories: Object.assign({}, o.pw.categories), teams: Object.assign({}, o.pw.teams) };
+      changed.forEach(id => { if(id.indexOf("team:") === 0) newP.teams[id.slice(5)] = o.vals[id]; else newP.categories[id.slice(4)] = o.vals[id]; });
+      writes.push([k, newP]);
+    }
     if(isSuper()) dbSuper.set(sup);
-    const newP = { admin: old.legacyAdmin || "", orgAdmin: orgAdmin, marqueur: $("catPasswordsContainer").dataset.marqueur || "buts",
-                   categories: Object.assign({}, old.categories), teams: Object.assign({}, old.teams) };
-    document.querySelectorAll(".pwd-cat").forEach(inp => { newP.categories[inp.dataset.key] = inp.value.trim() || "buts"; });
-    document.querySelectorAll(".pwd-team").forEach(inp => { newP.teams[inp.dataset.key] = inp.value.trim() || "buts"; });
-    dbPasswords.set(newP); closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
+    writes.forEach(w => ref(w[0] + "/passwords").set(w[1]));
+    closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
   });
 
   /* ============ Chronomètre ============ */
@@ -3228,7 +3301,7 @@ document.addEventListener("DOMContentLoaded", function(){
     applyInv(); renderShotsTable();
   });
 
-  ["loginPass","pwdSuperInput","pwdAdminInput"].forEach(id => addEye($(id)));
+  ["loginPass","pwdSuperInput","pwdAdminInput","pwdMarkerInput"].forEach(id => addEye($(id)));
 
   /* ============ Boîtes de message ============ */
   on("noticeOk", "click", () => { clearTimeout(noticeTimer); closeDlg("noticeBox"); });
