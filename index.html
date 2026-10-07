@@ -62,7 +62,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .ticker-unit{flex:none;display:inline-flex;}
 .ticker-msg{flex:none;padding-right:6rem;}
 .ticker-text:hover{animation-play-state:paused;}
-/* Le message entre par la droite, puis défile en boucle avec un espace entre deux passages */
+/* Le message entre par la droite, puis dÃ©file en boucle avec un espace entre deux passages */
 @keyframes tickerIn { from { transform: translate3d(var(--cw), 0, 0); } to { transform: translate3d(0, 0, 0); } }
 @keyframes tickerLoop { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(calc(-1 * var(--uw)), 0, 0); } }
 
@@ -129,7 +129,7 @@ body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-even
 
 h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:1.6rem 0 .5rem}
 .toggle-title{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;margin:1.2rem 0 .4rem}
-.toggle-title::after{content:"▼";font-size:.8rem;color:var(--muted);transition:transform .2s}
+.toggle-title::after{content:"â–¼";font-size:.8rem;color:var(--muted);transition:transform .2s}
 .toggle-title.collapsed::after{transform:rotate(-90deg)}
 
 .toggle-block{transition:all .2s;overflow:hidden}
@@ -311,7 +311,7 @@ body:not(.role-admin) .admin-only{display:none !important}
 .cat-pwd-input{width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px}
 @media print { .archive-bar, .ticker-wrap { display:none !important; } }
 
-/* --- Boîtes de message et de confirmation --- */
+/* --- BoÃ®tes de message et de confirmation --- */
 dialog.msg-box{margin:auto;border-radius:18px;max-width:22rem;width:calc(100% - 2rem);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.28)}
 dialog.msg-box .sheet-in{padding:1.4rem 1.2rem 1.2rem}
 .msg-icon{width:3.4rem;height:3.4rem;border-radius:50%;margin:0 auto .7rem;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:2rem;line-height:1;color:#FFF;background:var(--ok)}
@@ -333,7 +333,7 @@ dialog.msg-box .sheet-in{padding:1.4rem 1.2rem 1.2rem}
 .inline-row .act-1, .inline-row .act-2{padding:.4rem .8rem;font-size:.9rem;border-radius:8px;white-space:nowrap}
 .inline-row .act-2{border:1px solid var(--line)}
 
-/* --- Alignements : menus des équipes lisibles --- */
+/* --- Alignements : menus des Ã©quipes lisibles --- */
 #rosterTeamPickers select{background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;font-weight:600;opacity:1 !important}
 
 /* --- Gardiens --- */
@@ -346,14 +346,14 @@ body:not(.role-viewer) .g-who{display:none}
 .player-card-inline .p-grid.g-grid{grid-template-columns:repeat(4,1fr);row-gap:.35rem}
 .player-card-inline .p-grid.g-grid .p-stat .p-val{font-size:.95rem;white-space:nowrap}
 
-/* --- Punitions bien visibles dans le pas à pas --- */
+/* --- Punitions bien visibles dans le pas Ã  pas --- */
 .event-row.pen{--team:#C4202E;background:rgba(196,32,46,.12);box-shadow:inset 0 0 0 1px rgba(196,32,46,.35)}
 .event-row.pen .info strong, .event-row.pen .time{color:#C4202E}
 :root[data-theme="dark"] .event-row.pen .info strong, :root[data-theme="dark"] .event-row.pen .time{color:#FF8A92}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .event-row.pen .info strong, :root:not([data-theme="light"]) .event-row.pen .time{color:#FF8A92} }
 @media print { .event-row.pen{border-left-color:#C4202E !important} }
 
-/* --- Buts (vert) et passes (bleu, violet) : mêmes teintes que dans la fenêtre de but --- */
+/* --- Buts (vert) et passes (bleu, violet) : mÃªmes teintes que dans la fenÃªtre de but --- */
 .event-row.goal{background:rgba(31,122,77,.13);box-shadow:inset 0 0 0 1px rgba(31,122,77,.38)}
 .event-row.goal .info strong, .event-row.goal .time{color:#1F7A4D}
 .event-row .info span.as1, .event-row .info span.as2{display:inline;font-size:inherit;font-weight:700}
@@ -368,18 +368,18 @@ body:not(.role-viewer) .g-who{display:none}
   :root:not([data-theme="light"]) .event-row .info span.as2{color:#D1A6ED}
 }
 
-/* --- Changement de gardien depuis le pavé de saisie --- */
+/* --- Changement de gardien depuis le pavÃ© de saisie --- */
 .btn.goalie{min-height:2.6rem;font-family:var(--body);font-weight:600;font-size:.85rem;background:var(--crease);border:1px solid var(--line);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 .4rem}
 .actions.single{grid-template-columns:1fr}
 
-/* --- Tableaux par équipe --- */
+/* --- Tableaux par Ã©quipe --- */
 #teamSelectTop{flex-shrink:1;min-width:3.5rem;max-width:8rem;text-overflow:ellipsis}
 .check-row{display:flex;gap:.5rem;align-items:flex-start;margin-top:.8rem;font-size:.9rem;font-weight:600;cursor:pointer}
 .check-row input{width:1.2rem;height:1.2rem;margin-top:.1rem;flex:none}
 .check-row small{display:block;font-weight:400;font-size:.78rem;color:var(--muted);margin-top:.15rem}
 .own-tag{display:inline-block;margin-left:.4rem;padding:.05rem .35rem;border-radius:4px;background:var(--crease);color:var(--blue);font-size:.7rem;font-weight:700;vertical-align:middle;white-space:nowrap}
 
-/* --- Consultation (lecture seule) et modification d'une partie archivée --- */
+/* --- Consultation (lecture seule) et modification d'une partie archivÃ©e --- */
 .archive-view .pad, .archive-view .hint, .archive-view #newGame, .archive-view .btn-swap, .archive-view .timer-ctrls, .archive-view #btnStopGame, .archive-view .g-select{display:none !important}
 .archive-view .seg button:not([aria-pressed="true"]){opacity:.3;pointer-events:none}
 .archive-view .g-who{display:block !important}
@@ -403,10 +403,10 @@ body:not(.role-viewer) .g-who{display:none}
 .name[readonly]{pointer-events:none;cursor:default;border-bottom-color:transparent !important;-webkit-user-select:none;user-select:none}
 @media print { .btn-reset-board{display:none !important} }
 
-/* --- Éléments réservés au super administrateur --- */
+/* --- Ã‰lÃ©ments rÃ©servÃ©s au super administrateur --- */
 body:not(.is-super) .super-only{display:none !important}
 
-/* --- Local à droite, visiteur à gauche (convention du hockey) ; « Inverser » échange les côtés sur l'appareil du marqueur --- */
+/* --- Local Ã  droite, visiteur Ã  gauche (convention du hockey) ; Â« Inverser Â» Ã©change les cÃ´tÃ©s sur l'appareil du marqueur --- */
 .board .side.b{order:1} .board .center{order:2} .board .side.a{order:3}
 .pad .padcol.b{order:1} .pad .padcol.a{order:2}
 .roster-container .roster-col.b{order:1} .roster-container .roster-col.a{order:2}
@@ -419,7 +419,7 @@ body:not(.is-super) .super-only{display:none !important}
 .side-tag{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1;margin-bottom:.15rem}
 .no-teams .side-tag{visibility:hidden}
 
-/* --- Sans partie à l'écran --- */
+/* --- Sans partie Ã  l'Ã©cran --- */
 .no-teams #feedSection, .no-teams #goaliesSection{display:none}
 .no-teams .roster-container{grid-template-columns:1fr}
 .no-teams .roster-scope-btn-group{display:none}
@@ -430,6 +430,12 @@ body:not(.is-super) .super-only{display:none !important}
 body:not(.role-marqueur) .marqueur-only{display:none !important}
 
 .btn-timer-toggle:disabled{opacity:.3;cursor:not-allowed}
+
+/* --- Å’il pour afficher un mot de passe --- */
+.pwd-wrap{position:relative;display:block;width:100%}
+.pwd-wrap input{width:100% !important;padding-right:2.6rem !important}
+.pwd-eye{position:absolute;top:0;right:0;height:100%;width:2.5rem;border:0;background:transparent;font-size:1.05rem;line-height:1;opacity:.55;display:flex;align-items:center;justify-content:center;padding:0}
+.pwd-eye[aria-pressed="true"]{opacity:1}
 </style>
 </head>
 <body class="role-viewer">
@@ -438,21 +444,21 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <div class="brand">
       <img src="https://ohmtro.com/wp-content/uploads/2021/09/Logo-OHMTRO.png" alt="Logo" id="ohmtroLogo">
       <select id="orgSelectTop" class="select-top"></select>
-      <select id="catSelectTop" class="select-top" aria-label="Catégorie"></select>
-      <select id="teamSelectTop" class="select-top" aria-label="Équipe" style="display:none"></select>
+      <select id="catSelectTop" class="select-top" aria-label="CatÃ©gorie"></select>
+      <select id="teamSelectTop" class="select-top" aria-label="Ã‰quipe" style="display:none"></select>
     </div>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
   </header>
 
   <div class="ticker-wrap" id="tickerWrap">
-    <span class="ticker-icon">📢</span>
+    <span class="ticker-icon">ðŸ“¢</span>
     <div class="ticker-content">
       <span class="ticker-text" id="tickerText"></span>
     </div>
   </div>
 
   <div class="archive-bar" id="archiveBar" hidden>
-    <span id="archiveText">Partie archivée</span>
+    <span id="archiveText">Partie archivÃ©e</span>
     <button type="button" id="archiveBack">Retour au direct</button>
   </div>
 
@@ -461,7 +467,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <span class="side-tag">Local</span>
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoA">
-        <input class="name" id="nameA" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameA" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'Ã©quipe locale" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
@@ -471,8 +477,8 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <span class="circle" id="periodMark">P1</span>
       <div class="timer-display" id="timerDisplay" title="Cliquer pour ajuster le temps">20:00</div>
       <div class="timer-ctrls">
-        <button type="button" class="btn-timer-toggle" id="btnTimerToggle">▶</button>
-        <button type="button" class="btn-timer-reset" id="btnTimerReset">🔄</button>
+        <button type="button" class="btn-timer-toggle" id="btnTimerToggle">â–¶</button>
+        <button type="button" class="btn-timer-reset" id="btnTimerReset">ðŸ”„</button>
       </div>
     </div>
 
@@ -480,7 +486,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <span class="side-tag">Visiteur</span>
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoB">
-        <input class="name" id="nameB" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameB" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'Ã©quipe visiteuse" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
@@ -488,14 +494,14 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   </section>
 
   <div class="periods">
-    <span id="perLabel">Période</span>
+    <span id="perLabel">PÃ©riode</span>
     <div class="seg" id="seg" role="group" aria-labelledby="perLabel">
       <button type="button" data-p="0">1</button>
       <button type="button" data-p="1">2</button>
       <button type="button" data-p="2">3</button>
       <button type="button" data-p="3" id="btnOt">Prol.</button>
     </div>
-    <button type="button" class="btn-swap" id="btnSwapSides" title="Inverser les côtés à l'écran (sur cet appareil seulement)" aria-pressed="false">🔄 Inverser</button>
+    <button type="button" class="btn-swap" id="btnSwapSides" title="Inverser les cÃ´tÃ©s Ã  l'Ã©cran (sur cet appareil seulement)" aria-pressed="false">ðŸ”„ Inverser</button>
   </div>
 
   <section class="pad" id="pad" aria-label="Saisie">
@@ -503,7 +509,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <button type="button" class="btn shot" data-act="shot" data-team="a">+1 lancer</button>
       <button type="button" class="btn goal" data-act="goal" data-team="a">But</button>
       <button type="button" class="btn pen" data-act="pen" data-team="a">+ Punition</button>
-      <button type="button" class="btn goalie" data-act="goalie" data-team="a" id="padGoalieA">🥅 Gardien</button>
+      <button type="button" class="btn goalie" data-act="goalie" data-team="a" id="padGoalieA">ðŸ¥… Gardien</button>
       <button type="button" class="btn minus" data-act="unshot" data-team="a">Retirer un lancer</button>
       <button type="button" class="btn minus-goal" data-act="ungoal" data-team="a">Retirer un but</button>
     </div>
@@ -511,13 +517,13 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <button type="button" class="btn shot" data-act="shot" data-team="b">+1 lancer</button>
       <button type="button" class="btn goal" data-act="goal" data-team="b">But</button>
       <button type="button" class="btn pen" data-act="pen" data-team="b">+ Punition</button>
-      <button type="button" class="btn goalie" data-act="goalie" data-team="b" id="padGoalieB">🥅 Gardien</button>
+      <button type="button" class="btn goalie" data-act="goalie" data-team="b" id="padGoalieB">ðŸ¥… Gardien</button>
       <button type="button" class="btn minus" data-act="unshot" data-team="b">Retirer un lancer</button>
       <button type="button" class="btn minus-goal" data-act="ungoal" data-team="b">Retirer un but</button>
     </div>
   </section>
 
-  <h2>Lancers par période</h2>
+  <h2>Lancers par pÃ©riode</h2>
   <div class="scroll">
     <table>
       <thead><tr><th></th><th data-c="0">1</th><th data-c="1">2</th><th data-c="2">3</th><th data-c="3">Prol.</th><th>Total</th></tr></thead>
@@ -527,12 +533,12 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
   <div id="feedSection">
   <div class="feed-header">
-    <h2>Match pas à pas</h2>
+    <h2>Match pas Ã  pas</h2>
     <select id="feedFilter" class="feed-filter">
       <option value="none" selected>Aucun (Masquer)</option>
-      <option value="all">Tous les événements</option>
-      <option value="team_a" id="optTeamA">Équipe Locale</option>
-      <option value="team_b" id="optTeamB">Équipe Visiteuse</option>
+      <option value="all">Tous les Ã©vÃ©nements</option>
+      <option value="team_a" id="optTeamA">Ã‰quipe Locale</option>
+      <option value="team_b" id="optTeamB">Ã‰quipe Visiteuse</option>
       <option value="goal">Buts uniquement</option>
       <option value="pen">Punitions uniquement</option>
       <option value="shot">Lancers uniquement</option>
@@ -541,12 +547,12 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <ul class="events-list" id="eventsList"></ul>
   </div>
 
-  <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
+  <h2 class="toggle-title collapsed" id="toggleStatsBtn">RÃ©sumÃ© Statistiques</h2>
   <div class="toggle-block hidden" id="statsBlock">
     <section class="stats-card">
       <div class="stats-card-header">
-        <h3>Statistiques d'équipe</h3>
-        <select id="statsTeamSelect" class="stats-team-select" aria-label="Équipe"></select>
+        <h3>Statistiques d'Ã©quipe</h3>
+        <select id="statsTeamSelect" class="stats-team-select" aria-label="Ã‰quipe"></select>
       </div>
       <p class="stats-team-name" id="statsTeamName"></p>
 
@@ -554,7 +560,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <div class="stat-item"><div class="lbl">PJ</div><div class="val" id="stPJ">0</div></div>
         <div class="stat-item"><div class="lbl">V</div><div class="val v" id="stV">0</div></div>
         <div class="stat-item"><div class="lbl">D</div><div class="val d" id="stD">0</div></div>
-        <div class="stat-item"><div class="lbl">ÉGA</div><div class="val" id="stEGA">0</div></div>
+        <div class="stat-item"><div class="lbl">Ã‰GA</div><div class="val" id="stEGA">0</div></div>
         <div class="stat-item"><div class="lbl">BP</div><div class="val blue" id="stBP">0</div></div>
         <div class="stat-item"><div class="lbl">BC</div><div class="val d" id="stBC">0</div></div>
         <div class="stat-item"><div class="lbl">DIF</div><div class="val" id="stDIF">0</div></div>
@@ -562,7 +568,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
       <div class="stats-grid-2">
         <div class="stat-item"><div class="lbl">10D</div><div class="val v" id="st10D">0-0-0</div></div>
-        <div class="stat-item"><div class="lbl">SÉQ.</div><div class="val d" id="stSEQ">-</div></div>
+        <div class="stat-item"><div class="lbl">SÃ‰Q.</div><div class="val d" id="stSEQ">-</div></div>
         <div class="stat-item"><div class="lbl">GAA</div><div class="val blue" id="stGAA">0.0</div></div>
         <div class="stat-item"><div class="lbl">MOY SV%</div><div class="val blue" id="stSV">0%</div></div>
       </div>
@@ -584,7 +590,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <h3 class="roster-title" id="rosterTitleA"></h3>
         <ul class="roster-list" id="rosterA"></ul>
         <div class="staff-section" id="staffBoxA" style="display:none;">
-          <div class="staff-title">Entraîneurs / Staff</div>
+          <div class="staff-title">EntraÃ®neurs / Staff</div>
           <ul class="roster-list" id="staffA"></ul>
         </div>
       </div>
@@ -592,7 +598,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <h3 class="roster-title" id="rosterTitleB"></h3>
         <ul class="roster-list" id="rosterB"></ul>
         <div class="staff-section" id="staffBoxB" style="display:none;">
-          <div class="staff-title">Entraîneurs / Staff</div>
+          <div class="staff-title">EntraÃ®neurs / Staff</div>
           <ul class="roster-list" id="staffB"></ul>
         </div>
       </div>
@@ -600,11 +606,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   </div>
 
   <div id="goaliesSection">
-  <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">Arrêts des gardiens</h2>
+  <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">ArrÃªts des gardiens</h2>
   <div class="toggle-block hidden" id="goaliesBlock">
     <section class="goalies">
-      <div class="g a"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, équipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p></div>
-      <div class="g b"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, équipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p></div>
+      <div class="g a"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, Ã©quipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">â€“</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p></div>
+      <div class="g b"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, Ã©quipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">â€“</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p></div>
     </section>
   </div>
 
@@ -615,26 +621,26 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <ul class="history-list" id="historyList"></ul>
   </div>
 
-  <button type="button" class="btn-new-game-pastel" id="newGame">➕ Commencer une nouvelle partie</button>
-  <button type="button" class="btn-reset-board" id="askSave" style="display:none">💾 Enregistrer la partie dans l'historique…</button>
-  <button type="button" class="btn-reset-board" id="resetBoard" style="display:none">🧹 Réinitialiser l'affichage</button>
-  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
+  <button type="button" class="btn-new-game-pastel" id="newGame">âž• Commencer une nouvelle partie</button>
+  <button type="button" class="btn-reset-board" id="askSave" style="display:none">ðŸ’¾ Enregistrer la partie dans l'historiqueâ€¦</button>
+  <button type="button" class="btn-reset-board" id="resetBoard" style="display:none">ðŸ§¹ RÃ©initialiser l'affichage</button>
+  <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">ðŸ›‘ ARRÃŠTER LA PARTIE</button>
 
   <div class="export-box">
-    <button type="button" class="export-btn" id="btnExportPDF">📄 Imprimer / PDF</button>
-    <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
+    <button type="button" class="export-btn" id="btnExportPDF">ðŸ“„ Imprimer / PDF</button>
+    <button type="button" class="export-btn" id="btnExportCSV">ðŸ“Š Exporter CSV</button>
   </div>
 
-  <button type="button" class="btn-reset-board marqueur-only" id="btnTeamMessages">📢 Messages de l'équipe</button>
-  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️️ Gestion</button>
-  <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
+  <button type="button" class="btn-reset-board marqueur-only" id="btnTeamMessages">ðŸ“¢ Messages de l'Ã©quipe</button>
+  <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">âš™ï¸ï¸ Gestion</button>
+  <button type="button" class="btn-login-bottom" id="btnLogin">ðŸ”’ Connexion</button>
 </div>
 
-<!-- Modale d'invitation à la Prolongation -->
+<!-- Modale d'invitation Ã  la Prolongation -->
 <dialog id="overtimeSheet">
   <div class="sheet-in">
     <h2>Prolongation ?</h2>
-    <p class="ctx">Égalité à la fin du temps réglementaire ! Souhaitez-vous jouer la prolongation ?</p>
+    <p class="ctx">Ã‰galitÃ© Ã  la fin du temps rÃ©glementaire ! Souhaitez-vous jouer la prolongation ?</p>
     <div class="actions">
       <button type="button" class="act-2" id="overtimeNo">Non (Fin du match)</button>
       <button type="button" class="act-1" id="overtimeYes">Oui (Aller en prol.)</button>
@@ -645,26 +651,26 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="settingsSheet">
   <div class="sheet-in">
     <h2>Gestion</h2>
-    <p class="ctx">Messages, organisations (avec leurs catégories et leurs équipes), paramètres et sécurité.</p>
+    <p class="ctx">Messages, organisations (avec leurs catÃ©gories et leurs Ã©quipes), paramÃ¨tres et sÃ©curitÃ©.</p>
 
-    <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des messages</button>
-    <button type="button" class="act-1" id="btnOpenHistoryManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#2E63C6;color:#FFF;">🗂️ Gestion de l'historique</button>
-    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#8E44AD;color:#FFF;">🏢 Organisation, catégories et équipes</button>
+    <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">ðŸ“¢ Gestion des messages</button>
+    <button type="button" class="act-1" id="btnOpenHistoryManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#2E63C6;color:#FFF;">ðŸ—‚ï¸ Gestion de l'historique</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#8E44AD;color:#FFF;">ðŸ¢ Organisation, catÃ©gories et Ã©quipes</button>
 
     <div class="field-group admin-only" style="margin-top:1.2rem;">
-      <label>Temps de période par défaut (minutes) :</label>
+      <label>Temps de pÃ©riode par dÃ©faut (minutes) :</label>
       <select id="defaultPeriodMinInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
         <option value="10">10 minutes</option>
         <option value="12">12 minutes</option>
         <option value="15">15 minutes</option>
         <option value="18">18 minutes</option>
         <option value="20" selected>20 minutes</option>
-        <option value="custom">Personnalisé...</option>
+        <option value="custom">PersonnalisÃ©...</option>
       </select>
-      <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
+      <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="DurÃ©e en minutes" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
-    <button type="button" class="act-2 admin-only" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
+    <button type="button" class="act-2 admin-only" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">ðŸ”‘ Gestion des mots de passe</button>
 
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="settingsCancel">Fermer</button>
@@ -676,19 +682,19 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="exportSheet">
   <div class="sheet-in">
     <h2>Options d'Exportation</h2>
-    <p class="ctx">Configurez le rapport à générer.</p>
+    <p class="ctx">Configurez le rapport Ã  gÃ©nÃ©rer.</p>
 
     <div class="field-group" style="margin-top:0;">
       <label>Type de rapport :</label>
       <select id="exportReportType" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-        <option value="history_detailed">Historique des parties (Détaillé)</option>
-        <option value="history_summary">Historique des parties (Résumé)</option>
+        <option value="history_detailed">Historique des parties (DÃ©taillÃ©)</option>
+        <option value="history_summary">Historique des parties (RÃ©sumÃ©)</option>
         <option value="player_stats">Statistiques des joueurs</option>
       </select>
     </div>
 
     <div class="field-group">
-      <label>Portée des données :</label>
+      <label>PortÃ©e des donnÃ©es :</label>
       <select id="exportScope" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
         <option value="current">Ce match uniquement</option>
         <option value="all">Toutes les parties (Historique)</option>
@@ -697,7 +703,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="exportCancel">Annuler</button>
-      <button type="button" class="act-1" id="exportConfirm">Générer</button>
+      <button type="button" class="act-1" id="exportConfirm">GÃ©nÃ©rer</button>
     </div>
   </div>
 </dialog>
@@ -705,25 +711,25 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="messagesManageSheet">
   <div class="sheet-in">
     <h2>Gestion des messages</h2>
-    <p class="ctx">Les messages défilent dans le bandeau l'un à la suite de l'autre : ceux de l'organisation, puis ceux des équipes en présence.</p>
+    <p class="ctx">Les messages dÃ©filent dans le bandeau l'un Ã  la suite de l'autre : ceux de l'organisation, puis ceux des Ã©quipes en prÃ©sence.</p>
 
     <div class="preset-box" id="msgOrgBox">
       <label style="font-weight:700;">1. Organisation :</label>
       <select id="msgOrgSelect" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
       <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Messages de l'organisation :</label>
       <div class="msg-list" id="msgOrgList"></div>
-      <button type="button" class="msg-add" id="msgOrgAdd">➕ Ajouter un message</button>
+      <button type="button" class="msg-add" id="msgOrgAdd">âž• Ajouter un message</button>
     </div>
 
     <div class="preset-box" id="msgTeamBox" style="margin-top:1rem;">
-      <label style="font-weight:700;">2. Catégorie et équipe :</label>
+      <label style="font-weight:700;">2. CatÃ©gorie et Ã©quipe :</label>
       <div class="inline-row" style="margin-bottom:.4rem;">
-        <select id="msgCatSelect" aria-label="Catégorie" style="flex:0 1 7rem;background:#FFF;color:#0F2236;"></select>
-        <select id="msgTeamSelect" aria-label="Équipe" style="background:#FFF;color:#0F2236;"></select>
+        <select id="msgCatSelect" aria-label="CatÃ©gorie" style="flex:0 1 7rem;background:#FFF;color:#0F2236;"></select>
+        <select id="msgTeamSelect" aria-label="Ã‰quipe" style="background:#FFF;color:#0F2236;"></select>
       </div>
-      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Messages de l'équipe :</label>
+      <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Messages de l'Ã©quipe :</label>
       <div class="msg-list" id="msgTeamList"></div>
-      <button type="button" class="msg-add" id="msgTeamAdd">➕ Ajouter un message</button>
+      <button type="button" class="msg-add" id="msgTeamAdd">âž• Ajouter un message</button>
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -736,11 +742,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="historyManageSheet">
   <div class="sheet-in">
     <h2>Gestion de l'historique</h2>
-    <p class="ctx">Choisissez l'organisation, la catégorie et l'équipe, puis modifiez ou supprimez une partie enregistrée.</p>
+    <p class="ctx">Choisissez l'organisation, la catÃ©gorie et l'Ã©quipe, puis modifiez ou supprimez une partie enregistrÃ©e.</p>
     <div class="field-group"><label for="hmOrgSelect">Organisation :</label><select id="hmOrgSelect" class="full-input"></select></div>
     <div class="inline-row" style="margin-top:.6rem;">
-      <select id="hmCatSelect" aria-label="Catégorie"></select>
-      <select id="hmTeamSelect" aria-label="Équipe"></select>
+      <select id="hmCatSelect" aria-label="CatÃ©gorie"></select>
+      <select id="hmTeamSelect" aria-label="Ã‰quipe"></select>
     </div>
     <p class="ctx" id="hmCount" style="margin:.2rem 0 .5rem;"></p>
     <ul class="history-list" id="hmList"></ul>
@@ -754,16 +760,16 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="orgManageSheet">
   <div class="sheet-in">
     <h2>Gestion des Organisations</h2>
-    <p class="ctx">Choisissez une organisation pour gérer son nom, ses catégories et ses équipes.</p>
+    <p class="ctx">Choisissez une organisation pour gÃ©rer son nom, ses catÃ©gories et ses Ã©quipes.</p>
     
     <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">Nouvelle organisation :</label>
     <div style="display:flex;gap:.4rem;margin-bottom:.4rem;">
-      <input type="text" id="newOrgIdInput" placeholder="Clé (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+      <input type="text" id="newOrgIdInput" placeholder="ClÃ© (ex: lions)" style="width:35%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
       <input type="text" id="newOrgNameInput" placeholder="Nom complet" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
     <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
-      <input type="text" id="newOrgCatInput" placeholder="Première catégorie (ex: M15)" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-      <button type="button" class="act-1" id="btnAddOrg" style="padding:.4rem .8rem;font-size:.9rem;white-space:nowrap;">➕ Créer</button>
+      <input type="text" id="newOrgCatInput" placeholder="PremiÃ¨re catÃ©gorie (ex: M15)" style="flex:1;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+      <button type="button" class="act-1" id="btnAddOrg" style="padding:.4rem .8rem;font-size:.9rem;white-space:nowrap;">âž• CrÃ©er</button>
     </div>
     <ul class="org-manage-list" id="orgManageList"></ul>
 
@@ -777,7 +783,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="orgDetailSheet">
   <div class="sheet-in">
     <h2 id="orgDetailTitle">Organisation</h2>
-    <p class="ctx">Nom, catégories et équipes de cette organisation.</p>
+    <p class="ctx">Nom, catÃ©gories et Ã©quipes de cette organisation.</p>
 
     <div id="odName">
     <label for="orgDetailNameInput" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">Nom de l'organisation :</label>
@@ -790,24 +796,24 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <div class="super-only" id="odPerms">
     <h3 class="sheet-sub">Droits de l'administrateur de l'organisation</h3>
     <label class="check-row"><input type="checkbox" id="permOrgName"><span>Modifier le nom de l'organisation</span></label>
-    <label class="check-row"><input type="checkbox" id="permCategories"><span>Gérer les catégories</span></label>
-    <label class="check-row"><input type="checkbox" id="permTeams"><span>Gérer les équipes</span></label>
+    <label class="check-row"><input type="checkbox" id="permCategories"><span>GÃ©rer les catÃ©gories</span></label>
+    <label class="check-row"><input type="checkbox" id="permTeams"><span>GÃ©rer les Ã©quipes</span></label>
     </div>
 
     <div id="odCats">
-    <h3 class="sheet-sub">Catégories</h3>
+    <h3 class="sheet-sub">CatÃ©gories</h3>
     <div class="inline-row">
       <input type="text" id="newCatInput" placeholder="Ex: M13, M15 C...">
-      <button type="button" class="act-1" id="btnAddCat">➕ Ajouter</button>
+      <button type="button" class="act-1" id="btnAddCat">âž• Ajouter</button>
     </div>
     <ul class="cat-manage-list" id="catManageList"></ul>
     </div>
 
     <div id="odTeams">
-    <h3 class="sheet-sub">Équipes</h3>
+    <h3 class="sheet-sub">Ã‰quipes</h3>
     <div class="inline-row">
-      <select id="teamManageCatSelect" aria-label="Filtrer les équipes par catégorie"></select>
-      <button type="button" class="act-1" id="btnAddNewTeam">➕ Créer</button>
+      <select id="teamManageCatSelect" aria-label="Filtrer les Ã©quipes par catÃ©gorie"></select>
+      <button type="button" class="act-1" id="btnAddNewTeam">âž• CrÃ©er</button>
     </div>
     <ul class="team-manage-list" id="teamManageList"></ul>
     </div>
@@ -821,9 +827,9 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
 <dialog id="editCatSheet">
   <div class="sheet-in">
-    <h2>Éditer la Catégorie</h2>
+    <h2>Ã‰diter la CatÃ©gorie</h2>
     <div class="field-group" style="margin-top:0;">
-      <label>Nom de la catégorie :</label>
+      <label>Nom de la catÃ©gorie :</label>
       <input type="text" id="editCatNameInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
     <div class="actions" style="margin-top:1.2rem;">
@@ -857,7 +863,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="saveHistorySheet">
   <div class="sheet-in">
     <h2>Sauvegarder le Match ?</h2>
-    <p class="ctx">Voulez-vous ajouter cette partie à l'historique ? Le tableau restera modifiable.</p>
+    <p class="ctx">Voulez-vous ajouter cette partie Ã  l'historique ? Le tableau restera modifiable.</p>
     <div class="actions">
       <button type="button" class="act-2" id="saveHistoryNo">Non, ignorer</button>
       <button type="button" class="act-1" id="saveHistoryYes">Enregistrer l'historique</button>
@@ -867,7 +873,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
 <dialog id="timerSheet">
   <div class="sheet-in">
-    <h2>Réglage du Compteur de Temps</h2>
+    <h2>RÃ©glage du Compteur de Temps</h2>
     <div style="display:flex;gap:.5rem;align-items:center;justify-content:center;margin:1rem 0;">
       <input type="number" id="timerMin" min="0" max="99" value="20" style="width:4rem;padding:.5rem;font-size:1.5rem;text-align:center;border-radius:8px;border:1px solid var(--line);">
       <span style="font-size:1.5rem;font-weight:bold;">:</span>
@@ -896,31 +902,31 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <div class="sheet-in">
     <h2>Nouvelle Partie</h2>
     <div class="preset-box">
-      <label>1. Équipe Visiteuse :</label>
-      <select id="wizTeamB"><option value="">-- Choisir Équipe Visiteuse --</option></select>
+      <label>1. Ã‰quipe Visiteuse :</label>
+      <select id="wizTeamB"><option value="">-- Choisir Ã‰quipe Visiteuse --</option></select>
       <div class="color-picker-row">
         <label>Couleur :</label>
         <input type="color" id="wizColorB" value="#F2707A">
       </div>
-      <label style="margin-top:.6rem;display:block;">Joueurs présents :</label>
+      <label style="margin-top:.6rem;display:block;">Joueurs prÃ©sents :</label>
       <div class="presence-list" id="wizPresenceListB"></div>
     </div>
 
     <div class="preset-box">
-      <label>2. Équipe Locale :</label>
-      <select id="wizTeamA"><option value="">-- Choisir Équipe Locale --</option></select>
+      <label>2. Ã‰quipe Locale :</label>
+      <select id="wizTeamA"><option value="">-- Choisir Ã‰quipe Locale --</option></select>
       <div class="color-picker-row">
         <label>Couleur :</label>
         <input type="color" id="wizColorA" value="#6FA2EE">
       </div>
-      <label style="margin-top:.6rem;display:block;">Joueurs présents :</label>
+      <label style="margin-top:.6rem;display:block;">Joueurs prÃ©sents :</label>
       <div class="presence-list" id="wizPresenceListA"></div>
     </div>
 
     <div class="preset-box">
-      <label for="wizPeriodMin">3. Durée d'une période (minutes) :</label>
+      <label for="wizPeriodMin">3. DurÃ©e d'une pÃ©riode (minutes) :</label>
       <input type="number" id="wizPeriodMin" min="1" max="99" inputmode="numeric" class="full-input" style="background:#FFF;color:#0F2236;">
-      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Pour cette partie seulement. Le temps reste modifiable en touchant le chronomètre.</small>
+      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Pour cette partie seulement. Le temps reste modifiable en touchant le chronomÃ¨tre.</small>
     </div>
 
     <div class="actions">
@@ -932,24 +938,24 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
 <dialog id="rosterSheet">
   <div class="sheet-in">
-    <h2 id="rsTitle">Édition d'Équipe</h2>
+    <h2 id="rsTitle">Ã‰dition d'Ã‰quipe</h2>
     <div class="field-group" style="margin-top:0;">
-      <label>Nom de l'équipe :</label>
+      <label>Nom de l'Ã©quipe :</label>
       <input type="text" id="editTeamNameInput" maxlength="18" placeholder="Ex: Lions Chavigny 1" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
     <div class="field-group" style="margin-top:.6rem;">
-      <label for="editTeamCatSelect">Catégorie :</label>
+      <label for="editTeamCatSelect">CatÃ©gorie :</label>
       <select id="editTeamCatSelect" class="full-input"></select>
     </div>
-    <label class="check-row"><input type="checkbox" id="editTeamOwn"><span>Équipe de l'organisation<small>Si une catégorie compte deux équipes de l'organisation ou plus, chacune a son propre tableau en direct et son mot de passe de marqueur.</small></span></label>
+    <label class="check-row"><input type="checkbox" id="editTeamOwn"><span>Ã‰quipe de l'organisation<small>Si une catÃ©gorie compte deux Ã©quipes de l'organisation ou plus, chacune a son propre tableau en direct et son mot de passe de marqueur.</small></span></label>
     <div class="color-picker-row" style="margin:.6rem 0;">
-      <label>Couleur par défaut :</label>
+      <label>Couleur par dÃ©faut :</label>
       <input type="color" id="presetTeamColor" value="#6FA2EE">
     </div>
     <div class="logo-upload-box">
       <label>URL du Logo :</label>
       <input type="url" id="teamLogoInput" placeholder="https://..." style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-      <img id="logoPreview" class="logo-preview-img" src="" alt="Aperçu logo" style="display:none;">
+      <img id="logoPreview" class="logo-preview-img" src="" alt="AperÃ§u logo" style="display:none;">
     </div>
     <label style="display:block;font-size:.8rem;margin-bottom:.2rem;font-weight:600;">Joueurs :</label>
     <div class="roster-grid" id="rosterForm"></div>
@@ -961,7 +967,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     
     <div class="actions">
       <button type="button" class="act-2" id="rsCancel">Annuler</button>
-      <button type="button" class="act-1" id="rsSave">Enregistrer l'équipe</button>
+      <button type="button" class="act-1" id="rsSave">Enregistrer l'Ã©quipe</button>
     </div>
   </div>
 </dialog>
@@ -970,7 +976,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <div class="sheet-in">
     <h2 id="gsTitle">But</h2>
     <p class="ctx" id="gsCtx"></p>
-    <div id="goalSequenceStatus" style="font-weight:bold;color:var(--blue);margin-bottom:.4rem;font-size:.9rem;">1. Sélectionnez le BUTEUR</div>
+    <div id="goalSequenceStatus" style="font-weight:bold;color:var(--blue);margin-bottom:.4rem;font-size:.9rem;">1. SÃ©lectionnez le BUTEUR</div>
     <div class="player-pick-grid" id="playerPickGrid"></div>
     
     <div style="background:var(--ice);padding:.6rem;border-radius:8px;margin-top:.6rem;" id="quickAddBox">
@@ -993,7 +999,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="goalieSheet">
   <div class="sheet-in">
     <h2 id="goalieTitle">Gardien</h2>
-    <p class="ctx">Choisissez le gardien devant le filet. Les lancers déjà reçus restent au gardien précédent.</p>
+    <p class="ctx">Choisissez le gardien devant le filet. Les lancers dÃ©jÃ  reÃ§us restent au gardien prÃ©cÃ©dent.</p>
     <div class="player-pick-grid" id="goaliePickGrid"></div>
     <div class="actions single"><button type="button" class="act-2" id="goalieCancel">Annuler</button></div>
   </div>
@@ -1003,11 +1009,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <div class="sheet-in">
     <h2 id="penTitle">Punition</h2>
     <p class="ctx" id="penCtx"></p>
-    <label style="display:block;font-size:.8rem;font-weight:600;margin-bottom:.2rem;">Joueur pénalisé :</label>
+    <label style="display:block;font-size:.8rem;font-weight:600;margin-bottom:.2rem;">Joueur pÃ©nalisÃ© :</label>
     <div class="player-pick-grid" id="penPlayerGrid"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.6rem;">
       <div>
-        <label style="display:block;font-size:.8rem;font-weight:600;margin-bottom:.2rem;">Durée :</label>
+        <label style="display:block;font-size:.8rem;font-weight:600;margin-bottom:.2rem;">DurÃ©e :</label>
         <select id="penMin" style="width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:#0F2236;">
           <option value="2">2 minutes</option>
           <option value="4">4 minutes</option>
@@ -1019,10 +1025,10 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <label style="display:block;font-size:.8rem;font-weight:600;margin-bottom:.2rem;">Infraction :</label>
         <select id="penReason" style="width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:#0F2236;">
           <option value="Accrochage">Accrochage</option>
-          <option value="Bâton élevé">Bâton élevé</option>
+          <option value="BÃ¢ton Ã©levÃ©">BÃ¢ton Ã©levÃ©</option>
           <option value="Cinglage">Cinglage</option>
           <option value="Retenue">Retenue</option>
-          <option value="Trébuchement">Trébuchement</option>
+          <option value="TrÃ©buchement">TrÃ©buchement</option>
           <option value="Rudesse">Rudesse</option>
           <option value="Obstruction">Obstruction</option>
           <option value="Mauvaise conduite">Mauvaise conduite</option>
@@ -1038,16 +1044,16 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   </div>
 </dialog>
 
-<!-- Boîte de message (remplace alert) -->
+<!-- BoÃ®te de message (remplace alert) -->
 <dialog id="noticeBox" class="msg-box" data-kind="ok">
   <div class="sheet-in">
-    <div class="msg-icon" id="noticeIcon" aria-hidden="true">✓</div>
+    <div class="msg-icon" id="noticeIcon" aria-hidden="true">âœ“</div>
     <p class="msg-text" id="noticeText" role="status"></p>
     <div class="actions single"><button type="button" class="act-1" id="noticeOk">OK</button></div>
   </div>
 </dialog>
 
-<!-- Boîte de confirmation (remplace confirm) -->
+<!-- BoÃ®te de confirmation (remplace confirm) -->
 <dialog id="confirmBox" class="msg-box" data-kind="ask">
   <div class="sheet-in">
     <div class="msg-icon" aria-hidden="true">?</div>
@@ -1070,7 +1076,7 @@ document.addEventListener("DOMContentLoaded", function(){
   const el = (tag, cls, text) => { const n = document.createElement(tag); if(cls) n.className = cls; if(text != null) n.textContent = text; return n; };
   const toArr = v => Array.isArray(v) ? v.filter(x => x != null) : (v && typeof v === "object" ? Object.keys(v).map(k => v[k]).filter(x => x != null) : []);
   const clone = v => JSON.parse(JSON.stringify(v));
-  // Messages d'une organisation ou d'une équipe : liste « msgs », ou l'ancien message unique « msg »
+  // Messages d'une organisation ou d'une Ã©quipe : liste Â« msgs Â», ou l'ancien message unique Â« msg Â»
   const msgsOf = o => {
     if(!o) return [];
     const list = (o.msgs != null ? toArr(o.msgs) : [o.msg]).map(m => String(m == null ? "" : m).trim()).filter(Boolean);
@@ -1095,22 +1101,42 @@ document.addEventListener("DOMContentLoaded", function(){
     const d = $(id); if(!d.open) d.showModal();
     if($("noticeBox").open) raise($("noticeBox"));               // un message en cours reste visible par-dessus
     const a = document.activeElement;
-    if(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) a.blur();   // évite l'ouverture du clavier sur mobile
+    if(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) a.blur();   // Ã©vite l'ouverture du clavier sur mobile
   }
   function closeDlg(id){ const d = $(id); if(d.open) d.close(); }
 
-  /* Boîtes de message de l'application (remplacent alert et confirm du navigateur) */
+  // Petit Å“il Ã  cÃ´tÃ© d'un champ de mot de passe : affiche ou masque ce qui est Ã©crit
+  function addEye(input){
+    if(input.parentNode.classList.contains("pwd-wrap")) return;
+    const wrap = el("span", "pwd-wrap"), eye = el("button", "pwd-eye", "ðŸ‘");
+    eye.type = "button"; eye.setAttribute("aria-label", "Afficher le mot de passe"); eye.setAttribute("aria-pressed", "false");
+    input.parentNode.insertBefore(wrap, input); wrap.appendChild(input); wrap.appendChild(eye);
+    eye.addEventListener("click", () => {
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      eye.setAttribute("aria-pressed", String(show)); eye.setAttribute("aria-label", show ? "Masquer le mot de passe" : "Afficher le mot de passe");
+    });
+  }
+  // Ã€ l'ouverture d'une fenÃªtre, les mots de passe sont de nouveau masquÃ©s
+  function hidePasswords(dlgId){
+    $(dlgId).querySelectorAll(".pwd-wrap").forEach(w => {
+      const i = w.querySelector("input"), e = w.querySelector(".pwd-eye");
+      if(i) i.type = "password"; if(e){ e.setAttribute("aria-pressed", "false"); e.setAttribute("aria-label", "Afficher le mot de passe"); }
+    });
+  }
+
+  /* BoÃ®tes de message de l'application (remplacent alert et confirm du navigateur) */
   let noticeTimer = null, askResolve = null;
-  function raise(d){ if(d.open) d.close(); d.showModal(); }     // repasse la boîte au premier plan
+  function raise(d){ if(d.open) d.close(); d.showModal(); }     // repasse la boÃ®te au premier plan
   function notify(text, kind){                                   // kind : "ok" (se ferme seule), "info", "error"
     kind = kind || "ok";
     const d = $("noticeBox"); d.dataset.kind = kind;
-    $("noticeIcon").textContent = kind === "error" ? "!" : (kind === "info" ? "i" : "✓");
+    $("noticeIcon").textContent = kind === "error" ? "!" : (kind === "info" ? "i" : "âœ“");
     $("noticeText").textContent = text;
     clearTimeout(noticeTimer); raise(d);
     if(kind === "ok") noticeTimer = setTimeout(() => closeDlg("noticeBox"), 2200);
   }
-  function ask(text, opts){                                      // renvoie une promesse : true si confirmé
+  function ask(text, opts){                                      // renvoie une promesse : true si confirmÃ©
     opts = opts || {};
     return new Promise(resolve => {
       if(askResolve) askResolve(false);
@@ -1158,9 +1184,9 @@ document.addEventListener("DOMContentLoaded", function(){
   const DB = firebase.database();
   const ref = p => DB.ref(p);
 
-  /* ============ Constantes et état ============ */
+  /* ============ Constantes et Ã©tat ============ */
   const PLABEL = ["P1","P2","P3","Prol."];
-  const PLONG = ["1re période","2e période","3e période","Prolongation"];
+  const PLONG = ["1re pÃ©riode","2e pÃ©riode","3e pÃ©riode","Prolongation"];
   const DEF_A = "#6FA2EE", DEF_B = "#F2707A";
   const DEFAULT_CATS = ["m13","m15","m17"];
   const END_TEXT = "FIN DU MATCH";
@@ -1170,55 +1196,55 @@ document.addEventListener("DOMContentLoaded", function(){
   let currentCat = cleanKey(urlParams.get("cat") || store.get(sessionStorage, "ohmtro_cat")) || "m15";
 
   let organizationsList = [
-    { id: "ohmtro", name: "OHMTRO", msg: "Bienvenue à tous les supporters de l'OHMTRO !" },
-    { id: "lions", name: "Lions de Chavigny", msg: "Bienvenue à l'aréna des Lions !" }
+    { id: "ohmtro", name: "OHMTRO", msg: "Bienvenue Ã  tous les supporters de l'OHMTRO !" },
+    { id: "lions", name: "Lions de Chavigny", msg: "Bienvenue Ã  l'arÃ©na des Lions !" }
   ];
   let categoriesList = DEFAULT_CATS.slice();
 
   let db, dbHistory, dbPresets, dbPasswords, dbConfig, dbPresence, dbCategories;
   const dbOrgs = ref("global/organizations");
-  let subs = [];                       // écouteurs liés à l'organisation / catégorie courante
+  let subs = [];                       // Ã©couteurs liÃ©s Ã  l'organisation / catÃ©gorie courante
   let myPresenceRef = null, onlineCount = 1, connected = false, serverOffset = 0;
   let defaultPeriodSec = 1200;
 
   let state = blank();
   let presets = {}, presetByName = {}, presetsRev = 0;
   let historyList = [], historyOn = false, historyLoaded = false, historyWaiters = [];
-  let lastLocal = 0;                   // horodatage de notre dernière écriture (évite un double rendu)
+  let lastLocal = 0;                   // horodatage de notre derniÃ¨re Ã©criture (Ã©vite un double rendu)
   let archiveKey = null, liveState = null;
 
   let openCardId = null, rosterScope = "match";
 
-  /* Rôles : super administrateur (toutes les organisations), administrateur d'une organisation, marqueur, spectateur.
-     « isAdminGlobal » = super administrateur ; un administrateur d'organisation a le rôle "admin" avec « assignedOrg ». */
+  /* RÃ´les : super administrateur (toutes les organisations), administrateur d'une organisation, marqueur, spectateur.
+     Â« isAdminGlobal Â» = super administrateur ; un administrateur d'organisation a le rÃ´le "admin" avec Â« assignedOrg Â». */
   let isAdminGlobal = store.get(localStorage, "ohmtro_admin_auth") === "true";
   let currentRole = isAdminGlobal ? "admin" : (store.get(sessionStorage, "ohmtro_role") || "viewer");
   let assignedCat = store.get(sessionStorage, "ohmtro_assigned_cat") || null;
   let assignedOrg = store.get(sessionStorage, "ohmtro_assigned_org") || null;
   let assignedTeam = store.get(sessionStorage, "ohmtro_assigned_team") || "";
 
-  /* Tableaux par équipe : quand une catégorie compte au moins deux équipes de l'organisation,
-     chacune a son propre tableau en direct (…/boards/<équipe>/match). Sinon, un seul tableau par catégorie. */
+  /* Tableaux par Ã©quipe : quand une catÃ©gorie compte au moins deux Ã©quipes de l'organisation,
+     chacune a son propre tableau en direct (â€¦/boards/<Ã©quipe>/match). Sinon, un seul tableau par catÃ©gorie. */
   let wantedTeam = cleanKey(urlParams.get("team") || (urlParams.get("org") ? "" : store.get(sessionStorage, "ohmtro_team")));
   let boardTeam = "", boardBase = "", boardSubs = [], matchRef = null, presetsLoaded = false;
-  let boardLink = null, linkStale = false, linkKnown = true, pendingSnap = null;   // confrontation entre deux équipes de l'organisation
+  let boardLink = null, linkStale = false, linkKnown = true, pendingSnap = null;   // confrontation entre deux Ã©quipes de l'organisation
   if(["admin","marqueur","viewer"].indexOf(currentRole) === -1) currentRole = "viewer";
   if(currentRole === "admin" && !isAdminGlobal && !assignedOrg) currentRole = "viewer";
 
   const isAdmin = () => currentRole === "admin";
   const isSuper = () => currentRole === "admin" && isAdminGlobal;
-  // Droits accordés par le super administrateur à l'administrateur de l'organisation
+  // Droits accordÃ©s par le super administrateur Ã  l'administrateur de l'organisation
   const normPerms = v => ({ orgName: !!(v && v.orgName), categories: !!(v && v.categories), teams: !(v && v.teams === false) });
   let adminPerms = normPerms(null);
   const can = p => isSuper() || (isAdmin() && !!adminPerms[p]);
-  // « Inverser » : échange les côtés à l'écran, sur l'appareil du marqueur seulement (jamais pour les spectateurs)
+  // Â« Inverser Â» : Ã©change les cÃ´tÃ©s Ã  l'Ã©cran, sur l'appareil du marqueur seulement (jamais pour les spectateurs)
   let inverted = store.get(sessionStorage, "ohmtro_inv") === "1";
   const invOn = () => inverted && currentRole !== "viewer" && !archiveKey;
-  const sides = () => invOn() ? ["a","b"] : ["b","a"];       // de gauche à droite : visiteur puis local, sauf inversion
+  const sides = () => invOn() ? ["a","b"] : ["b","a"];       // de gauche Ã  droite : visiteur puis local, sauf inversion
   const roleLabel = () => isSuper() ? "SUPER ADMIN" : currentRole.toUpperCase();
   const canEdit = () => currentRole !== "viewer" && !archiveKey;
   let editEntry = null;                // partie de l'historique en cours de modification : { key, m, at }
-  const now = () => Date.now() + serverOffset;      // heure du serveur : même chrono sur tous les appareils
+  const now = () => Date.now() + serverOffset;      // heure du serveur : mÃªme chrono sur tous les appareils
 
   function blank(){
     return {
@@ -1230,15 +1256,15 @@ document.addEventListener("DOMContentLoaded", function(){
       rosters: { a: [], b: [] },
       staff: { a: [], b: [] },
       goalies: { a: "", b: "" },         // gardien devant le filet (identifiant du joueur)
-      teamKeys: { a: "", b: "" },        // équipes enregistrées choisies au lancement de la partie
-      closed: false,                     // partie terminée ET décision prise sur la sauvegarde (enregistrée ou refusée)
+      teamKeys: { a: "", b: "" },        // Ã©quipes enregistrÃ©es choisies au lancement de la partie
+      closed: false,                     // partie terminÃ©e ET dÃ©cision prise sur la sauvegarde (enregistrÃ©e ou refusÃ©e)
       shots: { a: [0,0,0,0], b: [0,0,0,0] },
       events: [],
       timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 },
       finished: false,
       histKey: "",
       id: "",
-      periodSec: 0,                      // durée d'une période pour cette partie (0 = durée par défaut de l'organisation)
+      periodSec: 0,                      // durÃ©e d'une pÃ©riode pour cette partie (0 = durÃ©e par dÃ©faut de l'organisation)
       playedAt: 0,                       // date de la partie dans l'historique (ne change pas quand on la corrige)
       updatedAt: 0
     };
@@ -1269,10 +1295,10 @@ document.addEventListener("DOMContentLoaded", function(){
     s.playedAt = Number(d.playedAt) || 0;
     s.periodSec = int(d.periodSec, 0, 5940);
     const last = s.events[s.events.length - 1];
-    // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
+    // Anciennes parties (sans le champ Â« finished Â») : terminÃ©es si le dernier Ã©vÃ©nement est la fin du match
     s.finished = (typeof d.finished === "boolean") ? d.finished
                : !!(last && last.type === "sys" && last.text === END_TEXT && !s.timer.running && s.timer.sec === 0);
-    // Parties terminées avant l'ajout de ce champ : la question de sauvegarde a déjà été posée à l'époque
+    // Parties terminÃ©es avant l'ajout de ce champ : la question de sauvegarde a dÃ©jÃ  Ã©tÃ© posÃ©e Ã  l'Ã©poque
     s.closed = (typeof d.closed === "boolean") ? d.closed : s.finished;
     s.updatedAt = Number(d.updatedAt) || 0;
     return s;
@@ -1281,10 +1307,10 @@ document.addEventListener("DOMContentLoaded", function(){
   function isStarted(s){
     return s.timer.running || s.timer.sec < perSec(s) || s.period > 0 || sum(s.shots.a) > 0 || sum(s.shots.b) > 0 || s.events.length > 0;
   }
-  // Une partie est « à l'écran » dès que des équipes sont choisies ; elle est « en cours » tant qu'elle n'est pas terminée
-  // (une partie lancée sans choisir d'équipes compte aussi : elle porte un identifiant)
+  // Une partie est Â« Ã  l'Ã©cran Â» dÃ¨s que des Ã©quipes sont choisies ; elle est Â« en cours Â» tant qu'elle n'est pas terminÃ©e
+  // (une partie lancÃ©e sans choisir d'Ã©quipes compte aussi : elle porte un identifiant)
   const hasGame = s => isStarted(s) || !!s.id || !!(s.teamKeys.a || s.teamKeys.b) || s.names.a !== "Local" || s.names.b !== "Visiteur";
-  const perSec = s => (s && s.periodSec) || defaultPeriodSec;   // durée d'une période pour cette partie
+  const perSec = s => (s && s.periodSec) || defaultPeriodSec;   // durÃ©e d'une pÃ©riode pour cette partie
   const isLive = s => hasGame(s) && !s.finished;
   function goalsOf(t, p, events){
     let n = 0; const evs = events || state.events;
@@ -1304,15 +1330,15 @@ document.addEventListener("DOMContentLoaded", function(){
   const getPlayerName = (team, pId) => playerLabel(state.rosters[team] || [], pId);
 
   /* ---- Gardiens ---- */
-  // Gardien devant le filet : celui désigné par le marqueur, sinon le premier « G » de l'alignement
+  // Gardien devant le filet : celui dÃ©signÃ© par le marqueur, sinon le premier Â« G Â» de l'alignement
   function goalieOf(s, side){
     const r = s.rosters[side], cur = s.goalies[side];
     if(cur && r.some((p, i) => p.pos === "G" && pidOf(p, i) === cur)) return cur;
     for(let i = 0; i < r.length; i++) if(r[i].pos === "G") return pidOf(r[i], i);
     return "";
   }
-  // Lancers reçus et buts accordés par gardien pour un match. Chaque lancer / but porte le gardien
-  // en poste au moment de l'action (champ « g ») ; sans cette information, il va au gardien désigné.
+  // Lancers reÃ§us et buts accordÃ©s par gardien pour un match. Chaque lancer / but porte le gardien
+  // en poste au moment de l'action (champ Â« g Â») ; sans cette information, il va au gardien dÃ©signÃ©.
   function goalieLines(s, side){
     const opp = side === "a" ? "b" : "a", def = goalieOf(s, side), lines = {};
     const line = pid => lines[pid] || (lines[pid] = { sa: 0, ga: 0 });
@@ -1322,7 +1348,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(e.team !== opp || (e.type !== "shot" && e.type !== "goal")) continue;
       const l = line(e.g || def); l.sa++; total++; if(e.type === "goal") l.ga++;
     }
-    const diff = sum(s.shots[opp]) - total;                 // anciens matchs : compteur et fil pas toujours alignés
+    const diff = sum(s.shots[opp]) - total;                 // anciens matchs : compteur et fil pas toujours alignÃ©s
     if(diff){ const l = line(def); l.sa = Math.max(l.ga, l.sa + diff); }
     return lines;
   }
@@ -1332,7 +1358,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const l = lines[pId], inNet = goalieOf(s, ms) === pId;
       if(!l && !inNet) return;
       st.pj++; if(l){ st.sa += l.sa; st.ga += l.ga; }
-      if(isFinal && inNet){                                  // la décision va au gardien en poste à la fin
+      if(isFinal && inNet){                                  // la dÃ©cision va au gardien en poste Ã  la fin
         const opp = ms === "a" ? "b" : "a", gf = goalsOf(ms, null, s.events), ga = goalsOf(opp, null, s.events);
         if(gf > ga) st.v++; else if(gf < ga) st.d++; else st.n++;
         if(ga === 0 && Object.keys(lines).length <= 1) st.bl++;
@@ -1348,20 +1374,20 @@ document.addEventListener("DOMContentLoaded", function(){
     if(side && (scope === "match" || isStarted(state))) add(state, side, goalieLines(state, side), state.finished);
     return st;
   }
-  const svPct = (sa, ga) => sa > 0 ? pct(Math.max(0, sa - ga), sa) : "–";
+  const svPct = (sa, ga) => sa > 0 ? pct(Math.max(0, sa - ga), sa) : "â€“";
 
   function commit(){
     if(!canEdit()) return;
     state.updatedAt = now(); lastLocal = state.updatedAt;
     if(editEntry) editEntry.m = state;
-    db.set(state, err => { if(err) notify("Échec de l'enregistrement : " + (err.message || err), "error"); });
+    db.set(state, err => { if(err) notify("Ã‰chec de l'enregistrement : " + (err.message || err), "error"); });
     updateLiveIndex();
     render();
   }
 
   /* Parties en cours dans l'organisation : petite liste lue par tous les appareils, pour l'annoncer dans le bandeau */
   let liveGames = {}, liveSig = "", liveAt = 0;
-  const LIVE_STALE = 6 * 3600000;      // une partie sans activité depuis 6 h n'est plus annoncée
+  const LIVE_STALE = 6 * 3600000;      // une partie sans activitÃ© depuis 6 h n'est plus annoncÃ©e
   const myLiveKey = () => currentCat + (isLinked() ? "__" + boardLink.team : (boardTeam ? "__" + boardTeam : ""));
   function updateLiveIndex(){
     if(editEntry || archiveKey) return;
@@ -1375,7 +1401,7 @@ document.addEventListener("DOMContentLoaded", function(){
     } else if(liveSig || liveGames[key]){ liveSig = ""; r.remove(); }
   }
 
-  /* ============ Connexion, présence, statut ============ */
+  /* ============ Connexion, prÃ©sence, statut ============ */
 
   function announcePresence(){
     if(!myPresenceRef) return;
@@ -1387,7 +1413,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const st = $("status");
     if(!connected){ st.textContent = "Hors ligne"; st.dataset.s = "offline"; return; }
     const connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
-    // « En direct » (voyant vert) seulement quand une partie est en cours sur ce tableau
+    // Â« En direct Â» (voyant vert) seulement quand une partie est en cours sur ce tableau
     const live = isLive(state) && !editEntry && !archiveKey;
     const txt = (live ? "En direct" : "Aucune partie") + (currentRole !== "viewer" ? " - " + roleLabel() : "") + connText;
     if(st.textContent !== txt) st.textContent = txt;
@@ -1403,7 +1429,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function updateRoleUI(){
     document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "");
-    $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + roleLabel() + ")" : "🔒 Connexion";
+    $("btnLogin").textContent = (currentRole !== "viewer") ? "ðŸ”“ DÃ©connexion (" + roleLabel() + ")" : "ðŸ”’ Connexion";
     updateStatusDisplay(); applyInv(); updatePermUI();
   }
 
@@ -1414,7 +1440,7 @@ document.addEventListener("DOMContentLoaded", function(){
     store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_org");
   }
 
-  /* ============ Organisations / catégories (barre du haut) ============ */
+  /* ============ Organisations / catÃ©gories (barre du haut) ============ */
 
   function renderOrgsDropdownTop(){
     const items = organizationsList.map(o => ({ value: o.id, label: o.name }));
@@ -1428,7 +1454,7 @@ document.addEventListener("DOMContentLoaded", function(){
   const brandLogo = $("ohmtroLogo");
   brandLogo.addEventListener("error", () => { brandLogo.style.display = "none"; });
   brandLogo.addEventListener("load", () => { brandLogo.style.display = ""; });
-  if(brandLogo.complete && !brandLogo.naturalWidth) brandLogo.style.display = "none";   // échec survenu avant l'écoute
+  if(brandLogo.complete && !brandLogo.naturalWidth) brandLogo.style.display = "none";   // Ã©chec survenu avant l'Ã©coute
   function updateBrand(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const src = currentOrg === "lions" ? "https://ehclions.com/wp-content/uploads/2021/09/Logo-Lions.png"
@@ -1441,7 +1467,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function bsub(r, cb){ r.on("value", cb); boardSubs.push([r, cb]); }
 
-  // Équipes de l'organisation dans une catégorie (celles qui peuvent avoir leur propre tableau)
+  // Ã‰quipes de l'organisation dans une catÃ©gorie (celles qui peuvent avoir leur propre tableau)
   function boardTeams(cat){
     return Object.keys(presets).filter(k => { const p = presets[k]; return p && p.name && p.own && (!p.category || p.category === cat); })
                  .sort((x, y) => String(presets[x].name).localeCompare(String(presets[y].name), "fr", { numeric: true }));
@@ -1469,7 +1495,7 @@ document.addEventListener("DOMContentLoaded", function(){
     orgKey = cleanKey(orgKey) || "ohmtro";
     catKey = cleanKey(catKey) || currentCat || "m15";
 
-    // Un marqueur n'est autorisé que pour l'organisation et la catégorie de son mot de passe
+    // Un marqueur n'est autorisÃ© que pour l'organisation et la catÃ©gorie de son mot de passe
     if(!isAdminGlobal && currentRole === "marqueur" &&
        ((assignedCat && assignedCat !== catKey) || (assignedOrg && assignedOrg !== orgKey))){
       demoteToViewer();
@@ -1491,7 +1517,7 @@ document.addEventListener("DOMContentLoaded", function(){
     presets = {}; presetByName = {}; presetsRev++; presetsLoaded = false; liveGames = {}; adminPerms = normPerms(null);
     if(nav !== "init" || !categoriesList.length) categoriesList = [currentCat];   // liste provisoire, le temps de charger celle de l'organisation
     renderOrgsDropdownTop(); renderCategoriesDropdownTop(); updateBrand();
-    attachBoard(wantedTeam, nav);        // tableau présumé ; corrigé au besoin dès que les équipes sont chargées
+    attachBoard(wantedTeam, nav);        // tableau prÃ©sumÃ© ; corrigÃ© au besoin dÃ¨s que les Ã©quipes sont chargÃ©es
     attachListeners();
     if(needsHistory()) ensureHistory();
   }
@@ -1502,7 +1528,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(myPresenceRef){ myPresenceRef.onDisconnect().cancel(); myPresenceRef.remove(); myPresenceRef = null; }
   }
 
-  // Marqueur d'une équipe : il ne peut marquer que sur le tableau de son équipe
+  // Marqueur d'une Ã©quipe : il ne peut marquer que sur le tableau de son Ã©quipe
   function checkMarqueurScope(){
     if(presetsLoaded && !isAdminGlobal && currentRole === "marqueur" && (assignedTeam || "") !== boardTeam) demoteToViewer();
   }
@@ -1522,7 +1548,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(connected) announcePresence();
     bsub(dbPresence, snap => { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
 
-    // Confrontation entre deux équipes de l'organisation : ce tableau peut pointer vers la partie de l'autre équipe
+    // Confrontation entre deux Ã©quipes de l'organisation : ce tableau peut pointer vers la partie de l'autre Ã©quipe
     if(boardTeam) bsub(ref(boardBase + "/link"), snap => {
       const l = snap.val(), nl = (l && l.team && l.id) ? { team: cleanKey(l.team), id: String(l.id) } : null;
       const changed = JSON.stringify(nl) !== JSON.stringify(boardLink), first = !linkKnown;
@@ -1537,7 +1563,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   const isLinked = () => !!(boardLink && !linkStale);
   function watchMatch(){
-    if(editEntry) return;                                    // on modifie une partie archivée : pas de direct
+    if(editEntry) return;                                    // on modifie une partie archivÃ©e : pas de direct
     if(matchRef) matchRef.off("value", onMatch);
     pendingSnap = null;
     db = matchRef = ref(isLinked() ? catBase() + "/boards/" + boardLink.team + "/match" : boardBase + "/match");
@@ -1547,16 +1573,16 @@ document.addEventListener("DOMContentLoaded", function(){
     if(editEntry) return;
     if(!linkKnown){ pendingSnap = snap; return; }             // on attend de savoir si le tableau pointe ailleurs
     const raw = snap.val();
-    // L'autre équipe a commencé une autre partie : le lien n'est plus valide, retour à notre propre tableau
+    // L'autre Ã©quipe a commencÃ© une autre partie : le lien n'est plus valide, retour Ã  notre propre tableau
     if(isLinked() && (!raw || raw.id !== boardLink.id)){ linkStale = true; watchMatch(); return; }
-    // Écho de notre propre écriture : l'écran est déjà à jour, inutile de tout redessiner
+    // Ã‰cho de notre propre Ã©criture : l'Ã©cran est dÃ©jÃ  Ã  jour, inutile de tout redessiner
     if(raw && lastLocal && raw.updatedAt === lastLocal && state.updatedAt === lastLocal) return;
     const s = raw ? sanitize(raw) : blank();
     if(archiveKey){ liveState = s; return; }
     state = s; syncStateWithPresets(); render();
   }
 
-  // Une fois les équipes connues : choisit le bon tableau (par équipe ou par catégorie)
+  // Une fois les Ã©quipes connues : choisit le bon tableau (par Ã©quipe ou par catÃ©gorie)
   function resolveBoard(){
     presetsLoaded = true;
     const teams = boardTeams(currentCat);
@@ -1577,7 +1603,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   on("orgSelectTop", "change", () => {
-    // On vérifie d'abord les catégories de la nouvelle organisation pour ne pas garder une catégorie qu'elle n'a pas
+    // On vÃ©rifie d'abord les catÃ©gories de la nouvelle organisation pour ne pas garder une catÃ©gorie qu'elle n'a pas
     editEntry = null;
     const org = $("orgSelectTop").value, go = cats => switchOrganization(org, cats.indexOf(currentCat) !== -1 ? currentCat : cats[0]);
     loadCats(org).then(go, () => go([currentCat]));
@@ -1593,7 +1619,7 @@ document.addEventListener("DOMContentLoaded", function(){
     sub(dbCategories, snap => {
       const val = toArr(snap.val()).map(cleanKey).filter(Boolean);
       categoriesList = val.length ? val : DEFAULT_CATS.slice();
-      // La catégorie affichée n'existe pas dans cette organisation : on bascule sur sa première catégorie
+      // La catÃ©gorie affichÃ©e n'existe pas dans cette organisation : on bascule sur sa premiÃ¨re catÃ©gorie
       if(categoriesList.indexOf(currentCat) === -1){ switchOrganization(currentOrg, categoriesList[0], "init"); return; }
       renderCategoriesDropdownTop();
     });
@@ -1610,7 +1636,7 @@ document.addEventListener("DOMContentLoaded", function(){
       } else {
         $("defaultPeriodMinInput").value = "custom"; $("customPeriodMinInput").value = mVal; $("customPeriodMinInput").style.display = "block";
       }
-      // Tableau vierge : on aligne le chrono affiché sur la durée configurée
+      // Tableau vierge : on aligne le chrono affichÃ© sur la durÃ©e configurÃ©e
       if(!state.updatedAt && !state.timer.running && !state.events.length) state.timer.sec = defaultPeriodSec;
       render();
     });
@@ -1624,7 +1650,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 
-  // Équipe enregistrée d'un côté du match : par sa clé si elle est connue, sinon par son nom
+  // Ã‰quipe enregistrÃ©e d'un cÃ´tÃ© du match : par sa clÃ© si elle est connue, sinon par son nom
   function presetFor(side, s){
     s = s || state;
     const k = s.teamKeys && s.teamKeys[side];
@@ -1638,7 +1664,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 
-  // Complète localement l'alignement / le logo à partir de l'équipe enregistrée lorsqu'ils manquent
+  // ComplÃ¨te localement l'alignement / le logo Ã  partir de l'Ã©quipe enregistrÃ©e lorsqu'ils manquent
   function syncStateWithPresets(){
     ["a","b"].forEach(side => {
       const p = presetFor(side); if(!p) return;
@@ -1648,7 +1674,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 
-  /* ============ Bandeau défilant ============ */
+  /* ============ Bandeau dÃ©filant ============ */
   let tickerSig = null, tickerMsg = [], lastWidth = window.innerWidth, resizeTimer = null;
   const TICKER_SPEED = 55;             // pixels par seconde
   function updateTickerDisplay(){
@@ -1660,11 +1686,11 @@ document.addEventListener("DOMContentLoaded", function(){
       const g = liveGames[k];
       if(!g || k === mine || !g.cat || now() - (Number(g.at) || 0) > LIVE_STALE) return;
       const p = g.team && presets[g.team], cat = String(g.cat).toUpperCase();
-      messages.push(p && p.name ? "🔴 Présentement en cours dans " + cat + " : l'équipe " + p.name + " — sélectionnez-la juste ici ⬆⬆⬆"
-                                : "🔴 Présentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " — sélectionnez la catégorie juste ici ⬆⬆⬆");
+      messages.push(p && p.name ? "ðŸ”´ PrÃ©sentement en cours dans " + cat + " : l'Ã©quipe " + p.name + " â€” sÃ©lectionnez-la juste ici â¬†â¬†â¬†"
+                                : "ðŸ”´ PrÃ©sentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " â€” sÃ©lectionnez la catÃ©gorie juste ici â¬†â¬†â¬†");
     });
     msgsOf(org).forEach(m => messages.push(m));
-    // Messages des équipes : celles du match, et toujours l'équipe du tableau affiché (même sans partie lancée)
+    // Messages des Ã©quipes : celles du match, et toujours l'Ã©quipe du tableau affichÃ© (mÃªme sans partie lancÃ©e)
     const shown = [];
     const addTeam = p => {
       if(!p || shown.indexOf(p) !== -1) return;
@@ -1673,14 +1699,14 @@ document.addEventListener("DOMContentLoaded", function(){
     const pa = presetFor("a"), pb = presetFor("b");
     if(boardTeam && presets[boardTeam] && presets[boardTeam] !== pb) addTeam(presets[boardTeam]);
     addTeam(pa); addTeam(pb);
-    // Aucune équipe reconnue à l'écran (tableau vierge) : on affiche les messages des équipes de l'organisation dans cette catégorie
+    // Aucune Ã©quipe reconnue Ã  l'Ã©cran (tableau vierge) : on affiche les messages des Ã©quipes de l'organisation dans cette catÃ©gorie
     if(!shown.length) boardTeams(currentCat).forEach(k => addTeam(presets[k]));
     const full = messages.join("\u0001");
-    if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
+    if(full === tickerSig) return;       // texte inchangÃ© : on ne redÃ©marre pas l'animation
     tickerSig = full; tickerMsg = messages;
     layoutTicker();
   }
-  // Le message entre par la droite, défile jusqu'au bout, puis recommence après un espace, sans coupure
+  // Le message entre par la droite, dÃ©file jusqu'au bout, puis recommence aprÃ¨s un espace, sans coupure
   function layoutTicker(){
     const wrap = $("tickerWrap"), track = $("tickerText");
     track.style.animation = "none"; track.textContent = "";
@@ -1703,7 +1729,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function loadPasswords(){
     return Promise.all([dbPasswords.once("value"), dbSuper.once("value")]).then(r => {
       const v = r[0].val() || {}, sup = r[1].val();
-      // Super administrateur : mot de passe global ; tant qu'il n'est pas défini, l'ancien mot de passe administrateur reste valide
+      // Super administrateur : mot de passe global ; tant qu'il n'est pas dÃ©fini, l'ancien mot de passe administrateur reste valide
       return { superPwd: (typeof sup === "string" && sup) ? sup : (v.admin || "hockey"), legacyAdmin: v.admin || "",
                orgAdmin: typeof v.orgAdmin === "string" ? v.orgAdmin : "", marqueur: v.marqueur || "buts",
                categories: (v.categories && typeof v.categories === "object") ? v.categories : {},
@@ -1714,9 +1740,9 @@ document.addEventListener("DOMContentLoaded", function(){
   on("btnLogin", "click", () => {
     if(currentRole !== "viewer"){
       if(editEntry) exitEdit(true);
-      demoteToViewer(); updateRoleUI(); render(); notify("Vous êtes déconnecté.");
+      demoteToViewer(); updateRoleUI(); render(); notify("Vous Ãªtes dÃ©connectÃ©.");
     } else {
-      $("loginPass").value = ""; openDlg("loginSheet");
+      $("loginPass").value = ""; hidePasswords("loginSheet"); openDlg("loginSheet");
     }
   });
   on("loginCancel", "click", () => closeDlg("loginSheet"));
@@ -1731,12 +1757,12 @@ document.addEventListener("DOMContentLoaded", function(){
         store.set(localStorage, "ohmtro_admin_auth", "true"); store.set(sessionStorage, "ohmtro_role", "admin");
         store.del(sessionStorage, "ohmtro_assigned_org"); store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_team");
       } else if(adminUser && passwords.orgAdmin && p === passwords.orgAdmin){
-        // Administrateur de l'organisation affichée
+        // Administrateur de l'organisation affichÃ©e
         currentRole = "admin"; isAdminGlobal = false; assignedCat = null; assignedOrg = currentOrg; assignedTeam = "";
         store.del(localStorage, "ohmtro_admin_auth"); store.set(sessionStorage, "ohmtro_role", "admin");
         store.set(sessionStorage, "ohmtro_assigned_org", currentOrg); store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_team");
       } else if(u === "marqueur"){
-        // Le mot de passe détermine la catégorie et, s'il y a lieu, l'équipe (tableau) du marqueur
+        // Le mot de passe dÃ©termine la catÃ©gorie et, s'il y a lieu, l'Ã©quipe (tableau) du marqueur
         let target = null;
         const teamOk = k => passwords.teams[k] === p && presets[k] && presets[k].own;
         if(p === passwords.marqueur) target = { cat: currentCat, team: boardTeam };
@@ -1758,11 +1784,11 @@ document.addEventListener("DOMContentLoaded", function(){
       $("loginPass").value = "";
       if(archiveKey) exitArchive();
       updateRoleUI(); render(); closeDlg("loginSheet");
-    }).catch(() => notify("Connexion impossible pour le moment. Vérifiez votre réseau.", "error"))
+    }).catch(() => notify("Connexion impossible pour le moment. VÃ©rifiez votre rÃ©seau.", "error"))
       .then(() => { btn.disabled = false; });
   });
 
-  /* ============ Gestion : paramètres ============ */
+  /* ============ Gestion : paramÃ¨tres ============ */
   on("btnManageSettings", "click", () => { if(isAdmin() && canEdit()) openDlg("settingsSheet"); });
   on("settingsCancel", "click", () => closeDlg("settingsSheet"));
   on("defaultPeriodMinInput", "change", () => {
@@ -1775,7 +1801,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const selVal = $("defaultPeriodMinInput").value;
     const min = int(selVal === "custom" ? ($("customPeriodMinInput").value || 20) : selVal, 1, 99);
     dbConfig.child("defaultPeriodMin").set(min);
-    closeDlg("settingsSheet"); notify("Paramètres enregistrés !");
+    closeDlg("settingsSheet"); notify("ParamÃ¨tres enregistrÃ©s !");
   });
 
   /* ============ Exportation ============ */
@@ -1877,7 +1903,7 @@ document.addEventListener("DOMContentLoaded", function(){
     input.type = "text"; input.value = value || ""; input.placeholder = placeholder; input.maxLength = 200; input.disabled = !!disabled;
     row.appendChild(num); row.appendChild(input);
     if(!disabled){
-      const del = btn("row-del", "✕", () => { row.remove(); if(!list.children.length) msgRow(listId, "", placeholder); msgRenumber(listId); });
+      const del = btn("row-del", "âœ•", () => { row.remove(); if(!list.children.length) msgRow(listId, "", placeholder); msgRenumber(listId); });
       del.setAttribute("aria-label", "Retirer ce message"); row.appendChild(del);
     }
     list.appendChild(row); msgRenumber(listId);
@@ -1894,7 +1920,7 @@ document.addEventListener("DOMContentLoaded", function(){
     (msgs.length ? msgs : [""]).forEach(m => msgRow(listId, m, placeholder, disabled));
   }
   const msgRead = listId => Array.prototype.map.call($(listId).querySelectorAll("input"), i => i.value.trim()).filter(Boolean);
-  const ORG_PH = "Ex: Bienvenue à l'aréna !", TEAM_PH = "Ex: Bon match à tous !";
+  const ORG_PH = "Ex: Bienvenue Ã  l'arÃ©na !", TEAM_PH = "Ex: Bon match Ã  tous !";
   on("msgOrgAdd", "click", () => msgRow("msgOrgList", "", ORG_PH).focus());
   on("msgTeamAdd", "click", () => msgRow("msgTeamList", "", TEAM_PH).focus());
 
@@ -1904,7 +1930,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const selOrg = $("msgOrgSelect");
     fillSelect(selOrg, orgItems(), currentOrg);
     selOrg.disabled = !isSuper();
-    $("msgOrgBox").style.display = isAdmin() ? "" : "none";   // le marqueur ne gère que les messages de son équipe
+    $("msgOrgBox").style.display = isAdmin() ? "" : "none";   // le marqueur ne gÃ¨re que les messages de son Ã©quipe
     $("msgCatSelect").disabled = !isAdmin();
     msgSelectedOrgKey = selOrg.value || currentOrg;
     loadOrgMessageData(msgSelectedOrgKey);
@@ -1925,7 +1951,7 @@ document.addEventListener("DOMContentLoaded", function(){
     fillSelect($("msgTeamSelect"), [], null, "Chargement...");
     msgFill("msgTeamList", [], TEAM_PH, true);
     loadCats(orgKey).then(cats => {
-      if(token !== msgToken) return;                // l'utilisateur a changé d'organisation entre-temps
+      if(token !== msgToken) return;                // l'utilisateur a changÃ© d'organisation entre-temps
       if(lockCat) cats = [currentCat];
       if(cats.indexOf(msgCatKey) === -1) msgCatKey = cats[0];
       fillSelect($("msgCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), msgCatKey);
@@ -1937,15 +1963,15 @@ document.addEventListener("DOMContentLoaded", function(){
       fillMsgTeams();
     });
   }
-  // Équipes de la catégorie choisie (une équipe sans catégorie apparaît dans toutes)
+  // Ã‰quipes de la catÃ©gorie choisie (une Ã©quipe sans catÃ©gorie apparaÃ®t dans toutes)
   function fillMsgTeams(){
     const items = Object.keys(msgTempTeams).filter(k => { const t = msgTempTeams[k]; return t && t.name && (!t.category || t.category === msgCatKey); })
-                        .filter(k => isAdmin() || !boardTeam || k === boardTeam)      // marqueur d'une équipe : la sienne seulement
+                        .filter(k => isAdmin() || !boardTeam || k === boardTeam)      // marqueur d'une Ã©quipe : la sienne seulement
                         .map(k => ({ value: k, label: msgTempTeams[k].name }))
                         .sort((x, y) => x.label.localeCompare(y.label, "fr", { numeric: true }));
     const sel = $("msgTeamSelect");
     if(items.length){ fillSelect(sel, items, items.some(it => it.value === msgSelectedTeamKey) ? msgSelectedTeamKey : items[0].value); msgSelectedTeamKey = sel.value; }
-    else { fillSelect(sel, [], null, "Aucune équipe"); msgSelectedTeamKey = ""; }
+    else { fillSelect(sel, [], null, "Aucune Ã©quipe"); msgSelectedTeamKey = ""; }
     showTeamMsg();
   }
   on("msgCatSelect", "change", () => { stashTeamMsgs(); msgCatKey = $("msgCatSelect").value; msgSelectedTeamKey = ""; fillMsgTeams(); });
@@ -1953,7 +1979,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const t = msgTempTeams[msgSelectedTeamKey];
     msgFill("msgTeamList", msgsOf(t), TEAM_PH, !t);
   }
-  // Les messages saisis pour une équipe sont conservés quand on passe à une autre équipe, puis enregistrés ensemble
+  // Les messages saisis pour une Ã©quipe sont conservÃ©s quand on passe Ã  une autre Ã©quipe, puis enregistrÃ©s ensemble
   function stashTeamMsgs(){
     const t = msgTempTeams[msgSelectedTeamKey]; if(!t) return;
     const msgs = msgRead("msgTeamList");
@@ -1973,10 +1999,10 @@ document.addEventListener("DOMContentLoaded", function(){
       ref(base + "/msgs").set(t.msgs); ref(base + "/msg").set(t.msg);
     });
     msgDirtyTeams = {};
-    updateTickerDisplay(); msgLeave(); notify("Messages enregistrés !");
+    updateTickerDisplay(); msgLeave(); notify("Messages enregistrÃ©s !");
   });
 
-  /* ============ Gestion : organisations (avec leurs catégories et leurs équipes) ============ */
+  /* ============ Gestion : organisations (avec leurs catÃ©gories et leurs Ã©quipes) ============ */
   let manageOrgKey = currentOrg, manageCategoriesList = [], currentEditingCatIndex = -1;
   let manageTeamCatKey = "", manageTeamPresets = {}, manageTeamRef = null, editingTeamKey = null;
 
@@ -2005,10 +2031,10 @@ document.addEventListener("DOMContentLoaded", function(){
   on("btnAddOrg", "click", () => {
     if(!isSuper()) return;
     const id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), name = $("newOrgNameInput").value.trim();
-    // La première catégorie est demandée à la création : une nouvelle organisation n'hérite d'aucune catégorie par défaut
+    // La premiÃ¨re catÃ©gorie est demandÃ©e Ã  la crÃ©ation : une nouvelle organisation n'hÃ©rite d'aucune catÃ©gorie par dÃ©faut
     const cat = $("newOrgCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-    if(!id || !name || !cat){ notify("Entrez une clé, un nom et une première catégorie pour la nouvelle organisation.", "info"); return; }
-    if(organizationsList.some(o => o.id === id)){ notify("Cette clé d'organisation existe déjà.", "error"); return; }
+    if(!id || !name || !cat){ notify("Entrez une clÃ©, un nom et une premiÃ¨re catÃ©gorie pour la nouvelle organisation.", "info"); return; }
+    if(organizationsList.some(o => o.id === id)){ notify("Cette clÃ© d'organisation existe dÃ©jÃ .", "error"); return; }
     organizationsList.push({ id: id, name: name, msg: "" }); dbOrgs.set(organizationsList);
     ref(id + "/categories").set([cat]);
     $("newOrgIdInput").value = ""; $("newOrgNameInput").value = ""; $("newOrgCatInput").value = "";
@@ -2021,11 +2047,11 @@ document.addEventListener("DOMContentLoaded", function(){
       label.appendChild(el("strong", null, o.name)); label.appendChild(document.createTextNode(" "));
       const sm = el("small", null, "(" + o.id + ")"); sm.style.color = "var(--muted)"; label.appendChild(sm);
       list.appendChild(manageItem("org-manage-item", label, [
-        btn("btn-edit", "⚙️ Gérer", () => openOrgDetail(o.id)),
-        btn("btn-hist-del", "🗑 Supprimer", () => {
+        btn("btn-edit", "âš™ï¸ GÃ©rer", () => openOrgDetail(o.id)),
+        btn("btn-hist-del", "ðŸ—‘ Supprimer", () => {
           if(!isSuper()) return;
           if(organizationsList.length <= 1){ notify("Il faut conserver au moins une organisation.", "info"); return; }
-          ask("Supprimer l'organisation « " + o.name + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+          ask("Supprimer l'organisation Â« " + o.name + " Â» ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
             if(!ok) return;
             organizationsList = organizationsList.filter(x => x.id !== o.id); dbOrgs.set(organizationsList); renderOrgManageList();
           });
@@ -2034,7 +2060,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 
-  /* --- Fiche d'une organisation : nom, catégories, équipes --- */
+  /* --- Fiche d'une organisation : nom, catÃ©gories, Ã©quipes --- */
   function openOrgDetail(orgKey){
     if(!isAdmin() || (!isSuper() && orgKey !== currentOrg)) return;
     manageOrgKey = orgKey;
@@ -2066,9 +2092,9 @@ document.addEventListener("DOMContentLoaded", function(){
   on("orgDetailRename", "click", () => {
     const v = $("orgDetailNameInput").value.trim(), org = manageOrg();
     if(!can("orgName") || !org) return;
-    if(!v){ notify("Le nom ne peut pas être vide.", "info"); return; }
+    if(!v){ notify("Le nom ne peut pas Ãªtre vide.", "info"); return; }
     org.name = v; dbOrgs.set(organizationsList); $("orgDetailTitle").textContent = v;
-    notify("Organisation renommée.");
+    notify("Organisation renommÃ©e.");
   });
   on("orgDetailBack", "click", () => {
     stopTeamsManage();
@@ -2077,27 +2103,27 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   on("orgDetailClose", "click", () => { stopTeamsManage(); closeDlg("orgDetailSheet"); });
 
-  /* --- Catégories de l'organisation --- */
+  /* --- CatÃ©gories de l'organisation --- */
   const catItems = () => manageCategoriesList.map(c => ({ value: c, label: c.toUpperCase() }));
   function fillTeamCatSelect(){
-    fillSelect($("teamManageCatSelect"), catItems(), manageTeamCatKey, "Toutes les catégories");
+    fillSelect($("teamManageCatSelect"), catItems(), manageTeamCatKey, "Toutes les catÃ©gories");
     manageTeamCatKey = $("teamManageCatSelect").value; renderTeamsManageList();
   }
   on("btnAddCat", "click", () => {
     if(!can("categories")) return;
     const val = $("newCatInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""); if(!val) return;
-    if(manageCategoriesList.indexOf(val) !== -1){ notify("Cette catégorie existe déjà.", "error"); return; }
+    if(manageCategoriesList.indexOf(val) !== -1){ notify("Cette catÃ©gorie existe dÃ©jÃ .", "error"); return; }
     manageCategoriesList.push(val); saveCats(); $("newCatInput").value = ""; renderCategoriesManageList(); fillTeamCatSelect();
   });
   function renderCategoriesManageList(){
     const list = $("catManageList"); list.textContent = "";
     manageCategoriesList.forEach((cat, index) => {
       list.appendChild(manageItem("cat-manage-item", el("strong", null, cat.toUpperCase()), [
-        btn("btn-edit", "✏️ Éditer", () => { currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); swapDlg("orgDetailSheet", "editCatSheet"); }),
-        btn("btn-hist-del", "🗑 Supprimer", () => {
+        btn("btn-edit", "âœï¸ Ã‰diter", () => { currentEditingCatIndex = index; $("editCatNameInput").value = cat.toUpperCase(); swapDlg("orgDetailSheet", "editCatSheet"); }),
+        btn("btn-hist-del", "ðŸ—‘ Supprimer", () => {
           if(!can("categories")) return;
-          if(manageCategoriesList.length <= 1){ notify("Il faut conserver au moins une catégorie.", "info"); return; }
-          ask("Supprimer la catégorie " + cat.toUpperCase() + " ?\nSes parties et son historique ne seront plus accessibles.", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+          if(manageCategoriesList.length <= 1){ notify("Il faut conserver au moins une catÃ©gorie.", "info"); return; }
+          ask("Supprimer la catÃ©gorie " + cat.toUpperCase() + " ?\nSes parties et son historique ne seront plus accessibles.", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
             if(!ok) return;
             manageCategoriesList = manageCategoriesList.filter(c => c !== cat); saveCats(); renderCategoriesManageList(); fillTeamCatSelect();
           });
@@ -2111,14 +2137,14 @@ document.addEventListener("DOMContentLoaded", function(){
     const idx = currentEditingCatIndex, old = manageCategoriesList[idx];
     swapDlg("editCatSheet", "orgDetailSheet");
     if(!can("categories") || !cleanK || !old || cleanK === old) return;
-    if(manageCategoriesList.indexOf(cleanK) !== -1){ notify("Cette catégorie existe déjà.", "error"); return; }
-    ask("Renommer " + old.toUpperCase() + " en " + cleanK.toUpperCase() + " ?\nLa partie en cours, l'historique et le mot de passe restent liés à l'ancien nom (" + old.toUpperCase() + ").", { title: "Renommer", ok: "Renommer" }).then(ok => {
+    if(manageCategoriesList.indexOf(cleanK) !== -1){ notify("Cette catÃ©gorie existe dÃ©jÃ .", "error"); return; }
+    ask("Renommer " + old.toUpperCase() + " en " + cleanK.toUpperCase() + " ?\nLa partie en cours, l'historique et le mot de passe restent liÃ©s Ã  l'ancien nom (" + old.toUpperCase() + ").", { title: "Renommer", ok: "Renommer" }).then(ok => {
       if(!ok) return;
       manageCategoriesList[idx] = cleanK; saveCats(); renderCategoriesManageList(); fillTeamCatSelect();
     });
   });
 
-  /* --- Équipes de l'organisation --- */
+  /* --- Ã‰quipes de l'organisation --- */
   const onManageTeams = snap => { manageTeamPresets = snap.val() || {}; renderTeamsManageList(); };
   function stopTeamsManage(){ if(manageTeamRef){ manageTeamRef.off("value", onManageTeams); manageTeamRef = null; } }
   function loadTeamsForManage(orgKey){
@@ -2132,19 +2158,19 @@ document.addEventListener("DOMContentLoaded", function(){
     const keys = Object.keys(manageTeamPresets).filter(k => {
       const t = manageTeamPresets[k]; return t && (!manageTeamCatKey || !t.category || t.category === manageTeamCatKey);
     });
-    if(!keys.length){ list.appendChild(el("li", "empty", "Aucune équipe.")); return; }
+    if(!keys.length){ list.appendChild(el("li", "empty", "Aucune Ã©quipe.")); return; }
     keys.forEach(key => {
       const team = manageTeamPresets[key];
       const label = document.createDocumentFragment(), dot = el("span", "color-dot");
       dot.style.background = hex(team.color, DEF_A);
       label.appendChild(dot); label.appendChild(el("strong", null, team.name || key));
-      if(team.own){ const tag = el("span", "own-tag", "Notre équipe"); label.appendChild(tag); }
+      if(team.own){ const tag = el("span", "own-tag", "Notre Ã©quipe"); label.appendChild(tag); }
       if(!manageTeamCatKey && team.category){ const sm = el("small", null, " " + String(team.category).toUpperCase()); sm.style.color = "var(--muted)"; label.appendChild(sm); }
       list.appendChild(manageItem("team-manage-item", label, [
-        btn("btn-edit", "✏️ Éditer", () => openTeamEditor(key)),
-        btn("btn-hist-del", "🗑 Supprimer", () => {
+        btn("btn-edit", "âœï¸ Ã‰diter", () => openTeamEditor(key)),
+        btn("btn-hist-del", "ðŸ—‘ Supprimer", () => {
           if(!can("teams")) return;
-          ask("Supprimer l'équipe « " + (team.name || key) + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+          ask("Supprimer l'Ã©quipe Â« " + (team.name || key) + " Â» ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
             if(ok) ref(manageOrgKey + "/teams_presets/" + key).remove();
           });
         })
@@ -2157,12 +2183,12 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!can("teams")) return;
     editingTeamKey = key;
     const team = (key && manageTeamPresets[key]) || { name: "", logo: "", color: DEF_A, category: manageTeamCatKey || "", roster: [], staff: [] };
-    $("rsTitle").textContent = key ? "Éditer l'Équipe" : "Créer une Équipe";
+    $("rsTitle").textContent = key ? "Ã‰diter l'Ã‰quipe" : "CrÃ©er une Ã‰quipe";
     $("editTeamNameInput").value = team.name || ""; $("teamLogoInput").value = team.logo || ""; $("presetTeamColor").value = hex(team.color, DEF_A);
     const cats = catItems(), cat = team.category || "";
     if(cat && !cats.some(c => c.value === cat)) cats.push({ value: cat, label: String(cat).toUpperCase() });
-    // Nouvelle équipe : la catégorie doit être choisie ; une ancienne équipe sans catégorie reste « Toutes les catégories »
-    fillSelect($("editTeamCatSelect"), cats, cat, key ? "Toutes les catégories" : "Veuillez choisir une catégorie");
+    // Nouvelle Ã©quipe : la catÃ©gorie doit Ãªtre choisie ; une ancienne Ã©quipe sans catÃ©gorie reste Â« Toutes les catÃ©gories Â»
+    fillSelect($("editTeamCatSelect"), cats, cat, key ? "Toutes les catÃ©gories" : "Veuillez choisir une catÃ©gorie");
     $("editTeamOwn").checked = !!team.own;
     updateLogoPreview();
     const roster = toArr(team.roster), staff = toArr(team.staff);
@@ -2177,7 +2203,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("teamLogoInput", "change", updateLogoPreview);
   $("logoPreview").addEventListener("error", () => { $("logoPreview").style.display = "none"; });
 
-  const delBtn = row => { const b = btn("row-del", "✕", () => row.remove()); b.setAttribute("aria-label", "Retirer"); return b; };
+  const delBtn = row => { const b = btn("row-del", "âœ•", () => row.remove()); b.setAttribute("aria-label", "Retirer"); return b; };
   const mkInput = (cls, ph, val, max) => { const i = el("input", cls); i.type = "text"; i.placeholder = ph; i.value = val || ""; if(max) i.maxLength = max; return i; };
   const mkSelect = (cls, opts, val) => {
     const s = el("select", cls); opts.forEach(o => { const op = el("option", null, o[1]); op.value = o[0]; s.appendChild(op); });
@@ -2192,21 +2218,21 @@ document.addEventListener("DOMContentLoaded", function(){
   function addStaffRow(name, role){
     const row = el("div", "staff-row");
     row.appendChild(mkInput("s-name", "Nom", name));
-    row.appendChild(mkSelect("s-role", [["Entraîneur-chef","Chef"],["Adjoint","Adjoint"],["Gérant","Gérant"]], role)); row.appendChild(delBtn(row));
+    row.appendChild(mkSelect("s-role", [["EntraÃ®neur-chef","Chef"],["Adjoint","Adjoint"],["GÃ©rant","GÃ©rant"]], role)); row.appendChild(delBtn(row));
     $("staffForm").appendChild(row);
   }
   on("addPlayerBtn", "click", () => addRosterRow("","","A"));
-  on("addStaffBtn", "click", () => addStaffRow("","Entraîneur-chef"));
+  on("addStaffBtn", "click", () => addStaffRow("","EntraÃ®neur-chef"));
   on("rsCancel", "click", () => swapDlg("rosterSheet", "orgDetailSheet"));
   on("rsSave", "click", () => {
     if(!can("teams")) return;
-    const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ notify("Le nom de l'équipe est obligatoire.", "info"); return; }
+    const teamName = str($("editTeamNameInput").value, ""); if(!teamName){ notify("Le nom de l'Ã©quipe est obligatoire.", "info"); return; }
     const existing = editingTeamKey ? manageTeamPresets[editingTeamKey] : null;
     const category = $("editTeamCatSelect").value;
-    if(!editingTeamKey && !category){ notify("Il n'est pas possible de créer une équipe sans choisir sa catégorie.", "info"); return; }
+    if(!editingTeamKey && !category){ notify("Il n'est pas possible de crÃ©er une Ã©quipe sans choisir sa catÃ©gorie.", "info"); return; }
     let key = editingTeamKey;
     if(!key){
-      // Nouvelle équipe : ne jamais écraser une équipe existante du même nom (autre catégorie, par exemple)
+      // Nouvelle Ã©quipe : ne jamais Ã©craser une Ã©quipe existante du mÃªme nom (autre catÃ©gorie, par exemple)
       key = teamName.toLowerCase().replace(/[^a-z0-9]/g, "_");
       if(manageTeamPresets[key] && category) key += "_" + category;
       if(manageTeamPresets[key]) key += "_" + uid().slice(-4);
@@ -2225,9 +2251,9 @@ document.addEventListener("DOMContentLoaded", function(){
         name: teamName, msg: msgsOf(existing)[0] || "", msgs: msgsOf(existing), logo: $("teamLogoInput").value.trim(),
         color: $("presetTeamColor").value, category: category, own: $("editTeamOwn").checked, roster: roster, staff: staff
       });
-      notify("Équipe enregistrée !"); swapDlg("rosterSheet", "orgDetailSheet");
+      notify("Ã‰quipe enregistrÃ©e !"); swapDlg("rosterSheet", "orgDetailSheet");
     };
-    if(dup) ask("Le numéro " + dup + " est utilisé par plus d'un joueur : leurs statistiques seront confondues.\nEnregistrer quand même ?", { ok: "Enregistrer" }).then(ok => { if(ok) save(); });
+    if(dup) ask("Le numÃ©ro " + dup + " est utilisÃ© par plus d'un joueur : leurs statistiques seront confondues.\nEnregistrer quand mÃªme ?", { ok: "Enregistrer" }).then(ok => { if(ok) save(); });
     else save();
   });
 
@@ -2245,14 +2271,14 @@ document.addEventListener("DOMContentLoaded", function(){
       const field = (text, cls, key, val) => {
         const group = el("div", "field-group"), label = el("label", null, text), input = el("input", "cat-pwd-input " + cls);
         input.type = "password"; input.dataset.key = key; input.value = val;
-        group.appendChild(label); group.appendChild(input); container.appendChild(group);
+        group.appendChild(label); group.appendChild(input); container.appendChild(group); addEye(input);
       };
       categoriesList.forEach(cat => {
         const teams = boardTeams(cat), catPwd = passwords.categories[cat] || passwords.marqueur;
         if(teams.length < 2) field("Marqueur - " + cat.toUpperCase() + " :", "pwd-cat", cat, catPwd);
         else teams.forEach(k => field("Marqueur - " + cat.toUpperCase() + " - " + presets[k].name + " :", "pwd-team", k, passwords.teams[k] || catPwd));
       });
-      openDlg("passwordsSheet");
+      hidePasswords("passwordsSheet"); openDlg("passwordsSheet");
     }).catch(() => notify("Impossible de charger les mots de passe.", "error"));
   });
   on("pwdCancel", "click", () => closeDlg("passwordsSheet"));
@@ -2260,18 +2286,18 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!isAdmin()) return;
     const old = pwdLoaded || { categories: {}, teams: {} };
     const orgAdmin = $("pwdAdminInput").value.trim(), sup = $("pwdSuperInput").value.trim() || old.superPwd || "hockey";
-    if(isSuper() && orgAdmin && orgAdmin === sup){ notify("Le mot de passe de l'administrateur de l'organisation doit être différent de celui du super administrateur.", "info"); return; }
-    if(!isSuper() && !orgAdmin){ notify("Le mot de passe administrateur ne peut pas être vide.", "info"); return; }
+    if(isSuper() && orgAdmin && orgAdmin === sup){ notify("Le mot de passe de l'administrateur de l'organisation doit Ãªtre diffÃ©rent de celui du super administrateur.", "info"); return; }
+    if(!isSuper() && !orgAdmin){ notify("Le mot de passe administrateur ne peut pas Ãªtre vide.", "info"); return; }
     if(!isSuper() && orgAdmin === old.superPwd){ notify("Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
     if(isSuper()) dbSuper.set(sup);
     const newP = { admin: old.legacyAdmin || "", orgAdmin: orgAdmin, marqueur: $("catPasswordsContainer").dataset.marqueur || "buts",
                    categories: Object.assign({}, old.categories), teams: Object.assign({}, old.teams) };
     document.querySelectorAll(".pwd-cat").forEach(inp => { newP.categories[inp.dataset.key] = inp.value.trim() || "buts"; });
     document.querySelectorAll(".pwd-team").forEach(inp => { newP.teams[inp.dataset.key] = inp.value.trim() || "buts"; });
-    dbPasswords.set(newP); closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
+    dbPasswords.set(newP); closeDlg("passwordsSheet"); notify("Mots de passe enregistrÃ©s !");
   });
 
-  /* ============ Chronomètre ============ */
+  /* ============ ChronomÃ¨tre ============ */
   function remaining(){
     const t = state.timer; if(!t.running) return t.sec;
     return Math.max(0, t.sec - Math.floor((now() - t.lastUpdate) / 1000));
@@ -2301,7 +2327,7 @@ document.addEventListener("DOMContentLoaded", function(){
       state.events.push({ id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: END_TEXT, t: now() });
     }
     commit();
-    if(!editEntry) openDlg("saveHistorySheet");             // une partie archivée est déjà dans l'historique
+    if(!editEntry) openDlg("saveHistorySheet");             // une partie archivÃ©e est dÃ©jÃ  dans l'historique
   }
 
   on("overtimeYes", "click", () => {
@@ -2314,7 +2340,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!canEdit() || !hasGame(state)) return;
     if(state.timer.running){ state.timer.sec = remaining(); state.timer.running = false; }
     else {
-      if(state.timer.sec <= 0){ openTimerSheet(); return; }     // chrono à zéro : on demande le temps à remettre
+      if(state.timer.sec <= 0){ openTimerSheet(); return; }     // chrono Ã  zÃ©ro : on demande le temps Ã  remettre
       state.timer.running = true; state.timer.lastUpdate = now(); state.finished = false; state.closed = false;
     }
     commit();
@@ -2340,7 +2366,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("btnStopGame", "click", () => {
     if(!canEdit()) return;
-    ask("Arrêter la partie maintenant ?", { title: "Arrêter la partie", ok: "Arrêter", danger: true }).then(ok => { if(ok && canEdit()) finishGame(); });
+    ask("ArrÃªter la partie maintenant ?", { title: "ArrÃªter la partie", ok: "ArrÃªter", danger: true }).then(ok => { if(ok && canEdit()) finishGame(); });
   });
 
   /* ============ Historique ============ */
@@ -2348,7 +2374,7 @@ document.addEventListener("DOMContentLoaded", function(){
                              !$("goaliesBlock").classList.contains("hidden") ||
                              (rosterScope === "all" && !$("rosterBlock").classList.contains("hidden"));
 
-  // L'historique complet n'est téléchargé que lorsqu'une section en a besoin
+  // L'historique complet n'est tÃ©lÃ©chargÃ© que lorsqu'une section en a besoin
   function ensureHistory(){
     if(historyOn || !dbHistory) return;
     historyOn = true;
@@ -2377,7 +2403,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const li = el("li", "history-item"), box = el("div"), ctrls = el("div", "history-ctrls");
     box.appendChild(el("strong", null, h.a + " " + h.gA + " - " + h.gB + " " + h.b));
     box.appendChild(el("br"));
-    const sm = el("small", null, dateOf(h.at) || "—"); sm.style.color = "var(--muted)"; box.appendChild(sm);
+    const sm = el("small", null, dateOf(h.at) || "â€”"); sm.style.color = "var(--muted)"; box.appendChild(sm);
     buttons.forEach(b => ctrls.appendChild(b));
     li.appendChild(box); li.appendChild(ctrls); return li;
   }
@@ -2385,8 +2411,8 @@ document.addEventListener("DOMContentLoaded", function(){
   // Liste publique : consultation seulement (la suppression et la modification sont dans Gestion)
   function renderHistory(){
     const list = $("historyList"); list.textContent = "";
-    if(!historyLoaded){ list.appendChild(el("li", "empty", "Chargement…")); return; }
-    if(!historyList.length){ list.appendChild(el("li", "empty", "Aucun match enregistré.")); return; }
+    if(!historyLoaded){ list.appendChild(el("li", "empty", "Chargementâ€¦")); return; }
+    if(!historyList.length){ list.appendChild(el("li", "empty", "Aucun match enregistrÃ©.")); return; }
     const frag = document.createDocumentFragment();
     for(let i = historyList.length - 1; i >= 0; i--){
       const h = historyList[i];
@@ -2407,7 +2433,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(editEntry) exitEdit(true);
     if(!archiveKey) liveState = state;
     archiveKey = h.key; state = sanitize(h.m); state.timer.running = false;
-    setArchiveBar("Partie archivée du " + (dateOf(h.at) || "—"), "Retour au direct");
+    setArchiveBar("Partie archivÃ©e du " + (dateOf(h.at) || "â€”"), "Retour au direct");
     render(); window.scrollTo(0, 0);
   }
   function exitArchive(){
@@ -2416,20 +2442,20 @@ document.addEventListener("DOMContentLoaded", function(){
     setArchiveBar(null); syncStateWithPresets(); render();
   }
 
-  /* --- Modification d'une partie archivée : les changements s'enregistrent directement dans l'historique --- */
+  /* --- Modification d'une partie archivÃ©e : les changements s'enregistrent directement dans l'historique --- */
   function applyEdit(){
     if(matchRef){ matchRef.off("value", onMatch); matchRef = null; }
     archiveKey = null; liveState = null; pendingSnap = null; lastLocal = 0; openCardId = null;
     db = ref(catBase() + "/history/" + editEntry.key);
     state = sanitize(editEntry.m); state.timer.running = false;
     state.histKey = editEntry.key; state.playedAt = editEntry.at || state.playedAt || state.updatedAt;
-    setArchiveBar("Modification de la partie du " + (dateOf(editEntry.at) || "—"), "Terminer");
+    setArchiveBar("Modification de la partie du " + (dateOf(editEntry.at) || "â€”"), "Terminer");
   }
   function exitEdit(silent){
     if(!editEntry) return;
     editEntry = null; state = blank(); lastLocal = 0; openCardId = null;
     setArchiveBar(null); watchMatch(); render();
-    if(!silent) notify("Partie archivée mise à jour.");
+    if(!silent) notify("Partie archivÃ©e mise Ã  jour.");
   }
   on("archiveBack", "click", () => { if(editEntry) exitEdit(); else exitArchive(); });
 
@@ -2441,7 +2467,7 @@ document.addEventListener("DOMContentLoaded", function(){
     hmOrg = currentOrg; hmCat = currentCat;
     fillSelect($("hmOrgSelect"), orgItems(), hmOrg);
     $("hmOrgSelect").disabled = !isSuper();                    // seul le super administrateur change d'organisation
-    $("hmCatSelect").disabled = !isAdmin();                    // le marqueur gère seulement sa catégorie
+    $("hmCatSelect").disabled = !isAdmin();                    // le marqueur gÃ¨re seulement sa catÃ©gorie
     hmLoadCats(); openDlg("historyManageSheet");
   });
   on("hmBack", "click", () => swapDlg("historyManageSheet", "settingsSheet"));
@@ -2475,21 +2501,21 @@ document.addEventListener("DOMContentLoaded", function(){
     const prev = $("hmTeamSelect").value, names = {};
     hmList.forEach(h => { names[h.a] = true; names[h.b] = true; });
     const items = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true })).map(n => ({ value: n, label: n }));
-    fillSelect($("hmTeamSelect"), items, prev, "Toutes les équipes");
+    fillSelect($("hmTeamSelect"), items, prev, "Toutes les Ã©quipes");
   }
   function hmRender(loading){
     const list = $("hmList"), team = $("hmTeamSelect").value; list.textContent = "";
-    if(loading === true){ list.appendChild(el("li", "empty", "Chargement…")); $("hmCount").textContent = ""; return; }
+    if(loading === true){ list.appendChild(el("li", "empty", "Chargementâ€¦")); $("hmCount").textContent = ""; return; }
     const rows = hmList.filter(h => !team || h.a === team || h.b === team);
     $("hmCount").textContent = rows.length + (rows.length > 1 ? " parties" : " partie");
-    if(!rows.length){ list.appendChild(el("li", "empty", "Aucune partie enregistrée.")); return; }
+    if(!rows.length){ list.appendChild(el("li", "empty", "Aucune partie enregistrÃ©e.")); return; }
     const frag = document.createDocumentFragment();
     rows.forEach(h => frag.appendChild(historyRow(h, [
-      btn("btn-edit", "✏️ Modifier", () => hmEdit(h)),
-      btn("btn-hist-del", "🗑 Supprimer", () => {
+      btn("btn-edit", "âœï¸ Modifier", () => hmEdit(h)),
+      btn("btn-hist-del", "ðŸ—‘ Supprimer", () => {
         if(currentRole === "viewer") return;
         const org = hmOrg, cat = hmCat;
-        ask("Supprimer définitivement cette partie de l'historique ?\n" + h.a + " " + h.gA + " - " + h.gB + " " + h.b + " (" + (dateOf(h.at) || "—") + ")",
+        ask("Supprimer dÃ©finitivement cette partie de l'historique ?\n" + h.a + " " + h.gA + " - " + h.gB + " " + h.b + " (" + (dateOf(h.at) || "â€”") + ")",
             { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
           if(!ok) return;
           ref(org + "/" + cat + "/history/" + h.key).remove();
@@ -2509,7 +2535,7 @@ document.addEventListener("DOMContentLoaded", function(){
     window.scrollTo(0, 0);
   }
 
-  // Refus (bouton Non ou touche Échap) : la décision est prise, l'affichage peut être réinitialisé
+  // Refus (bouton Non ou touche Ã‰chap) : la dÃ©cision est prise, l'affichage peut Ãªtre rÃ©initialisÃ©
   function declineSave(){ closeDlg("saveHistorySheet"); if(canEdit() && state.finished && !state.closed){ state.closed = true; commit(); } }
   on("saveHistoryNo", "click", declineSave);
   on("saveHistorySheet", "cancel", e => { e.preventDefault(); declineSave(); });
@@ -2517,14 +2543,14 @@ document.addEventListener("DOMContentLoaded", function(){
   on("askSave", "click", () => { if(canEdit() && !editEntry) openDlg("saveHistorySheet"); });
   on("resetBoard", "click", () => {
     if(!canEdit() || editEntry || !(state.finished && state.closed)) return;
-    ask("Remettre le tableau à zéro ?\nLe pointage, les lancers, le chronomètre et les équipes seront effacés de l'affichage." +
-        (state.histKey ? "" : "\nCette partie n'a pas été enregistrée dans l'historique : elle sera perdue."),
-        { title: "Réinitialiser l'affichage", ok: "Réinitialiser", danger: !state.histKey }).then(ok => {
+    ask("Remettre le tableau Ã  zÃ©ro ?\nLe pointage, les lancers, le chronomÃ¨tre et les Ã©quipes seront effacÃ©s de l'affichage." +
+        (state.histKey ? "" : "\nCette partie n'a pas Ã©tÃ© enregistrÃ©e dans l'historique : elle sera perdue."),
+        { title: "RÃ©initialiser l'affichage", ok: "RÃ©initialiser", danger: !state.histKey }).then(ok => {
       if(!ok || !canEdit() || editEntry) return;
       const wasLinked = isLinked();
       state = blank(); openCardId = null; delete $("statsTeamSelect").dataset.userTouched;
-      setScope("all");                                         // Alignements : retour sur « Tout (Saison) »
-      if(boardTeam){                                           // tableau d'équipe : on quitte une éventuelle confrontation
+      setScope("all");                                         // Alignements : retour sur Â« Tout (Saison) Â»
+      if(boardTeam){                                           // tableau d'Ã©quipe : on quitte une Ã©ventuelle confrontation
         const hadLink = !!boardLink; boardLink = null; linkStale = false;
         if(hadLink) ref(boardBase + "/link").remove();
         if(wasLinked) watchMatch();
@@ -2534,26 +2560,26 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   on("saveHistoryYes", "click", () => {
     closeDlg("saveHistorySheet"); if(!canEdit()) return;
-    // Une même partie garde la même clé : la sauvegarder de nouveau la met à jour au lieu de créer un doublon
+    // Une mÃªme partie garde la mÃªme clÃ© : la sauvegarder de nouveau la met Ã  jour au lieu de crÃ©er un doublon
     if(!state.histKey) state.histKey = String(Date.now());
     if(!state.playedAt) state.playedAt = Date.now();
     state.closed = true;
     commit();
     dbHistory.child(state.histKey).set(state, err => {
-      if(err) notify("Échec de la sauvegarde : " + (err.message || err), "error");
-      else notify("Partie sauvegardée dans l'historique !\nLe tableau reste modifiable à l'écran.");
+      if(err) notify("Ã‰chec de la sauvegarde : " + (err.message || err), "error");
+      else notify("Partie sauvegardÃ©e dans l'historique !\nLe tableau reste modifiable Ã  l'Ã©cran.");
     });
   });
 
-  /* ============ Statistiques d'équipe ============ */
-  // Menu du Résumé statistiques : les deux équipes du match, ou toutes les équipes de la catégorie quand le tableau est vide
+  /* ============ Statistiques d'Ã©quipe ============ */
+  // Menu du RÃ©sumÃ© statistiques : les deux Ã©quipes du match, ou toutes les Ã©quipes de la catÃ©gorie quand le tableau est vide
   function refreshStatsSelect(){
     const sel = $("statsTeamSelect"), bt = presets[boardTeam]; let items, def;
-    const star = p => (bt && p === bt) ? "★ " : "";
+    const star = p => (bt && p === bt) ? "â˜… " : "";
     if(hasGame(state)){
       const pa = presetFor("a"), pb = presetFor("b");
       items = [{ value: "b", label: star(pb) + state.names.b + " (Visiteur)" }, { value: "a", label: star(pa) + state.names.a + " (Local)" }];
-      def = (bt && pb === bt && pa !== bt) ? "b" : "a";      // l'équipe choisie dans le menu du haut passe en premier
+      def = (bt && pb === bt && pa !== bt) ? "b" : "a";      // l'Ã©quipe choisie dans le menu du haut passe en premier
     } else {
       items = Object.keys(presets).filter(k => { const p = presets[k]; return p && p.name && (!p.category || p.category === currentCat); })
                     .sort((x, y) => (presets[y].own ? 1 : 0) - (presets[x].own ? 1 : 0) || String(presets[x].name).localeCompare(String(presets[y].name), "fr", { numeric: true }))
@@ -2567,7 +2593,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!keep) delete sel.dataset.userTouched;
     fillSelect(sel, items, keep ? prev : def);
   }
-  // Équipe visée : { name, side (a / b pendant une partie, sinon null), preset }
+  // Ã‰quipe visÃ©e : { name, side (a / b pendant une partie, sinon null), preset }
   function statsTarget(){
     const v = $("statsTeamSelect").value || "";
     if(v === "a" || v === "b") return { name: state.names[v], side: v, preset: presetFor(v) };
@@ -2596,7 +2622,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   on("statsTeamSelect", "change", () => {
     $("statsTeamSelect").dataset.userTouched = "1"; renderStats();
-    if(!hasGame(state)){ openCardId = null; if(isOpen("rosterBlock")) renderRosters(); }   // tableau vide : l'alignement suit l'équipe choisie
+    if(!hasGame(state)){ openCardId = null; if(isOpen("rosterBlock")) renderRosters(); }   // tableau vide : l'alignement suit l'Ã©quipe choisie
   });
 
   /* ============ Rendu principal ============ */
@@ -2608,12 +2634,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function render(){
     const n = state.names, started = isStarted(state), game = hasGame(state);
-    if($("nameA").value !== n.a) $("nameA").value = n.a;      // les noms viennent des équipes choisies au lancement de la partie
-    if($("nameB").value !== n.b) $("nameB").value = n.b;      // (« Local » et « Visiteur » par défaut)
-    $("btnTimerToggle").disabled = !game;                     // pas de chronomètre tant qu'aucune partie n'est lancée
+    if($("nameA").value !== n.a) $("nameA").value = n.a;      // les noms viennent des Ã©quipes choisies au lancement de la partie
+    if($("nameB").value !== n.b) $("nameB").value = n.b;      // (Â« Local Â» et Â« Visiteur Â» par dÃ©faut)
+    $("btnTimerToggle").disabled = !game;                     // pas de chronomÃ¨tre tant qu'aucune partie n'est lancÃ©e
     document.documentElement.classList.toggle("no-teams", !game);
     applyInv(); updateStatusDisplay();
-    if(game !== lastGameMode){                                // changement de mode : « Ce match » pendant une partie, « Tout (Saison) » sinon
+    if(game !== lastGameMode){                                // changement de mode : Â« Ce match Â» pendant une partie, Â« Tout (Saison) Â» sinon
       lastGameMode = game; rosterScope = game ? "match" : "all"; openCardId = null;
       $("btnScopeMatch").classList.toggle("active", game); $("btnScopeAll").classList.toggle("active", !game);
       if(!game && isOpen("rosterBlock")) ensureHistory();
@@ -2632,15 +2658,15 @@ document.addEventListener("DOMContentLoaded", function(){
     setText("lblShotsA", sA > 1 ? " lancers" : " lancer"); setText("lblShotsB", sB > 1 ? " lancers" : " lancer");
     setText("periodMark", PLABEL[state.period]);
     paintTimer();
-    setText("btnTimerToggle", state.timer.running ? "⏸" : "▶");
+    setText("btnTimerToggle", state.timer.running ? "â¸" : "â–¶");
 
-    // Partie terminée (ou jamais commencée) : on peut en lancer une nouvelle
+    // Partie terminÃ©e (ou jamais commencÃ©e) : on peut en lancer une nouvelle
     const canStartNew = !started || state.finished;
     $("btnStopGame").style.display = canStartNew ? "none" : "block";
     $("newGame").style.display = canStartNew ? "block" : "none";
-    // Disponible seulement une fois la partie terminée ET la sauvegarde décidée (enregistrée ou refusée)
+    // Disponible seulement une fois la partie terminÃ©e ET la sauvegarde dÃ©cidÃ©e (enregistrÃ©e ou refusÃ©e)
     $("resetBoard").style.display = (state.finished && state.closed && started) ? "block" : "none";
-    // Partie terminée mais question de sauvegarde restée sans réponse (fenêtre fermée, autre appareil) : on peut la rouvrir
+    // Partie terminÃ©e mais question de sauvegarde restÃ©e sans rÃ©ponse (fenÃªtre fermÃ©e, autre appareil) : on peut la rouvrir
     $("askSave").style.display = (state.finished && !state.closed && started) ? "block" : "none";
 
     const segBtns = $("seg").children;
@@ -2655,22 +2681,22 @@ document.addEventListener("DOMContentLoaded", function(){
     updateTickerDisplay();
   }
 
-  /* Cartes « Arrêts des gardiens » : gardien en poste, ce match, puis cumul de la saison */
+  /* Cartes Â« ArrÃªts des gardiens Â» : gardien en poste, ce match, puis cumul de la saison */
   function renderGoalies(){
     const open = isOpen("goaliesBlock");
     ["a","b"].forEach(side => {
       const U = side.toUpperCase(), roster = state.rosters[side], cur = goalieOf(state, side);
       setText("gName" + U, state.names[side]);
       setText("gWho" + U, cur ? "Gardien : " + playerLabel(roster, cur) : "Gardien");
-      setText("padGoalie" + U, "🥅 " + (cur ? playerLabel(roster, cur) : "Gardien"));
+      setText("padGoalie" + U, "ðŸ¥… " + (cur ? playerLabel(roster, cur) : "Gardien"));
       const l = goalieLines(state, side)[cur] || { sa: 0, ga: 0 };
-      if(!l.sa){ setText("sv" + U, "–"); setText("svSub" + U, "Aucun lancer reçu"); }
-      else { setText("sv" + U, svPct(l.sa, l.ga)); const sv = Math.max(0, l.sa - l.ga); setText("svSub" + U, sv + (sv > 1 ? " arrêts / " : " arrêt / ") + l.sa + (l.sa > 1 ? " lancers" : " lancer")); }
+      if(!l.sa){ setText("sv" + U, "â€“"); setText("svSub" + U, "Aucun lancer reÃ§u"); }
+      else { setText("sv" + U, svPct(l.sa, l.ga)); const sv = Math.max(0, l.sa - l.ga); setText("svSub" + U, sv + (sv > 1 ? " arrÃªts / " : " arrÃªt / ") + l.sa + (l.sa > 1 ? " lancers" : " lancer")); }
       if(!open) return;
 
       // Menu du gardien en poste (marqueur / admin), modifiable en tout temps pendant la partie
       const lab = p => (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur");
-      // Seuls les gardiens sont proposés ; sans gardien dans l'alignement, le menu affiche « Gardien »
+      // Seuls les gardiens sont proposÃ©s ; sans gardien dans l'alignement, le menu affiche Â« Gardien Â»
       const items = goalieChoices(side);
       const sel = $("gSel" + U), sig = JSON.stringify(items) + "|" + cur;
       if(sel.dataset.sig !== sig){ sel.dataset.sig = sig; fillSelect(sel, items, cur, cur ? null : "Gardien"); }
@@ -2678,19 +2704,19 @@ document.addEventListener("DOMContentLoaded", function(){
       let season = "";
       if(cur && historyLoaded){
         const st = goalieStats({ name: state.names[side], side: side }, cur, "all");
-        if(st.pj) season = "Saison : " + st.pj + " PJ · " + st.v + "-" + st.d + "-" + st.n + " · " + svPct(st.sa, st.ga) +
-                           " · MOY " + (st.ga / st.pj).toFixed(2).replace(".", ",") + (st.bl ? " · " + st.bl + " BL" : "");
+        if(st.pj) season = "Saison : " + st.pj + " PJ Â· " + st.v + "-" + st.d + "-" + st.n + " Â· " + svPct(st.sa, st.ga) +
+                           " Â· MOY " + (st.ga / st.pj).toFixed(2).replace(".", ",") + (st.bl ? " Â· " + st.bl + " BL" : "");
       }
       setText("svSeason" + U, season);
     });
   }
-  // Gardiens de l'équipe enregistrée qui ne sont pas dans l'alignement du match (non cochés au départ)
+  // Gardiens de l'Ã©quipe enregistrÃ©e qui ne sont pas dans l'alignement du match (non cochÃ©s au dÃ©part)
   function absentGoalies(side){
     const preset = presetFor(side), r = state.rosters[side];
     return (preset ? toArr(preset.roster).map(normPlayer) : []).filter(p =>
       p.pos === "G" && !r.some(m => p.no ? m.no === p.no : (!m.no && m.name === p.name)));
   }
-  // Gardiens offerts : ceux de l'alignement, puis ceux de l'équipe absents de l'alignement
+  // Gardiens offerts : ceux de l'alignement, puis ceux de l'Ã©quipe absents de l'alignement
   function goalieChoices(side){
     const lab = p => (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur"), items = [];
     state.rosters[side].forEach((p, i) => { if(p.pos === "G") items.push({ value: pidOf(p, i), label: lab(p) }); });
@@ -2704,11 +2730,11 @@ document.addEventListener("DOMContentLoaded", function(){
       const p = absentGoalies(side)[Number(val.slice(4))]; if(!p) return false;
       state.rosters[side].push(p); val = pidOf(p, state.rosters[side].length - 1);
     }
-    // Les lancers déjà reçus restent au gardien précédent (ou vont au premier gardien désigné s'il n'y en avait pas)
+    // Les lancers dÃ©jÃ  reÃ§us restent au gardien prÃ©cÃ©dent (ou vont au premier gardien dÃ©signÃ© s'il n'y en avait pas)
     const before = goalieOf(state, side), prev = before || val, opp = side === "a" ? "b" : "a";
     if(prev === val && state.goalies[side] === val) return false;
     state.events.forEach(ev => { if(ev.team === opp && (ev.type === "shot" || ev.type === "goal") && !ev.g) ev.g = prev; });
-    // Pendant la partie, le changement est inscrit dans le match pas à pas
+    // Pendant la partie, le changement est inscrit dans le match pas Ã  pas
     if(isStarted(state) && before !== val){
       state.events.push({ id: uid(), type: "goalie", team: side, period: state.period, time: formatTime(remaining()), player: val, prev: before || "", t: now() });
     }
@@ -2723,13 +2749,13 @@ document.addEventListener("DOMContentLoaded", function(){
     $("goalieTitle").textContent = "Gardien - " + state.names[side];
     grid.textContent = ""; grid.dataset.side = side;
     if(!items.length){
-      const p = el("p", "empty", "Aucun gardien dans cette équipe. Ajoutez un joueur à la position G dans la fiche de l'équipe (Gestion).");
+      const p = el("p", "empty", "Aucun gardien dans cette Ã©quipe. Ajoutez un joueur Ã  la position G dans la fiche de l'Ã©quipe (Gestion).");
       p.style.gridColumn = "1/-1"; grid.appendChild(p);
     }
     items.forEach(it => {
       const b = el("button", "btn-player" + (it.value === cur ? " buteur" : "")); b.type = "button"; b.dataset.val = it.value;
       b.appendChild(el("span", null, it.label));
-      if(it.value === cur) b.appendChild(el("span", "role-tag", "🥅 En poste"));
+      if(it.value === cur) b.appendChild(el("span", "role-tag", "ðŸ¥… En poste"));
       grid.appendChild(b);
     });
     openDlg("goalieSheet");
@@ -2752,8 +2778,8 @@ document.addEventListener("DOMContentLoaded", function(){
 
   /* ============ Alignements ============ */
   function activeRoster(side){
-    if(rosterScope !== "all") return state.rosters[side];      // « Ce match » : joueurs présents
-    // « Tout (Saison) » : toute l'équipe enregistrée, plus les joueurs ajoutés pendant le match
+    if(rosterScope !== "all") return state.rosters[side];      // Â« Ce match Â» : joueurs prÃ©sents
+    // Â« Tout (Saison) Â» : toute l'Ã©quipe enregistrÃ©e, plus les joueurs ajoutÃ©s pendant le match
     const preset = presetFor(side), full = preset ? toArr(preset.roster).map(normPlayer) : [];
     if(!full.length) return state.rosters[side];
     const same = (x, y) => x.no ? x.no === y.no : (!y.no && x.name === y.name);
@@ -2764,11 +2790,11 @@ document.addEventListener("DOMContentLoaded", function(){
   function renderRosters(){
     const bt = presets[boardTeam];
     if(!hasGame(state)){
-      // Tableau vide : alignement complet de l'équipe choisie dans le Résumé statistiques, statistiques de la saison
+      // Tableau vide : alignement complet de l'Ã©quipe choisie dans le RÃ©sumÃ© statistiques, statistiques de la saison
       const t = statsTarget(), p = t && t.preset;
       $("rosterColB").style.display = "none";
       setText("rosterTitleA", t ? t.name : ""); $("rosterTitleA").classList.add("hl");
-      setText("rosterHint", t ? "Équipe choisie dans le Résumé statistiques. Touchez un joueur pour voir ses statistiques de la saison." : "Aucune équipe enregistrée dans cette catégorie.");
+      setText("rosterHint", t ? "Ã‰quipe choisie dans le RÃ©sumÃ© statistiques. Touchez un joueur pour voir ses statistiques de la saison." : "Aucune Ã©quipe enregistrÃ©e dans cette catÃ©gorie.");
       renderRosterList("rosterA", p ? toArr(p.roster).map(normPlayer) : [], { name: t ? t.name : "", side: null });
       renderStaffList("staffA", "staffBoxA", p ? toArr(p.staff).map(normStaff) : []);
       return;
@@ -2787,7 +2813,7 @@ document.addEventListener("DOMContentLoaded", function(){
     rosterScope = scope;
     $("btnScopeMatch").classList.toggle("active", scope === "match");
     $("btnScopeAll").classList.toggle("active", scope === "all");
-    if(!isOpen("rosterBlock")) return;                        // section repliée : rien à charger pour l'instant
+    if(!isOpen("rosterBlock")) return;                        // section repliÃ©e : rien Ã  charger pour l'instant
     if(scope === "all") ensureHistory();
     renderRosters();
   }
@@ -2810,13 +2836,13 @@ document.addEventListener("DOMContentLoaded", function(){
 
       if(isCardOpen){
         const isG = p.pos === "G", card = el("div", "player-card-inline"), h4 = el("h4"), grid = el("div", "p-grid" + (isG ? " g-grid" : ""));
-        h4.appendChild(el("span", null, (isG ? "🥅 " : "👤 ") + (p.no ? "#" + p.no + " " : "") + p.name));
+        h4.appendChild(el("span", null, (isG ? "ðŸ¥… " : "ðŸ‘¤ ") + (p.no ? "#" + p.no + " " : "") + p.name));
         h4.appendChild(el("small", null, "(" + (scope === "match" ? "Ce match" : "Saison") + ")"));
         let cells;
         if(isG){
-          // Gardien : fiche, blanchissages, moyenne de buts accordés par match, lancers reçus, buts contre, arrêts, % d'arrêts
+          // Gardien : fiche, blanchissages, moyenne de buts accordÃ©s par match, lancers reÃ§us, buts contre, arrÃªts, % d'arrÃªts
           const g = goalieStats(ctx, pId, scope);
-          cells = [["PJ", g.pj], ["V-D-N", g.v + "-" + g.d + "-" + g.n], ["BL", g.bl], ["MOY", g.pj ? (g.ga / g.pj).toFixed(2).replace(".", ",") : "–"],
+          cells = [["PJ", g.pj], ["V-D-N", g.v + "-" + g.d + "-" + g.n], ["BL", g.bl], ["MOY", g.pj ? (g.ga / g.pj).toFixed(2).replace(".", ",") : "â€“"],
                    ["LAN", g.sa], ["BC", g.ga], ["ARR", Math.max(0, g.sa - g.ga)], ["% ARR", svPct(g.sa, g.ga)]];
         } else {
           const st = playerStats(ctx, pId, scope);
@@ -2842,7 +2868,7 @@ document.addEventListener("DOMContentLoaded", function(){
     };
     if(scope !== "match"){
       historyList.forEach(h => {
-        if(h.key === state.histKey) return;       // le match affiché est compté une seule fois, ci-dessous
+        if(h.key === state.histKey) return;       // le match affichÃ© est comptÃ© une seule fois, ci-dessous
         const ms = h.a === teamName ? "a" : (h.b === teamName ? "b" : null);
         if(ms){ pj++; scan(h.events, ms); }
       });
@@ -2861,7 +2887,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 
-  /* ============ Match pas à pas ============ */
+  /* ============ Match pas Ã  pas ============ */
   function renderEvents(){
     const list = $("eventsList"), filter = $("feedFilter").value;
     if(filter === "none"){ if(list.firstChild) list.textContent = ""; return; }
@@ -2896,7 +2922,7 @@ document.addEventListener("DOMContentLoaded", function(){
       li.appendChild(b); frag.appendChild(li);
     }
     list.textContent = "";
-    if(!count) list.appendChild(el("li", "empty", "Aucun événement.")); else list.appendChild(frag);
+    if(!count) list.appendChild(el("li", "empty", "Aucun Ã©vÃ©nement.")); else list.appendChild(frag);
   }
   on("feedFilter", "change", renderEvents);
   on("eventsList", "click", e => {
@@ -2926,16 +2952,16 @@ document.addEventListener("DOMContentLoaded", function(){
     Object.keys(presets).forEach(k => {
       const p = presets[k]; if(!p || !p.name) return;
       const inCat = !p.category || p.category === currentCat;
-      if(!isAdmin() && !inCat) return;                         // marqueur : équipes de sa catégorie seulement
+      if(!isAdmin() && !inCat) return;                         // marqueur : Ã©quipes de sa catÃ©gorie seulement
       items.push({ value: k, label: p.name + (isAdmin() && p.category ? " (" + String(p.category).toUpperCase() + ")" : "") });
       if(p.name === currentName && (selected == null || p.category === currentCat)) selected = k;
     });
-    fillSelect($(selectId), items, selected, "-- Choisir une équipe --");
+    fillSelect($(selectId), items, selected, "-- Choisir une Ã©quipe --");
   }
   function renderPresenceList(side, teamKey){
     const box = $(side === "a" ? "wizPresenceListA" : "wizPresenceListB"); box.textContent = "";
     const roster = presets[teamKey] ? toArr(presets[teamKey].roster) : [];
-    if(!roster.length){ const s = el("small", null, "Aucun joueur prédéfini"); s.style.cssText = "color:var(--muted);grid-column:1/-1;"; box.appendChild(s); return; }
+    if(!roster.length){ const s = el("small", null, "Aucun joueur prÃ©dÃ©fini"); s.style.cssText = "color:var(--muted);grid-column:1/-1;"; box.appendChild(s); return; }
     roster.forEach((p, idx) => {
       const label = el("label", "presence-item"), chk = el("input", "chk-presence-" + side);
       chk.type = "checkbox"; chk.checked = true; chk.dataset.idx = idx;
@@ -2951,7 +2977,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!canEdit() || editEntry) return;
     populateWizTeamSelect("wizTeamA", state.names.a); populateWizTeamSelect("wizTeamB", state.names.b);
     $("wizColorA").value = state.colors.a; $("wizColorB").value = state.colors.b;
-    // Tableau d'équipe : l'équipe du tableau est proposée d'office comme équipe locale
+    // Tableau d'Ã©quipe : l'Ã©quipe du tableau est proposÃ©e d'office comme Ã©quipe locale
     if(boardTeam && presets[boardTeam] && $("wizTeamA").value !== boardTeam && $("wizTeamB").value !== boardTeam){
       $("wizTeamA").value = boardTeam; wizSyncColor("a");
     }
@@ -2966,8 +2992,8 @@ document.addEventListener("DOMContentLoaded", function(){
   on("wizStart", "click", () => {
     if(!canEdit()) return;
     const keys = { a: $("wizTeamA").value, b: $("wizTeamB").value };
-    if(keys.a && keys.a === keys.b){ notify("Choisissez deux équipes différentes.", "info"); return; }
-    // Confrontation entre deux équipes de l'organisation : une seule partie, affichée sur les deux tableaux
+    if(keys.a && keys.a === keys.b){ notify("Choisissez deux Ã©quipes diffÃ©rentes.", "info"); return; }
+    // Confrontation entre deux Ã©quipes de l'organisation : une seule partie, affichÃ©e sur les deux tableaux
     let other = "";
     if(boardTeam && (keys.a === boardTeam || keys.b === boardTeam)){
       const o = keys.a === boardTeam ? keys.b : keys.a;
@@ -2976,9 +3002,9 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!other){ startGame(keys, ""); return; }
     ref(catBase() + "/boards/" + other).once("value").then(snap => {
       const v = snap.val() || {}, s = v.match ? sanitize(v.match) : null;
-      const mine = v.link && v.link.team === boardTeam;      // son tableau affiche déjà une de nos parties
+      const mine = v.link && v.link.team === boardTeam;      // son tableau affiche dÃ©jÃ  une de nos parties
       if(s && !mine && isStarted(s) && !s.finished){
-        notify(presets[other].name + " a déjà une partie en cours sur son tableau.\nTerminez-la avant de lancer cette confrontation.", "error"); return;
+        notify(presets[other].name + " a dÃ©jÃ  une partie en cours sur son tableau.\nTerminez-la avant de lancer cette confrontation.", "error"); return;
       }
       startGame(keys, other);
     }, () => startGame(keys, other));
@@ -2987,7 +3013,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function startGame(keys, other){
     const wasLinked = isLinked();
     state = blank(); state.id = uid(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
-    state.periodSec = int($("wizPeriodMin").value || Math.round(defaultPeriodSec / 60), 1, 99) * 60;   // durée choisie pour cette partie
+    state.periodSec = int($("wizPeriodMin").value || Math.round(defaultPeriodSec / 60), 1, 99) * 60;   // durÃ©e choisie pour cette partie
     state.timer.sec = state.periodSec;
     ["a","b"].forEach(t => {
       const p = presets[keys[t]]; if(!p) return;
@@ -3001,7 +3027,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
     state.colors.a = hex($("wizColorA").value, DEF_A); state.colors.b = hex($("wizColorB").value, DEF_B);
     if(boardTeam){
-      // La nouvelle partie appartient à ce tableau : on quitte une éventuelle confrontation précédente
+      // La nouvelle partie appartient Ã  ce tableau : on quitte une Ã©ventuelle confrontation prÃ©cÃ©dente
       const hadLink = !!boardLink; boardLink = null; linkStale = false;
       if(hadLink) ref(boardBase + "/link").remove();
       if(wasLinked) watchMatch();
@@ -3023,7 +3049,7 @@ document.addEventListener("DOMContentLoaded", function(){
     renderPlayerPickGrid(); openDlg("goalSheet");
   }
 
-  const STEP_TEXT = { scorer: "1. Sélectionnez le BUTEUR", a1: "2. Sélectionnez la PASSE 1 (Optionnel)", a2: "3. Sélectionnez la PASSE 2 (Optionnel)", done: "✅ Sélection terminée. Touchez un joueur choisi pour le retirer." };
+  const STEP_TEXT = { scorer: "1. SÃ©lectionnez le BUTEUR", a1: "2. SÃ©lectionnez la PASSE 1 (Optionnel)", a2: "3. SÃ©lectionnez la PASSE 2 (Optionnel)", done: "âœ… SÃ©lection terminÃ©e. Touchez un joueur choisi pour le retirer." };
   const nextGoalStep = () => !curGoal.scorer ? "scorer" : (!curGoal.a1 ? "a1" : (!curGoal.a2 ? "a2" : "done"));
   function playerBtn(p, idx){
     const b = el("button", "btn-player"), s = el("span"); b.type = "button"; b.dataset.pid = pidOf(p, idx);
@@ -3038,10 +3064,10 @@ document.addEventListener("DOMContentLoaded", function(){
     const roster = state.rosters[curGoal.team] || [];
     if(!roster.length){ emptyGrid(grid, "Aucun joueur dans l'alignement."); return; }
     roster.forEach((p, idx) => {
-      const b = playerBtn(p, idx), pId = b.dataset.pid; let tag = "⚪ Aucun", cls = "";
-      if(curGoal.scorer === pId){ cls = "buteur"; tag = "🟢 Buteur"; }
-      else if(curGoal.a1 === pId){ cls = "passe1"; tag = "🔵 Passe 1"; }
-      else if(curGoal.a2 === pId){ cls = "passe2"; tag = "🟣 Passe 2"; }
+      const b = playerBtn(p, idx), pId = b.dataset.pid; let tag = "âšª Aucun", cls = "";
+      if(curGoal.scorer === pId){ cls = "buteur"; tag = "ðŸŸ¢ Buteur"; }
+      else if(curGoal.a1 === pId){ cls = "passe1"; tag = "ðŸ”µ Passe 1"; }
+      else if(curGoal.a2 === pId){ cls = "passe2"; tag = "ðŸŸ£ Passe 2"; }
       if(cls) b.classList.add(cls);
       const t = el("span", "role-tag", tag); if(!cls) t.style.color = "var(--muted)"; b.appendChild(t);
       grid.appendChild(b);
@@ -3050,7 +3076,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("playerPickGrid", "click", e => {
     const b = e.target.closest("button[data-pid]"); if(!b || !curGoal) return;
     const pId = b.dataset.pid, c = curGoal;
-    // Toucher un joueur déjà choisi le retire ; sinon il prend le premier rôle libre (buteur, passe 1, passe 2)
+    // Toucher un joueur dÃ©jÃ  choisi le retire ; sinon il prend le premier rÃ´le libre (buteur, passe 1, passe 2)
     if(c.scorer === pId) c.scorer = "";
     else if(c.a1 === pId){ c.a1 = c.a2; c.a2 = ""; }
     else if(c.a2 === pId) c.a2 = "";
@@ -3060,7 +3086,7 @@ document.addEventListener("DOMContentLoaded", function(){
     goalPickStep = nextGoalStep();
     renderPlayerPickGrid();
   });
-  // Annuler : un nouveau but est retiré (avec son lancer) ; un but existant reste tel quel
+  // Annuler : un nouveau but est retirÃ© (avec son lancer) ; un but existant reste tel quel
   function cancelGoal(){
     if(curGoal && curGoal.isNew && canEdit()){
       const g = findEvent(curGoal.id);
@@ -3073,12 +3099,12 @@ document.addEventListener("DOMContentLoaded", function(){
     curGoal = null; closeDlg("goalSheet");
   }
   on("gsCancel", "click", cancelGoal);
-  on("goalSheet", "cancel", e => { e.preventDefault(); cancelGoal(); });     // touche Échap
+  on("goalSheet", "cancel", e => { e.preventDefault(); cancelGoal(); });     // touche Ã‰chap
   on("quickAddBtn", "click", () => {
     if(!canEdit() || !curGoal) return;
     const qNo = no($("quickNo").value), qNm = $("quickName").value.trim(); if(!qNo && !qNm) return;
     const roster = state.rosters[curGoal.team];
-    if(qNo && roster.some(p => p.no === qNo)){ notify("Le numéro " + qNo + " est déjà dans l'alignement.", "info"); return; }
+    if(qNo && roster.some(p => p.no === qNo)){ notify("Le numÃ©ro " + qNo + " est dÃ©jÃ  dans l'alignement.", "info"); return; }
     roster.push({ no: qNo, name: qNm || ("#" + qNo), pos: "A" });
     $("quickNo").value = ""; $("quickName").value = ""; renderPlayerPickGrid();
   });
@@ -3113,7 +3139,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("penTitle").textContent = "Punition - " + state.names[curPen.team];
     $("penCtx").textContent = PLONG[curPen.period] + " (" + curPen.time + ")";
     $("penMin").value = String(curPen.min); if(!$("penMin").value) $("penMin").value = "2";
-    $("penReason").value = curPen.reason === "Rétention" ? "Retenue" : curPen.reason;   // ancien libellé
+    $("penReason").value = curPen.reason === "RÃ©tention" ? "Retenue" : curPen.reason;   // ancien libellÃ©
     if(!$("penReason").value) $("penReason").value = "Autre";
     $("penDelete").hidden = curPen.isNew;
     renderPenPlayerGrid(); openDlg("penSheet");
@@ -3152,7 +3178,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   });
 
-  /* ============ Pavé de saisie ============ */
+  /* ============ PavÃ© de saisie ============ */
   function lastEventIndex(test){ for(let i = state.events.length - 1; i >= 0; i--) if(test(state.events[i])) return i; return -1; }
 
   on("pad", "click", e => {
@@ -3170,7 +3196,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(state.shots[t][p] > goalsOf(t,p)){
         state.shots[t][p]--;
         const i = lastEventIndex(x => x.type === "shot" && x.team === t && x.period === p);
-        if(i !== -1) state.events.splice(i, 1);          // le fil du match reste cohérent avec le compteur
+        if(i !== -1) state.events.splice(i, 1);          // le fil du match reste cohÃ©rent avec le compteur
         commit();
       }
     } else if(act === "goal"){
@@ -3179,7 +3205,7 @@ document.addEventListener("DOMContentLoaded", function(){
       state.events.push(g); state.shots[t][p] = Math.min(999, state.shots[t][p] + 1); commit(); openGoal(g.id, true);
     } else if(act === "ungoal"){
       const i = lastEventIndex(x => x.type === "goal" && x.team === t);
-      if(i === -1){ notify("Aucun but à retirer.", "info"); return; }
+      if(i === -1){ notify("Aucun but Ã  retirer.", "info"); return; }
       const removed = state.events.splice(i, 1)[0];
       if(state.shots[t][removed.period] > 0) state.shots[t][removed.period]--;
       commit();
@@ -3202,7 +3228,9 @@ document.addEventListener("DOMContentLoaded", function(){
     applyInv(); renderShotsTable();
   });
 
-  /* ============ Boîtes de message ============ */
+  ["loginPass","pwdSuperInput","pwdAdminInput"].forEach(id => addEye($(id)));
+
+  /* ============ BoÃ®tes de message ============ */
   on("noticeOk", "click", () => { clearTimeout(noticeTimer); closeDlg("noticeBox"); });
   on("noticeBox", "click", e => { if(e.target === $("noticeBox")){ clearTimeout(noticeTimer); closeDlg("noticeBox"); } });
   on("confirmOk", "click", () => $("confirmBox").close("ok"));
@@ -3210,12 +3238,12 @@ document.addEventListener("DOMContentLoaded", function(){
   on("confirmBox", "close", () => { const r = askResolve; askResolve = null; if(r) r($("confirmBox").returnValue === "ok"); });
 
   window.addEventListener("resize", () => {
-    if(window.innerWidth === lastWidth) return;                  // sur mobile, le défilement déclenche aussi « resize »
+    if(window.innerWidth === lastWidth) return;                  // sur mobile, le dÃ©filement dÃ©clenche aussi Â« resize Â»
     lastWidth = window.innerWidth; clearTimeout(resizeTimer); resizeTimer = setTimeout(layoutTicker, 200);
   });
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutTicker);
 
-  /* ============ Démarrage ============ */
+  /* ============ DÃ©marrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
   ref(".info/connected").on("value", s => { connected = !!s.val(); if(connected) announcePresence(); updateStatusDisplay(); });
   dbOrgs.on("value", snap => {
