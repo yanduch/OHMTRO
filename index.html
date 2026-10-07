@@ -1650,6 +1650,15 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
+    // D'abord l'annonce des autres parties en cours dans l'organisation, puis les messages habituels
+    const mine = myLiveKey();
+    Object.keys(liveGames).forEach(k => {
+      const g = liveGames[k];
+      if(!g || k === mine || !g.cat || now() - (Number(g.at) || 0) > LIVE_STALE) return;
+      const p = g.team && presets[g.team], cat = String(g.cat).toUpperCase();
+      messages.push(p && p.name ? "🔴 Présentement en cours dans " + cat + " : l'équipe " + p.name + " — sélectionnez-la juste ici ⬆⬆⬆"
+                                : "🔴 Présentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " — sélectionnez la catégorie juste ici ⬆⬆⬆");
+    });
     msgsOf(org).forEach(m => messages.push(m));
     // Messages des équipes : celles du match, et toujours l'équipe du tableau affiché (même sans partie lancée)
     const shown = [];
@@ -1662,15 +1671,6 @@ document.addEventListener("DOMContentLoaded", function(){
     addTeam(pa); addTeam(pb);
     // Aucune équipe reconnue à l'écran (tableau vierge) : on affiche les messages des équipes de l'organisation dans cette catégorie
     if(!shown.length) boardTeams(currentCat).forEach(k => addTeam(presets[k]));
-    // Puis l'annonce des autres parties en cours dans l'organisation
-    const mine = myLiveKey();
-    Object.keys(liveGames).forEach(k => {
-      const g = liveGames[k];
-      if(!g || k === mine || !g.cat || now() - (Number(g.at) || 0) > LIVE_STALE) return;
-      const p = g.team && presets[g.team], cat = String(g.cat).toUpperCase();
-      messages.push(p && p.name ? "🔴 Présentement en cours dans " + cat + " : l'équipe " + p.name + " — sélectionnez-la juste ici ⬆⬆⬆"
-                                : "🔴 Présentement en cours dans " + cat + " : " + (g.a || "") + " contre " + (g.b || "") + " — sélectionnez la catégorie juste ici ⬆⬆⬆");
-    });
     const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
     tickerSig = full; tickerMsg = messages;
