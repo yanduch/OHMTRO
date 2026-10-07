@@ -96,7 +96,7 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
-body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #resetBoard, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
@@ -382,7 +382,7 @@ body:not(.role-viewer) .g-who{display:none}
 .archive-view .pad, .archive-view .hint, .archive-view #newGame, .archive-view .btn-swap, .archive-view .timer-ctrls, .archive-view #btnStopGame, .archive-view .g-select{display:none !important}
 .archive-view .seg button:not([aria-pressed="true"]){opacity:.3;pointer-events:none}
 .archive-view .g-who{display:block !important}
-.archive-edit #newGame{display:none !important}
+.archive-edit #newGame, .archive-edit #resetBoard, .archive-view #resetBoard{display:none !important}
 .archive-edit .archive-bar{background:var(--blue)}
 #hmList{max-height:45vh;overflow-y:auto;padding:0;margin:0;list-style:none}
 #historyManageSheet select{background:#FFFFFF;color:#0F2236}
@@ -396,6 +396,11 @@ body:not(.role-viewer) .g-who{display:none}
 .msg-row input{flex:1;min-width:0;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236}
 .msg-add{margin-top:.45rem;border:1px dashed var(--line);background:transparent;color:var(--blue);font-weight:600;font-size:.85rem;border-radius:6px;padding:.4rem .6rem;width:100%}
 .msg-add[hidden]{display:none}
+
+.btn-reset-board{display:block;width:100%;min-height:2.8rem;margin-top:.6rem;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:600;font-size:.95rem}
+.btn-reset-board:active{transform:translateY(1px)}
+.name[readonly]{pointer-events:none;cursor:default;border-bottom-color:transparent !important;-webkit-user-select:none;user-select:none}
+@media print { .btn-reset-board{display:none !important} }
 </style>
 </head>
 <body class="role-viewer">
@@ -426,7 +431,7 @@ body:not(.role-viewer) .g-who{display:none}
     <div class="side a">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoA">
-        <input class="name" id="nameA" maxlength="18" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameA" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'équipe locale" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreA">0</span>
       <p class="shots"><b id="shotsA">0</b><span id="lblShotsA">lancer</span></p>
@@ -444,7 +449,7 @@ body:not(.role-viewer) .g-who{display:none}
     <div class="side b">
       <div class="team-header">
         <img src="" alt="" class="team-logo" id="logoB">
-        <input class="name" id="nameB" maxlength="18" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
+        <input class="name" id="nameB" maxlength="18" readonly tabindex="-1" aria-label="Nom de l'équipe visiteuse" autocomplete="off" enterkeyhint="done">
       </div>
       <span class="score" id="scoreB">0</span>
       <p class="shots"><b id="shotsB">0</b><span id="lblShotsB">lancer</span></p>
@@ -580,6 +585,7 @@ body:not(.role-viewer) .g-who{display:none}
   </div>
 
   <button type="button" class="btn-new-game-pastel admin-only" id="newGame">➕ Commencer une nouvelle partie</button>
+  <button type="button" class="btn-reset-board" id="resetBoard" style="display:none">🧹 Réinitialiser l'affichage</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
 
   <div class="export-box">
@@ -1151,6 +1157,8 @@ document.addEventListener("DOMContentLoaded", function(){
       rosters: { a: [], b: [] },
       staff: { a: [], b: [] },
       goalies: { a: "", b: "" },         // gardien devant le filet (identifiant du joueur)
+      teamKeys: { a: "", b: "" },        // équipes enregistrées choisies au lancement de la partie
+      closed: false,                     // partie terminée ET décision prise sur la sauvegarde (enregistrée ou refusée)
       shots: { a: [0,0,0,0], b: [0,0,0,0] },
       events: [],
       timer: { sec: defaultPeriodSec, running: false, lastUpdate: 0 },
@@ -1172,6 +1180,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if(d.colors && typeof d.colors === "object"){ s.colors.a = hex(d.colors.a, DEF_A); s.colors.b = hex(d.colors.b, DEF_B); }
     if(d.rosters && typeof d.rosters === "object"){ s.rosters.a = toArr(d.rosters.a).map(normPlayer); s.rosters.b = toArr(d.rosters.b).map(normPlayer); }
     if(d.staff && typeof d.staff === "object"){ s.staff.a = toArr(d.staff.a).map(normStaff); s.staff.b = toArr(d.staff.b).map(normStaff); }
+    if(d.teamKeys && typeof d.teamKeys === "object"){ s.teamKeys.a = cleanKey(d.teamKeys.a); s.teamKeys.b = cleanKey(d.teamKeys.b); }
+    s.closed = !!d.closed;
     if(d.goalies && typeof d.goalies === "object"){ s.goalies.a = String(d.goalies.a || ""); s.goalies.b = String(d.goalies.b || ""); }
     s.period = int(d.period,0,3);
     ["a","b"].forEach(t => { for(let i = 0; i < 4; i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999); });
@@ -1286,7 +1296,6 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateRoleUI(){
     document.body.className = "role-" + currentRole;
     $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
-    $("nameA").readOnly = $("nameB").readOnly = !isAdmin();
     updateStatusDisplay();
   }
 
@@ -1502,6 +1511,12 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 
+  // Équipe enregistrée d'un côté du match : par sa clé si elle est connue, sinon par son nom
+  function presetFor(side, s){
+    s = s || state;
+    const k = s.teamKeys && s.teamKeys[side];
+    return (k && presets[k] && presets[k].name) ? presets[k] : (presetByName[s.names[side]] || null);
+  }
   function indexPresets(){
     presetByName = {};
     Object.keys(presets).forEach(k => {
@@ -1513,7 +1528,7 @@ document.addEventListener("DOMContentLoaded", function(){
   // Complète localement l'alignement / le logo à partir de l'équipe enregistrée lorsqu'ils manquent
   function syncStateWithPresets(){
     ["a","b"].forEach(side => {
-      const p = presetByName[state.names[side]]; if(!p) return;
+      const p = presetFor(side); if(!p) return;
       if(!state.rosters[side].length){ const r = toArr(p.roster); if(r.length) state.rosters[side] = r.map(normPlayer); }
       if(!state.staff[side].length){ const s = toArr(p.staff); if(s.length) state.staff[side] = s.map(normStaff); }
       if(!state.logos[side] && p.logo) state.logos[side] = String(p.logo);
@@ -1527,10 +1542,17 @@ document.addEventListener("DOMContentLoaded", function(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
     msgsOf(org).forEach(m => messages.push(m));
-    ["a","b"].forEach(t => {
-      const p = presetByName[state.names[t]];
-      msgsOf(p).forEach(m => messages.push(state.names[t] + " : " + m));
-    });
+    // Messages des équipes : celles du match, et toujours l'équipe du tableau affiché (même sans partie lancée)
+    const shown = [];
+    const addTeam = p => {
+      if(!p || shown.indexOf(p) !== -1) return;
+      shown.push(p); msgsOf(p).forEach(m => messages.push(p.name + " : " + m));
+    };
+    const pa = presetFor("a"), pb = presetFor("b");
+    if(boardTeam && presets[boardTeam] && presets[boardTeam] !== pb) addTeam(presets[boardTeam]);
+    addTeam(pa); addTeam(pb);
+    // Aucune équipe reconnue à l'écran (tableau vierge) : on affiche les messages des équipes de l'organisation dans cette catégorie
+    if(!shown.length) boardTeams(currentCat).forEach(k => addTeam(presets[k]));
     const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
     tickerSig = full; tickerMsg = messages;
@@ -2099,7 +2121,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   }
   function finishGame(){
-    state.timer.running = false; state.timer.sec = 0; state.finished = true;
+    state.timer.running = false; state.timer.sec = 0; state.finished = true; state.closed = !!editEntry;
     const last = state.events[state.events.length - 1];
     if(!(last && last.type === "sys" && last.text === END_TEXT)){
       state.events.push({ id: uid(), type: "sys", team: "sys", period: state.period, time: "00:00", text: END_TEXT, t: now() });
@@ -2119,7 +2141,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(state.timer.running){ state.timer.sec = remaining(); state.timer.running = false; }
     else {
       if(state.timer.sec <= 0){ openTimerSheet(); return; }     // chrono à zéro : on demande le temps à remettre
-      state.timer.running = true; state.timer.lastUpdate = now(); state.finished = false;
+      state.timer.running = true; state.timer.lastUpdate = now(); state.finished = false; state.closed = false;
     }
     commit();
   });
@@ -2312,12 +2334,33 @@ document.addEventListener("DOMContentLoaded", function(){
     window.scrollTo(0, 0);
   }
 
-  on("saveHistoryNo", "click", () => closeDlg("saveHistorySheet"));
+  // Refus (bouton Non ou touche Échap) : la décision est prise, l'affichage peut être réinitialisé
+  function declineSave(){ closeDlg("saveHistorySheet"); if(canEdit() && state.finished && !state.closed){ state.closed = true; commit(); } }
+  on("saveHistoryNo", "click", declineSave);
+  on("saveHistorySheet", "cancel", e => { e.preventDefault(); declineSave(); });
+
+  on("resetBoard", "click", () => {
+    if(!canEdit() || editEntry || !(state.finished && state.closed)) return;
+    ask("Remettre le tableau à zéro ?\nLe pointage, les lancers, le chronomètre et les équipes seront effacés de l'affichage." +
+        (state.histKey ? "" : "\nCette partie n'a pas été enregistrée dans l'historique : elle sera perdue."),
+        { title: "Réinitialiser l'affichage", ok: "Réinitialiser", danger: !state.histKey }).then(ok => {
+      if(!ok || !canEdit() || editEntry) return;
+      const wasLinked = isLinked();
+      state = blank(); openCardId = null; delete $("statsTeamSelect").dataset.userTouched;
+      if(boardTeam){                                           // tableau d'équipe : on quitte une éventuelle confrontation
+        const hadLink = !!boardLink; boardLink = null; linkStale = false;
+        if(hadLink) ref(boardBase + "/link").remove();
+        if(wasLinked) watchMatch();
+      }
+      commit();
+    });
+  });
   on("saveHistoryYes", "click", () => {
     closeDlg("saveHistorySheet"); if(!canEdit()) return;
     // Une même partie garde la même clé : la sauvegarder de nouveau la met à jour au lieu de créer un doublon
     if(!state.histKey) state.histKey = String(Date.now());
     if(!state.playedAt) state.playedAt = Date.now();
+    state.closed = true;
     commit();
     dbHistory.child(state.histKey).set(state, err => {
       if(err) notify("Échec de la sauvegarde : " + (err.message || err), "error");
@@ -2355,8 +2398,8 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function render(){
     const n = state.names, started = isStarted(state);
-    if(document.activeElement !== $("nameA")) $("nameA").value = n.a;
-    if(document.activeElement !== $("nameB")) $("nameB").value = n.b;
+    if($("nameA").value !== n.a) $("nameA").value = n.a;      // les noms viennent des équipes choisies au lancement de la partie
+    if($("nameB").value !== n.b) $("nameB").value = n.b;
     setLogo($("logoA"), state.logos.a); setLogo($("logoB"), state.logos.b);
     if(painted.ca !== state.colors.a){ painted.ca = state.colors.a; rootStyle.setProperty("--team-a-color", state.colors.a); }
     if(painted.cb !== state.colors.b){ painted.cb = state.colors.b; rootStyle.setProperty("--team-b-color", state.colors.b); }
@@ -2377,6 +2420,8 @@ document.addEventListener("DOMContentLoaded", function(){
     const canStartNew = !started || state.finished;
     $("btnStopGame").style.display = canStartNew ? "none" : "block";
     $("newGame").style.display = canStartNew ? "block" : "none";
+    // Disponible seulement une fois la partie terminée ET la sauvegarde décidée (enregistrée ou refusée)
+    $("resetBoard").style.display = (state.finished && state.closed && started) ? "block" : "none";
 
     const segBtns = $("seg").children;
     for(let i = 0; i < segBtns.length; i++) segBtns[i].setAttribute("aria-pressed", String(Number(segBtns[i].dataset.p) === state.period));
@@ -2422,7 +2467,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   // Gardiens de l'équipe enregistrée qui ne sont pas dans l'alignement du match (non cochés au départ)
   function absentGoalies(side){
-    const preset = presetByName[state.names[side]], r = state.rosters[side];
+    const preset = presetFor(side), r = state.rosters[side];
     return (preset ? toArr(preset.roster).map(normPlayer) : []).filter(p =>
       p.pos === "G" && !r.some(m => p.no ? m.no === p.no : (!m.no && m.name === p.name)));
   }
@@ -2504,7 +2549,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     if(rosterScope !== "all") return state.rosters[side];      // « Ce match » : joueurs présents
     // « Tout (Saison) » : toute l'équipe enregistrée, plus les joueurs ajoutés pendant le match
-    const preset = presetByName[state.names[side]], full = preset ? toArr(preset.roster).map(normPlayer) : [];
+    const preset = presetFor(side), full = preset ? toArr(preset.roster).map(normPlayer) : [];
     if(!full.length) return state.rosters[side];
     const same = (x, y) => x.no ? x.no === y.no : (!y.no && x.name === y.name);
     state.rosters[side].forEach(m => { if(!full.some(f => same(f, m))) full.push(m); });
@@ -2724,6 +2769,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const full = toArr(p.roster).map(normPlayer), present = [];
       document.querySelectorAll(".chk-presence-" + t).forEach(chk => { if(chk.checked && full[Number(chk.dataset.idx)]) present.push(full[Number(chk.dataset.idx)]); });
       state.names[t] = str(p.name, t === "a" ? "Local" : "Visiteur");
+      state.teamKeys[t] = keys[t];
       state.logos[t] = String(p.logo || "");
       state.rosters[t] = present.length ? present : full;
       state.staff[t] = toArr(p.staff).map(normStaff);
@@ -2927,20 +2973,10 @@ document.addEventListener("DOMContentLoaded", function(){
 
   on("btnSwapSides", "click", () => {
     if(!canEdit()) return;
-    ["names","logos","colors","rosters","staff","goalies","shots"].forEach(k => { const tmp = state[k].a; state[k].a = state[k].b; state[k].b = tmp; });
+    ["names","logos","colors","rosters","staff","goalies","teamKeys","shots"].forEach(k => { const tmp = state[k].a; state[k].a = state[k].b; state[k].b = tmp; });
     state.events.forEach(e => { if(e.team === "a") e.team = "b"; else if(e.team === "b") e.team = "a"; });
     if(openCardId) openCardId = null;
     commit();
-  });
-
-  ["a","b"].forEach(t => {
-    const inp = $(t === "a" ? "nameA" : "nameB");
-    inp.addEventListener("change", () => {
-      if(!isAdmin() || archiveKey) return;
-      const v = str(inp.value, t === "a" ? "Local" : "Visiteur"); inp.value = v;
-      if(v !== state.names[t]){ state.names[t] = v; commit(); }
-    });
-    inp.addEventListener("keydown", e => { if(e.key === "Enter") inp.blur(); });
   });
 
   /* ============ Boîtes de message ============ */
