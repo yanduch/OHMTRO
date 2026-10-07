@@ -96,7 +96,7 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .btn-swap{padding:.4rem .6rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--ink)}
 
-body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #resetBoard, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
+body.role-viewer .pad, body.role-viewer .hint, body.role-viewer #newGame, body.role-viewer #resetBoard, body.role-viewer #askSave, body.role-viewer #btnManageSettings, body.role-viewer .btn-swap, body.role-viewer .timer-ctrls, body.role-viewer #btnStopGame, body.role-viewer .btn-hist-del{display:none !important}
 body.role-viewer .seg button:not([aria-pressed="true"]){opacity:0.3;pointer-events:none}
 
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
@@ -382,7 +382,7 @@ body:not(.role-viewer) .g-who{display:none}
 .archive-view .pad, .archive-view .hint, .archive-view #newGame, .archive-view .btn-swap, .archive-view .timer-ctrls, .archive-view #btnStopGame, .archive-view .g-select{display:none !important}
 .archive-view .seg button:not([aria-pressed="true"]){opacity:.3;pointer-events:none}
 .archive-view .g-who{display:block !important}
-.archive-edit #newGame, .archive-edit #resetBoard, .archive-view #resetBoard{display:none !important}
+.archive-edit #newGame, .archive-edit #resetBoard, .archive-view #resetBoard, .archive-edit #askSave, .archive-view #askSave{display:none !important}
 .archive-edit .archive-bar{background:var(--blue)}
 #hmList{max-height:45vh;overflow-y:auto;padding:0;margin:0;list-style:none}
 #historyManageSheet select{background:#FFFFFF;color:#0F2236}
@@ -401,6 +401,9 @@ body:not(.role-viewer) .g-who{display:none}
 .btn-reset-board:active{transform:translateY(1px)}
 .name[readonly]{pointer-events:none;cursor:default;border-bottom-color:transparent !important;-webkit-user-select:none;user-select:none}
 @media print { .btn-reset-board{display:none !important} }
+
+/* --- Éléments réservés au super administrateur --- */
+body:not(.is-super) .super-only{display:none !important}
 </style>
 </head>
 <body class="role-viewer">
@@ -585,6 +588,7 @@ body:not(.role-viewer) .g-who{display:none}
   </div>
 
   <button type="button" class="btn-new-game-pastel admin-only" id="newGame">➕ Commencer une nouvelle partie</button>
+  <button type="button" class="btn-reset-board" id="askSave" style="display:none">💾 Enregistrer la partie dans l'historique…</button>
   <button type="button" class="btn-reset-board" id="resetBoard" style="display:none">🧹 Réinitialiser l'affichage</button>
   <button type="button" class="btn-stop-game" id="btnStopGame" style="display:none;">🛑 ARRÊTER LA PARTIE</button>
 
@@ -616,7 +620,7 @@ body:not(.role-viewer) .g-who{display:none}
 
     <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des Messages</button>
     <button type="button" class="act-1" id="btnOpenHistoryManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#2E63C6;color:#FFF;">🗂️ Gestion de l'historique</button>
-    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Organisations, catégories et équipes</button>
+    <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.5rem;font-weight:600;">🏢 Organisation, catégories et équipes</button>
 
     <div class="field-group admin-only" style="margin-top:1.2rem;">
       <label>Temps de période par défaut (minutes) :</label>
@@ -786,9 +790,13 @@ body:not(.role-viewer) .g-who{display:none}
 <dialog id="passwordsSheet">
   <div class="sheet-in">
     <h2>Gestion des Mots de Passe</h2>
-    <div class="field-group">
-      <label>Mot de passe Administrateur :</label>
-      <input type="password" id="pwdAdminInput" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+    <div class="field-group super-only">
+      <label for="pwdSuperInput">Super administrateur (toutes les organisations) :</label>
+      <input type="password" id="pwdSuperInput" autocomplete="off" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
+    </div>
+    <div class="field-group" style="margin-top:.8rem;">
+      <label for="pwdAdminInput">Administrateur de <span id="pwdOrgName">l'organisation</span> (utilisateur : admin) :</label>
+      <input type="password" id="pwdAdminInput" autocomplete="off" placeholder="Vide = aucun administrateur" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
     </div>
     <hr style="border:0;border-top:1px solid var(--line);margin:1.2rem 0;">
     <h3 style="font-size:1rem;margin:0 0 .4rem;">Mots de passe Marqueurs</h3>
@@ -1129,6 +1137,8 @@ document.addEventListener("DOMContentLoaded", function(){
 
   let openCardId = null, rosterScope = "match";
 
+  /* Rôles : super administrateur (toutes les organisations), administrateur d'une organisation, marqueur, spectateur.
+     « isAdminGlobal » = super administrateur ; un administrateur d'organisation a le rôle "admin" avec « assignedOrg ». */
   let isAdminGlobal = store.get(localStorage, "ohmtro_admin_auth") === "true";
   let currentRole = isAdminGlobal ? "admin" : (store.get(sessionStorage, "ohmtro_role") || "viewer");
   let assignedCat = store.get(sessionStorage, "ohmtro_assigned_cat") || null;
@@ -1141,8 +1151,11 @@ document.addEventListener("DOMContentLoaded", function(){
   let boardTeam = "", boardBase = "", boardSubs = [], matchRef = null, presetsLoaded = false;
   let boardLink = null, linkStale = false, linkKnown = true, pendingSnap = null;   // confrontation entre deux équipes de l'organisation
   if(["admin","marqueur","viewer"].indexOf(currentRole) === -1) currentRole = "viewer";
+  if(currentRole === "admin" && !isAdminGlobal && !assignedOrg) currentRole = "viewer";
 
   const isAdmin = () => currentRole === "admin";
+  const isSuper = () => currentRole === "admin" && isAdminGlobal;
+  const roleLabel = () => isSuper() ? "SUPER ADMIN" : currentRole.toUpperCase();
   const canEdit = () => currentRole !== "viewer" && !archiveKey;
   let editEntry = null;                // partie de l'historique en cours de modification : { key, m, at }
   const now = () => Date.now() + serverOffset;      // heure du serveur : même chrono sur tous les appareils
@@ -1181,7 +1194,6 @@ document.addEventListener("DOMContentLoaded", function(){
     if(d.rosters && typeof d.rosters === "object"){ s.rosters.a = toArr(d.rosters.a).map(normPlayer); s.rosters.b = toArr(d.rosters.b).map(normPlayer); }
     if(d.staff && typeof d.staff === "object"){ s.staff.a = toArr(d.staff.a).map(normStaff); s.staff.b = toArr(d.staff.b).map(normStaff); }
     if(d.teamKeys && typeof d.teamKeys === "object"){ s.teamKeys.a = cleanKey(d.teamKeys.a); s.teamKeys.b = cleanKey(d.teamKeys.b); }
-    s.closed = !!d.closed;
     if(d.goalies && typeof d.goalies === "object"){ s.goalies.a = String(d.goalies.a || ""); s.goalies.b = String(d.goalies.b || ""); }
     s.period = int(d.period,0,3);
     ["a","b"].forEach(t => { for(let i = 0; i < 4; i++) s.shots[t][i] = int(d.shots && d.shots[t] && d.shots[t][i], 0, 999); });
@@ -1198,6 +1210,8 @@ document.addEventListener("DOMContentLoaded", function(){
     // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
     s.finished = (typeof d.finished === "boolean") ? d.finished
                : !!(last && last.type === "sys" && last.text === END_TEXT && !s.timer.running && s.timer.sec === 0);
+    // Parties terminées avant l'ajout de ce champ : la question de sauvegarde a déjà été posée à l'époque
+    s.closed = (typeof d.closed === "boolean") ? d.closed : s.finished;
     s.updatedAt = Number(d.updatedAt) || 0;
     return s;
   }
@@ -1289,13 +1303,13 @@ document.addEventListener("DOMContentLoaded", function(){
     const st = $("status");
     if(!connected){ st.textContent = "Hors ligne"; st.dataset.s = "offline"; return; }
     const connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
-    st.textContent = (currentRole !== "viewer") ? "En direct - " + currentRole.toUpperCase() + connText : "En direct" + connText;
+    st.textContent = (currentRole !== "viewer") ? "En direct - " + roleLabel() + connText : "En direct" + connText;
     st.dataset.s = "live";
   }
 
   function updateRoleUI(){
-    document.body.className = "role-" + currentRole;
-    $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + currentRole.toUpperCase() + ")" : "🔒 Connexion";
+    document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "");
+    $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + roleLabel() + ")" : "🔒 Connexion";
     updateStatusDisplay();
   }
 
@@ -1366,6 +1380,8 @@ document.addEventListener("DOMContentLoaded", function(){
        ((assignedCat && assignedCat !== catKey) || (assignedOrg && assignedOrg !== orgKey))){
       demoteToViewer();
     }
+    // Un administrateur d'organisation n'a ses droits que dans son organisation
+    if(!isAdminGlobal && currentRole === "admin" && assignedOrg !== orgKey) demoteToViewer();
 
     currentOrg = orgKey; currentCat = catKey;
     store.set(sessionStorage, "ohmtro_org", currentOrg);
@@ -1577,10 +1593,13 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Connexion ============ */
+  const dbSuper = ref("global/superPassword");
   function loadPasswords(){
-    return dbPasswords.once("value").then(s => {
-      const v = s.val() || {};
-      return { admin: v.admin || "hockey", marqueur: v.marqueur || "buts",
+    return Promise.all([dbPasswords.once("value"), dbSuper.once("value")]).then(r => {
+      const v = r[0].val() || {}, sup = r[1].val();
+      // Super administrateur : mot de passe global ; tant qu'il n'est pas défini, l'ancien mot de passe administrateur reste valide
+      return { superPwd: (typeof sup === "string" && sup) ? sup : (v.admin || "hockey"), legacyAdmin: v.admin || "",
+               orgAdmin: typeof v.orgAdmin === "string" ? v.orgAdmin : "", marqueur: v.marqueur || "buts",
                categories: (v.categories && typeof v.categories === "object") ? v.categories : {},
                teams: (v.teams && typeof v.teams === "object") ? v.teams : {} };
     });
@@ -1600,9 +1619,16 @@ document.addEventListener("DOMContentLoaded", function(){
     const u = $("loginUser").value.trim().toLowerCase(), p = $("loginPass").value.trim();
     const btn = $("loginSubmit"); btn.disabled = true;
     loadPasswords().then(passwords => {
-      if((u === "admin" || u === "yanduch") && p === passwords.admin){
+      const superUser = u === "yanduch" || u === "superadmin" || u === "super", adminUser = u === "admin";
+      if((superUser || adminUser) && p && p === passwords.superPwd){
         currentRole = "admin"; isAdminGlobal = true; assignedCat = null; assignedOrg = null; assignedTeam = "";
         store.set(localStorage, "ohmtro_admin_auth", "true"); store.set(sessionStorage, "ohmtro_role", "admin");
+        store.del(sessionStorage, "ohmtro_assigned_org"); store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_team");
+      } else if(adminUser && passwords.orgAdmin && p === passwords.orgAdmin){
+        // Administrateur de l'organisation affichée
+        currentRole = "admin"; isAdminGlobal = false; assignedCat = null; assignedOrg = currentOrg; assignedTeam = "";
+        store.del(localStorage, "ohmtro_admin_auth"); store.set(sessionStorage, "ohmtro_role", "admin");
+        store.set(sessionStorage, "ohmtro_assigned_org", currentOrg); store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_team");
       } else if(u === "marqueur"){
         // Le mot de passe détermine la catégorie et, s'il y a lieu, l'équipe (tableau) du marqueur
         let target = null;
@@ -1771,7 +1797,7 @@ document.addEventListener("DOMContentLoaded", function(){
     closeDlg("settingsSheet");
     const selOrg = $("msgOrgSelect");
     fillSelect(selOrg, orgItems(), currentOrg);
-    selOrg.disabled = !isAdmin();
+    selOrg.disabled = !isSuper();
     msgSelectedOrgKey = selOrg.value || currentOrg;
     loadOrgMessageData(msgSelectedOrgKey);
     openDlg("messagesManageSheet");
@@ -1854,11 +1880,16 @@ document.addEventListener("DOMContentLoaded", function(){
   const manageOrg = () => organizationsList.find(o => o.id === manageOrgKey);
 
   /* --- Liste des organisations --- */
-  on("btnOpenOrgManage", "click", () => { if(!isAdmin()) return; closeDlg("settingsSheet"); renderOrgManageList(); openDlg("orgManageSheet"); });
+  on("btnOpenOrgManage", "click", () => {
+    if(!isAdmin()) return;
+    closeDlg("settingsSheet");
+    if(!isSuper()){ openOrgDetail(currentOrg); return; }      // administrateur d'organisation : directement sa fiche
+    renderOrgManageList(); openDlg("orgManageSheet");
+  });
   on("orgManageClose", "click", () => closeDlg("orgManageSheet"));
   on("orgManageBack", "click", () => swapDlg("orgManageSheet", "settingsSheet"));
   on("btnAddOrg", "click", () => {
-    if(!isAdmin()) return;
+    if(!isSuper()) return;
     const id = $("newOrgIdInput").value.trim().toLowerCase().replace(/[^a-z0-9]/g, ""), name = $("newOrgNameInput").value.trim();
     if(!id || !name){ notify("Entrez une clé et un nom pour la nouvelle organisation.", "info"); return; }
     if(organizationsList.some(o => o.id === id)){ notify("Cette clé d'organisation existe déjà.", "error"); return; }
@@ -1875,7 +1906,7 @@ document.addEventListener("DOMContentLoaded", function(){
       list.appendChild(manageItem("org-manage-item", label, [
         btn("btn-edit", "⚙️ Gérer", () => openOrgDetail(o.id)),
         btn("btn-hist-del", "🗑 Supprimer", () => {
-          if(!isAdmin()) return;
+          if(!isSuper()) return;
           if(organizationsList.length <= 1){ notify("Il faut conserver au moins une organisation.", "info"); return; }
           ask("Supprimer l'organisation « " + o.name + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
             if(!ok) return;
@@ -1888,7 +1919,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   /* --- Fiche d'une organisation : nom, catégories, équipes --- */
   function openOrgDetail(orgKey){
-    if(!isAdmin()) return;
+    if(!isAdmin() || (!isSuper() && orgKey !== currentOrg)) return;
     manageOrgKey = orgKey;
     const org = manageOrg();
     $("orgDetailTitle").textContent = org ? org.name : orgKey;
@@ -1910,7 +1941,11 @@ document.addEventListener("DOMContentLoaded", function(){
     org.name = v; dbOrgs.set(organizationsList); $("orgDetailTitle").textContent = v;
     notify("Organisation renommée.");
   });
-  on("orgDetailBack", "click", () => { stopTeamsManage(); renderOrgManageList(); swapDlg("orgDetailSheet", "orgManageSheet"); });
+  on("orgDetailBack", "click", () => {
+    stopTeamsManage();
+    if(!isSuper()){ swapDlg("orgDetailSheet", "settingsSheet"); return; }
+    renderOrgManageList(); swapDlg("orgDetailSheet", "orgManageSheet");
+  });
   on("orgDetailClose", "click", () => { stopTeamsManage(); closeDlg("orgDetailSheet"); });
 
   /* --- Catégories de l'organisation --- */
@@ -2070,7 +2105,10 @@ document.addEventListener("DOMContentLoaded", function(){
   on("btnOpenPasswords", "click", () => {
     if(!isAdmin()) return;
     loadPasswords().then(passwords => {
-      closeDlg("settingsSheet"); $("pwdAdminInput").value = passwords.admin;
+      closeDlg("settingsSheet");
+      const org = organizationsList.find(o => o.id === currentOrg);
+      $("pwdOrgName").textContent = org ? org.name : currentOrg.toUpperCase();
+      $("pwdSuperInput").value = isSuper() ? passwords.superPwd : ""; $("pwdAdminInput").value = passwords.orgAdmin;
       const container = $("catPasswordsContainer"); container.textContent = "";
       container.dataset.marqueur = passwords.marqueur; pwdLoaded = passwords;
       const field = (text, cls, key, val) => {
@@ -2090,7 +2128,12 @@ document.addEventListener("DOMContentLoaded", function(){
   on("pwdSave", "click", () => {
     if(!isAdmin()) return;
     const old = pwdLoaded || { categories: {}, teams: {} };
-    const newP = { admin: $("pwdAdminInput").value.trim() || "hockey", marqueur: $("catPasswordsContainer").dataset.marqueur || "buts",
+    const orgAdmin = $("pwdAdminInput").value.trim(), sup = $("pwdSuperInput").value.trim() || old.superPwd || "hockey";
+    if(isSuper() && orgAdmin && orgAdmin === sup){ notify("Le mot de passe de l'administrateur de l'organisation doit être différent de celui du super administrateur.", "info"); return; }
+    if(!isSuper() && !orgAdmin){ notify("Le mot de passe administrateur ne peut pas être vide.", "info"); return; }
+    if(!isSuper() && orgAdmin === old.superPwd){ notify("Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
+    if(isSuper()) dbSuper.set(sup);
+    const newP = { admin: old.legacyAdmin || "", orgAdmin: orgAdmin, marqueur: $("catPasswordsContainer").dataset.marqueur || "buts",
                    categories: Object.assign({}, old.categories), teams: Object.assign({}, old.teams) };
     document.querySelectorAll(".pwd-cat").forEach(inp => { newP.categories[inp.dataset.key] = inp.value.trim() || "buts"; });
     document.querySelectorAll(".pwd-team").forEach(inp => { newP.teams[inp.dataset.key] = inp.value.trim() || "buts"; });
@@ -2266,7 +2309,8 @@ document.addEventListener("DOMContentLoaded", function(){
     closeDlg("settingsSheet");
     hmOrg = currentOrg; hmCat = currentCat;
     fillSelect($("hmOrgSelect"), orgItems(), hmOrg);
-    $("hmOrgSelect").disabled = $("hmCatSelect").disabled = !isAdmin();     // le marqueur gère seulement sa catégorie
+    $("hmOrgSelect").disabled = !isSuper();                    // seul le super administrateur change d'organisation
+    $("hmCatSelect").disabled = !isAdmin();                    // le marqueur gère seulement sa catégorie
     hmLoadCats(); openDlg("historyManageSheet");
   });
   on("hmBack", "click", () => swapDlg("historyManageSheet", "settingsSheet"));
@@ -2339,6 +2383,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("saveHistoryNo", "click", declineSave);
   on("saveHistorySheet", "cancel", e => { e.preventDefault(); declineSave(); });
 
+  on("askSave", "click", () => { if(canEdit() && !editEntry) openDlg("saveHistorySheet"); });
   on("resetBoard", "click", () => {
     if(!canEdit() || editEntry || !(state.finished && state.closed)) return;
     ask("Remettre le tableau à zéro ?\nLe pointage, les lancers, le chronomètre et les équipes seront effacés de l'affichage." +
@@ -2347,6 +2392,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!ok || !canEdit() || editEntry) return;
       const wasLinked = isLinked();
       state = blank(); openCardId = null; delete $("statsTeamSelect").dataset.userTouched;
+      setScope("all");                                         // Alignements : retour sur « Tout (Saison) »
       if(boardTeam){                                           // tableau d'équipe : on quitte une éventuelle confrontation
         const hadLink = !!boardLink; boardLink = null; linkStale = false;
         if(hadLink) ref(boardBase + "/link").remove();
@@ -2422,6 +2468,8 @@ document.addEventListener("DOMContentLoaded", function(){
     $("newGame").style.display = canStartNew ? "block" : "none";
     // Disponible seulement une fois la partie terminée ET la sauvegarde décidée (enregistrée ou refusée)
     $("resetBoard").style.display = (state.finished && state.closed && started) ? "block" : "none";
+    // Partie terminée mais question de sauvegarde restée sans réponse (fenêtre fermée, autre appareil) : on peut la rouvrir
+    $("askSave").style.display = (state.finished && !state.closed && started) ? "block" : "none";
 
     const segBtns = $("seg").children;
     for(let i = 0; i < segBtns.length; i++) segBtns[i].setAttribute("aria-pressed", String(Number(segBtns[i].dataset.p) === state.period));
@@ -2572,6 +2620,7 @@ document.addEventListener("DOMContentLoaded", function(){
     rosterScope = scope;
     $("btnScopeMatch").classList.toggle("active", scope === "match");
     $("btnScopeAll").classList.toggle("active", scope === "all");
+    if(!isOpen("rosterBlock")) return;                        // section repliée : rien à charger pour l'instant
     if(scope === "all") ensureHistory();
     renderRosters();
   }
