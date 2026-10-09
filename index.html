@@ -765,6 +765,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <div class="sheet-in">
     <h2>Gestion calendrier</h2>
     <p class="ctx">Parties prévues de la catégorie. Inscrivez le résultat après la partie : il compte dans la fiche des équipes.</p>
+    <div class="super-only" style="margin-bottom:.5rem;">
+      <label for="calOrgSelect" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.3rem;">Organisation :</label>
+      <select id="calOrgSelect" class="full-input" style="background:#FFF;color:#0F2236;"></select>
+    </div>
+    <label for="calCatSelect" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.3rem;">Catégorie et équipe :</label>
     <div class="inline-row">
       <select id="calCatSelect" aria-label="Catégorie" style="flex:0 1 7rem;"></select>
       <select id="calTeamFilter" aria-label="Équipe"></select>
@@ -1799,12 +1804,11 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Bandeau défilant ============ */
-  // Prochaine partie au calendrier d'une équipe (ou de la catégorie si p est vide). Une partie dont l'heure est passée
-  // depuis plus de 3 h, déjà jouée, ou en cours sur ce tableau n'est plus « prochaine ».
+  // Prochaine partie au calendrier d'une équipe (ou de la catégorie si p est vide). Elle reste annoncée jusqu'à ce
+  // qu'elle soit lancée sur un tableau (ou que son résultat soit inscrit) ; seule la plus proche est annoncée.
   function nextGameOf(p){
-    const key = p ? Object.keys(presets).filter(k => presets[k] === p)[0] : null, t = Date.now(), today = todayStr();
-    return calendarList.filter(c => !c.played && !c.histKey && c.id !== state.calId &&
-                                    (c.time ? c.at + 3 * 3600000 > t : c.date >= today) &&
+    const key = p ? Object.keys(presets).filter(k => presets[k] === p)[0] : null;
+    return calendarList.filter(c => !c.played && !c.histKey && !c.started && c.id !== state.calId &&
                                     (!p || (key && (c.aKey === key || c.bKey === key)) || c.a === p.name || c.b === p.name))
                        .sort((x, y) => x.at - y.at)[0] || null;
   }
@@ -2565,7 +2569,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const played = isNum(c.scoreA) && isNum(c.scoreB);
       return { id: id, date: String(c.date), time: c.time || "", a: String(c.a || "Local"), b: String(c.b || "Visiteur"),
                aKey: c.aKey || "", bKey: c.bKey || "", place: String(c.place || ""), arena: c.arena || "", scoreA: played ? c.scoreA : null, scoreB: played ? c.scoreB : null,
-               end: c.end || "", histKey: c.histKey || "", played: played, at: at };
+               end: c.end || "", histKey: c.histKey || "", started: Number(c.started) || 0, played: played, at: at };
     }).filter(Boolean);
   }
   function calWhen(c){
@@ -2585,37 +2589,57 @@ document.addEventListener("DOMContentLoaded", function(){
     r.child("end").set(state.period === 3 ? "OT" : ""); r.child("histKey").set(state.histKey);
   }
 
-  let calCat = "", calRef = null, calMgr = [], calEditId = null;
+  // Le super administrateur choisit l'organisation, puis la catégorie ; l'administrateur choisit la catégorie de son organisation
+  let calOrg = "", calCat = "", calPresets = {}, calRef = null, calMgr = [], calEditId = null, calToken = 0;
+  const calHere = () => calOrg === currentOrg && calCat === currentCat;   // calendrier du tableau affiché
   const onCal = snap => { calMgr = calEntries(snap.val()); calFillTeamFilter(); calRender(); };
   function calStop(){ if(calRef){ calRef.off("value", onCal); calRef = null; } }
   function calWatch(cat){
     calStop(); calCat = cat; calMgr = []; calRender(true);
-    calRef = ref(currentOrg + "/" + cat + "/calendar"); calRef.on("value", onCal);
+    calRef = ref(calOrg + "/" + cat + "/calendar"); calRef.on("value", onCal);
   }
   // Équipes enregistrées d'une catégorie (celles de l'organisation d'abord)
   function calTeams(cat){
-    return Object.keys(presets).filter(k => { const p = presets[k]; return p && p.name && (!p.category || p.category === cat); })
-                 .sort((x, y) => (presets[y].own ? 1 : 0) - (presets[x].own ? 1 : 0) || String(presets[x].name).localeCompare(String(presets[y].name), "fr", { numeric: true }));
+    return Object.keys(calPresets).filter(k => { const p = calPresets[k]; return p && p.name && (!p.category || p.category === cat); })
+                 .sort((x, y) => (calPresets[y].own ? 1 : 0) - (calPresets[x].own ? 1 : 0) || String(calPresets[x].name).localeCompare(String(calPresets[y].name), "fr", { numeric: true }));
   }
 
   on("btnOpenCalendar", "click", () => {
     if(!isAdmin()) return;
     closeDlg("settingsSheet");
-    fillSelect($("calCatSelect"), categoriesList.map(c => ({ value: c, label: c.toUpperCase() })), currentCat);
-    calWatch($("calCatSelect").value || currentCat);
+    fillSelect($("calOrgSelect"), orgItems(), currentOrg);
+    calLoadOrg(currentOrg, currentCat);
     openDlg("calendarSheet");
   });
-  on("calCatSelect", "change", () => calWatch($("calCatSelect").value));
+  // Équipes et catégories de l'organisation choisie (celles de l'organisation affichée sont déjà chargées)
+  function calLoadOrg(org, wantCat){
+    const token = ++calToken;
+    calStop(); calOrg = org; calCat = ""; calMgr = [];
+    fillSelect($("calCatSelect"), [], null, "Chargement…"); calRender(true);
+    const done = (cats, pres) => {
+      if(token !== calToken) return;
+      calPresets = pres || {};
+      const cat = cats.indexOf(wantCat) !== -1 ? wantCat : cats[0];
+      fillSelect($("calCatSelect"), cats.map(c => ({ value: c, label: c.toUpperCase() })), cat);
+      $("calTeamFilter").value = "";
+      calWatch(cat);
+    };
+    if(org === currentOrg) done(categoriesList.slice(), presets);
+    else Promise.all([loadCats(org), ref(org + "/teams_presets").once("value")]).then(r => done(r[0], r[1].val()),
+      () => notify("Impossible de charger cette organisation.", "error"));
+  }
+  on("calOrgSelect", "change", () => { if(isSuper()) calLoadOrg($("calOrgSelect").value, ""); });
+  on("calCatSelect", "change", () => { $("calTeamFilter").value = ""; calWatch($("calCatSelect").value); });
   on("calTeamFilter", "change", () => calRender());
   on("calBack", "click", () => { calStop(); swapDlg("calendarSheet", "settingsSheet"); });
   on("calClose", "click", () => { calStop(); closeDlg("calendarSheet"); });
 
   function calFillTeamFilter(){
     const sel = $("calTeamFilter"), prev = sel.value, names = {};
-    calTeams(calCat).forEach(k => { names[presets[k].name] = true; });
+    calTeams(calCat).forEach(k => { names[calPresets[k].name] = true; });
     calMgr.forEach(c => { names[c.a] = true; names[c.b] = true; });
     const items = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true })).map(n => ({ value: n, label: n }));
-    fillSelect(sel, items, prev || (boardTeam && presets[boardTeam] ? presets[boardTeam].name : null), "Toutes les équipes");
+    fillSelect(sel, items, prev || (calHere() && boardTeam && calPresets[boardTeam] ? calPresets[boardTeam].name : null), "Toutes les équipes");
   }
   function calRender(loading){
     const list = $("calList"); list.textContent = "";
@@ -2645,6 +2669,7 @@ document.addEventListener("DOMContentLoaded", function(){
         }
         box.appendChild(line);
         if(c.histKey) box.appendChild(el("div", "cal-note", "Marquée sur le tableau"));
+        else if(c.started && !c.played) box.appendChild(el("div", "cal-note", "Lancée sur le tableau"));
         li.appendChild(box);
         li.appendChild(btn("btn-edit", c.played ? "✏️ Modifier" : (c.date < today ? "🏒 Résultat" : "✏️ Modifier"), () => calOpenEdit(c)));
         frag.appendChild(li);
@@ -2656,11 +2681,11 @@ document.addEventListener("DOMContentLoaded", function(){
   /* --- Fiche d'une partie du calendrier --- */
   function calFillTeamSelect(side, key, name){
     const sel = $(side === "a" ? "calTeamA" : "calTeamB"), keys = calTeams(calCat);
-    const items = keys.map(k => ({ value: k, label: presets[k].name }));
+    const items = keys.map(k => ({ value: k, label: calPresets[k].name }));
     items.push({ value: "__other", label: "Autre équipe…" });
     let v = "";
-    if(key && presets[key]) v = key;
-    else if(name){ const k = keys.filter(x => presets[x].name === name)[0]; v = k || "__other"; }
+    if(key && calPresets[key]) v = key;
+    else if(name){ const k = keys.filter(x => calPresets[x].name === name)[0]; v = k || "__other"; }
     fillSelect(sel, items, v, "-- Choisir --");
     $(side === "a" ? "calOtherA" : "calOtherB").value = (v === "__other") ? (name || "") : "";
     calToggleOther(side);
@@ -2678,7 +2703,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("calEditTitle").textContent = c ? (c.played || c.date >= todayStr() ? "Modifier la partie" : "Inscrire le résultat") : "Ajouter une partie";
     $("calDate").value = c ? c.date : todayStr(); $("calTime").value = c ? c.time : "";
     calFillTeamSelect("b", c ? c.bKey : "", c ? c.b : ""); calFillTeamSelect("a", c ? c.aKey : "", c ? c.a : "");
-    if(!c && boardTeam && presets[boardTeam]){ $("calTeamA").value = boardTeam; calToggleOther("a"); }
+    if(!c && calHere() && boardTeam && calPresets[boardTeam]){ $("calTeamA").value = boardTeam; calToggleOther("a"); }
     // Aréna : choisie dans la liste ; une ancienne aréna écrite à la main est retrouvée par son nom, sinon proposée comme nouvelle
     let aid = c ? c.arena : "";
     if(c && !aid && c.place){ const m = arenaList().filter(a => a.name === c.place)[0]; aid = m ? m.id : "__new"; }
@@ -2693,7 +2718,7 @@ document.addEventListener("DOMContentLoaded", function(){
   const calName = side => {
     const U = side.toUpperCase(), v = $("calTeam" + U).value;
     if(v === "__other") return { key: "", name: str($("calOther" + U).value, "") };
-    return { key: v, name: v && presets[v] ? presets[v].name : "" };
+    return { key: v, name: v && calPresets[v] ? calPresets[v].name : "" };
   };
   on("calCancel", "click", () => swapDlg("calEditSheet", "calendarSheet"));
   on("calSave", "click", () => {
@@ -2726,7 +2751,7 @@ document.addEventListener("DOMContentLoaded", function(){
       entry.arena = aid; entry.place = arenas[aid].name;
     }
     if(sA !== ""){ entry.scoreA = int(sA, 0, 99); entry.scoreB = int(sB, 0, 99); }
-    ref(currentOrg + "/" + calCat + "/calendar/" + (calEditId || uid())).set(entry);
+    ref(calOrg + "/" + calCat + "/calendar/" + (calEditId || uid())).set(entry);
     swapDlg("calEditSheet", "calendarSheet"); notify(sA === "" ? "Partie enregistrée au calendrier." : "Résultat enregistré !");
   });
   on("calDelete", "click", () => {
@@ -2734,7 +2759,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const id = calEditId, cat = calCat;
     ask("Retirer cette partie du calendrier ?" + "\nUne partie déjà enregistrée dans l'historique n'est pas touchée.", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
       if(!ok) return;
-      ref(currentOrg + "/" + cat + "/calendar/" + id).remove();
+      ref(calOrg + "/" + cat + "/calendar/" + id).remove();
       swapDlg("calEditSheet", "calendarSheet");
     });
   });
@@ -3468,6 +3493,12 @@ document.addEventListener("DOMContentLoaded", function(){
   on("wizStart", "click", () => {
     if(!canEdit()) return;
     const keys = { a: $("wizTeamA").value, b: $("wizTeamB").value };
+    // Partie non choisie dans le calendrier, mais une partie prévue oppose les mêmes équipes : on les relie
+    if(!$("wizCalSelect").value && keys.a && keys.b){
+      const m = wizCal.filter(c => (c.aKey === keys.a && c.bKey === keys.b) || (c.aKey === keys.b && c.bKey === keys.a))
+                      .sort((x, y) => Math.abs(x.at - Date.now()) - Math.abs(y.at - Date.now()))[0];
+      if(m) $("wizCalSelect").value = m.id;
+    }
     if(keys.a && keys.a === keys.b){ notify("Choisissez deux équipes différentes.", "info"); return; }
     // Confrontation entre deux équipes de l'organisation : une seule partie, affichée sur les deux tableaux
     let other = "";
@@ -3510,6 +3541,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(wasLinked) watchMatch();
     }
     commit(); closeDlg("newGameWizard");
+    if(state.calId) ref(catBase() + "/calendar/" + state.calId + "/started").set(now());
     if(other) ref(catBase() + "/boards/" + other + "/link").set({ team: boardTeam, id: state.id });
   }
 
