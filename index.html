@@ -1841,11 +1841,12 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Bandeau défilant ============ */
-  // Prochaine partie au calendrier d'une équipe (ou de la catégorie si p est vide). Elle reste annoncée jusqu'à ce
-  // qu'elle soit lancée sur un tableau (ou que son résultat soit inscrit) ; seule la plus proche est annoncée.
+  // Prochaine partie au calendrier d'une équipe (ou de la catégorie si p est vide) : la plus proche à partir d'aujourd'hui.
+  // Celle du jour reste annoncée jusqu'à ce qu'elle soit lancée sur un tableau ; les dates passées ne sont plus annoncées.
   function nextGameOf(p){
-    const key = p ? Object.keys(presets).filter(k => presets[k] === p)[0] : null;
-    return calendarList.filter(c => !c.played && !c.histKey && !c.started && c.id !== state.calId &&
+    const key = p ? Object.keys(presets).filter(k => presets[k] === p)[0] : null, n = new Date();
+    const today = n.getFullYear() + "-" + (n.getMonth() < 9 ? "0" : "") + (n.getMonth() + 1) + "-" + (n.getDate() < 10 ? "0" : "") + n.getDate();
+    return calendarList.filter(c => !c.played && !c.histKey && !c.started && c.id !== state.calId && c.date >= today &&
                                     (!p || (key && (c.aKey === key || c.bKey === key)) || c.a === p.name || c.b === p.name))
                        .sort((x, y) => x.at - y.at)[0] || null;
   }
@@ -4130,4 +4131,4 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
 </body>
-        </html>
+</html>
