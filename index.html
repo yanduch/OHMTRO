@@ -303,6 +303,12 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media (prefers-reduced-motion:reduce){ .bump{animation:none} }
 .empty{font-size:.85rem;color:var(--muted);list-style:none;margin:0;padding:.2rem 0}
 body:not(.role-admin) .admin-only{display:none !important}
+#trainBar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:#6D28D9;color:#FFF;padding:.45rem .8rem;font-size:.8rem;font-weight:600}
+#trainBar[hidden]{display:none}
+#trainBar button{flex:none;background:#FFF;color:#6D28D9;border:0;border-radius:6px;padding:.3rem .7rem;font-weight:700;font-size:.8rem}
+body.apprentice button:not(#trainEnd), body.apprentice input, body.apprentice select, body.apprentice textarea, body.apprentice label, body.apprentice a{pointer-events:none}
+.tr-flash{animation:trFlash .9s ease-out}
+@keyframes trFlash{0%{box-shadow:0 0 0 4px rgba(109,40,217,.85)}100%{box-shadow:0 0 0 14px rgba(109,40,217,0)}}
 .archive-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--warn);color:#FFF;border-radius:8px;padding:.4rem .6rem;margin-bottom:.8rem;font-size:.85rem;font-weight:600}
 .archive-bar[hidden]{display:none}
 .archive-bar button{border:0;border-radius:6px;padding:.3rem .6rem;background:#FFF;color:#0F2236;font-weight:700;font-size:.8rem;white-space:nowrap}
@@ -474,6 +480,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 </style>
 </head>
 <body class="role-viewer">
+<div id="trainBar" hidden><span id="trainText"></span><button type="button" id="trainEnd">Terminer</button></div>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -706,6 +713,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
+    <button type="button" class="act-2 admin-only" id="btnOpenTraining" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🎓 Formation à distance</button>
     <button type="button" class="act-2 admin-only" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -772,6 +780,21 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="msgManageBack">Retour</button>
       <button type="button" class="act-1" id="msgManageSave">Enregistrer les messages</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="trainSheet">
+  <div class="sheet-in">
+    <h2>Formation à distance</h2>
+    <p class="ctx">L'apprenti voit en direct tout ce que vous faites : les fenêtres, les choix, ce que vous écrivez. Il ne peut rien modifier, et les mots de passe ne lui sont jamais montrés.</p>
+    <label for="trainAs" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.3rem;">Présenter en tant que :</label>
+    <select id="trainAs" class="full-input" style="background:#FFF;color:#0F2236;"></select>
+    <p class="ctx" style="margin-top:.6rem;">Vous verrez exactement ce que ce rôle voit. Vos gestes sont réels : pour pratiquer sans toucher aux vraies données, faites la formation dans une organisation d'essai.</p>
+    <p class="ctx">L'apprenti se connecte avec l'identifiant <strong>apprenti</strong> et le code qui vous sera donné comme mot de passe.</p>
+    <div class="actions" style="margin-top:1rem;">
+      <button type="button" class="act-2" id="trainCancel">Annuler</button>
+      <button type="button" class="act-1" id="trainGo">Démarrer</button>
     </div>
   </div>
 </dialog>
@@ -1333,7 +1356,22 @@ document.addEventListener("DOMContentLoaded", function(){
     appId: "1:906447628739:web:efe6e0344fed3b3628f576"
   });
   const DB = firebase.database();
-  const ref = p => DB.ref(p);
+  // Apprenti en formation : lecture seule, aucune écriture ne part vers la base
+  let readOnly = false, appr = null;                              // appr : apprenti { code, ref, me, seq }
+  const WRITES = { set: 1, update: 1, remove: 1, setWithPriority: 1, setPriority: 1, transaction: 1 };
+  const noop = () => Promise.resolve();
+  function guard(r){
+    return new Proxy(r, { get(t, k){
+      const v = t[k];
+      if(typeof v !== "function") return v;
+      if(readOnly && WRITES[k]) return noop;
+      if(k === "child") return p => guard(t.child(p));
+      if(k === "push") return function(){ return guard(readOnly ? t.push() : t.push.apply(t, arguments)); };
+      if(k === "onDisconnect" && readOnly) return () => ({ set: noop, remove: noop, cancel: noop, update: noop });
+      return v.bind(t);
+    } });
+  }
+  const ref = p => guard(DB.ref(p));
 
   /* ============ Constantes et état ============ */
   const PLABEL = ["P1","P2","P3","Prol."];
@@ -1583,7 +1621,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   function updateRoleUI(){
-    document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "");
+    document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "") + (appr ? " apprentice" : "");
     $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + roleLabel() + ")" : "🔒 Connexion";
     updateStatusDisplay(); applyInv(); updatePermUI();
   }
@@ -1943,6 +1981,7 @@ document.addEventListener("DOMContentLoaded", function(){
   on("loginPass", "keydown", e => { if(e.key === "Enter") $("loginSubmit").click(); });
   on("loginSubmit", "click", () => {
     const u = $("loginUser").value.trim().toLowerCase(), p = $("loginPass").value.trim();
+    if(u === "apprenti" || u === "formation"){ apprJoin(p); return; }
     const btn = $("loginSubmit"); btn.disabled = true;
     loadPasswords().then(passwords => {
       const superUser = u === "yanduch" || u === "superadmin" || u === "super", adminUser = u === "admin";
@@ -4112,6 +4151,214 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutTicker);
 
+  /* ============ Formation à distance ============ */
+  // Le formateur (super administrateur ou administrateur) ouvre une séance avec un code. L'apprenti se connecte avec
+  // l'identifiant « apprenti » et ce code (ou le lien ?formation=code) : son écran refait chaque geste du formateur
+  // (fenêtres, choix, saisies, défilement), en lecture seule. Les mots de passe ne lui sont jamais montrés.
+  // Le formateur peut présenter en tant qu'administrateur ou marqueur : il voit alors exactement ce que ce rôle voit.
+  let trainRef = null, trainCode = "", trainSeq = 0, trainKeys = [], trainOrig = null, trainAs = "", trainViewers = 0;
+  const qsel = p => { try { return document.querySelector(p); } catch(e){ return null; } };
+  const inBar = n => !!(n && n.closest && n.closest("#trainBar"));
+  function domPath(n){
+    if(!n || n === document.body) return "body";
+    const parts = [];
+    while(n && n !== document.body && !n.id){
+      const p = n.parentElement; if(!p) break;
+      parts.unshift(n.tagName.toLowerCase() + ":nth-child(" + (Array.prototype.indexOf.call(p.children, n) + 1) + ")");
+      n = p;
+    }
+    const root = n && n.id ? "#" + CSS.escape(n.id) : "body";
+    return parts.length ? root + " > " + parts.join(" > ") : root;
+  }
+  const trainCtx = () => ({ role: currentRole, sup: isAdminGlobal, org: currentOrg, cat: currentCat, team: boardTeam || "",
+                            aOrg: assignedOrg || "", aCat: assignedCat || "", aTeam: assignedTeam || "" });
+  function trainSend(ev){
+    if(!trainRef) return;
+    ev.seq = ++trainSeq; ev.ctx = trainCtx();
+    const key = "e" + String(ev.seq).padStart(7, "0");
+    trainRef.child("q/" + key).set(ev); trainKeys.push(key);
+    if(trainKeys.length > 40) trainRef.child("q/" + trainKeys.shift()).remove();
+    trainRef.child("ctx").set(ev.ctx);
+  }
+  // --- Côté formateur : chaque geste est transmis
+  document.addEventListener("click", e => {
+    if(!trainRef || !e.isTrusted || inBar(e.target)) return;
+    const t = e.target.closest ? (e.target.closest("button, a, summary, label, input, select, textarea, [data-pid], [data-act], li") || e.target) : e.target;
+    if(t.tagName === "SELECT" || (t.tagName === "INPUT" && !/^(checkbox|radio|button|submit)$/.test(t.type)) || t.tagName === "TEXTAREA") return;
+    if(t.tagName === "LABEL" && t.control) return;               // le clic est retransmis par la case elle-même
+    trainSend({ k: "click", p: domPath(t) });
+  }, true);
+  const typing = {};
+  const masked = t => t.type === "password" ? "•".repeat(t.value.length) : t.value;
+  document.addEventListener("input", e => {
+    const t = e.target;
+    if(!trainRef || !e.isTrusted || inBar(t) || !t.matches || !t.matches("input, textarea") || /^(checkbox|radio|file)$/.test(t.type)) return;
+    const p = domPath(t); clearTimeout(typing[p]);
+    typing[p] = setTimeout(() => trainSend({ k: "type", p: p, v: masked(t) }), 250);
+  }, true);
+  document.addEventListener("change", e => {
+    const t = e.target;
+    if(!trainRef || !e.isTrusted || inBar(t) || !t.matches || !t.matches("select, input, textarea") || /^(checkbox|radio|file)$/.test(t.type)) return;
+    const p = domPath(t); clearTimeout(typing[p]);
+    trainSend({ k: "val", p: p, v: masked(t) });
+  }, true);
+  let scrollT = null;
+  document.addEventListener("scroll", e => {
+    if(!trainRef) return;
+    const t = e.target, inner = t && t.nodeType === 1 && t.closest && t.closest("dialog");
+    clearTimeout(scrollT);
+    scrollT = setTimeout(() => {
+      if(inner) trainSend({ k: "scroll", p: domPath(t), top: t.scrollTop });
+      else { const h = document.documentElement.scrollHeight - innerHeight; trainSend({ k: "scroll", y: h > 0 ? scrollY / h : 0 }); }
+    }, 250);
+  }, true);
+
+  function trainBar(){
+    const bar = $("trainBar");
+    bar.hidden = !(trainRef || appr);
+    if(trainRef){
+      const asTxt = trainAs === "marqueur" ? "marqueur" : trainAs === "admin" ? "administrateur" : "vous-même";
+      $("trainText").textContent = "🎓 Formation · code " + trainCode + " · en tant que " + asTxt + " · " + trainViewers + " apprenti" + (trainViewers > 1 ? "s" : "");
+      $("trainEnd").textContent = "Terminer";
+    } else if(appr){
+      $("trainText").textContent = "🎓 Formation en direct · vous suivez le formateur (lecture seule)";
+      $("trainEnd").textContent = "Quitter";
+    }
+  }
+  on("btnOpenTraining", "click", () => {
+    if(!isAdmin()) return;
+    if(trainRef){ closeDlg("settingsSheet"); notify("Une formation est déjà en cours (code " + trainCode + ").", "info"); return; }
+    const items = isSuper() ? [{ value: "admin", label: "Administrateur de " + ((organizationsList.find(o => o.id === currentOrg) || {}).name || currentOrg.toUpperCase()) }, { value: "marqueur", label: "Marqueur de cette page" }]
+                            : [{ value: "self", label: "Administrateur (vous-même)" }, { value: "marqueur", label: "Marqueur de cette page" }];
+    fillSelect($("trainAs"), items, items[0].value);
+    swapDlg("settingsSheet", "trainSheet");
+  });
+  on("trainCancel", "click", () => closeDlg("trainSheet"));
+  on("trainGo", "click", () => {
+    if(!isAdmin() || trainRef) return;
+    const as = $("trainAs").value, btnG = $("trainGo"); btnG.disabled = true;
+    const tryCode = n => {
+      const code = String(Math.floor(1000 + Math.random() * 9000));
+      return ref("global/training/" + code).once("value").then(s => s.val() && n > 0 ? tryCode(n - 1) : code);
+    };
+    tryCode(5).then(code => {
+      trainOrig = { role: currentRole, sup: isAdminGlobal, aOrg: assignedOrg, aCat: assignedCat, aTeam: assignedTeam, adminId: adminId };
+      if(as === "marqueur"){ currentRole = "marqueur"; isAdminGlobal = false; assignedOrg = currentOrg; assignedCat = currentCat; assignedTeam = boardTeam || ""; }
+      else if(as === "admin"){ currentRole = "admin"; isAdminGlobal = false; assignedOrg = currentOrg; assignedCat = null; assignedTeam = ""; adminId = ""; }
+      trainAs = as; trainCode = code; trainSeq = 0; trainKeys = []; trainViewers = 0;
+      trainRef = ref("global/training/" + code);
+      trainRef.set({ started: Date.now(), as: as, ctx: trainCtx() });
+      trainRef.onDisconnect().remove();
+      trainRef.child("viewers").on("value", onTrainViewers);
+      closeDlg("trainSheet"); updateRoleUI(); render(); trainBar();
+      notify("Formation démarrée. Code : " + code + "\nL'apprenti se connecte avec l'identifiant « apprenti » et le mot de passe " + code + ".", "info");
+    }).catch(() => notify("Impossible de démarrer la formation pour le moment.", "error")).then(() => { btnG.disabled = false; });
+  });
+  const onTrainViewers = s => { const v = s.val(); trainViewers = v && typeof v === "object" ? Object.keys(v).length : 0; trainBar(); };
+  // Enregistre le rôle de connexion (après une formation, où il a pu être changé)
+  function persistRole(){
+    if(currentRole === "viewer"){ demoteToViewer(); return; }
+    if(isAdminGlobal) store.set(localStorage, "ohmtro_admin_auth", "true"); else store.del(localStorage, "ohmtro_admin_auth");
+    store.set(sessionStorage, "ohmtro_role", currentRole);
+    [["ohmtro_assigned_org", assignedOrg], ["ohmtro_assigned_cat", assignedCat], ["ohmtro_assigned_team", assignedTeam], ["ohmtro_admin_id", adminId]]
+      .forEach(x => x[1] ? store.set(sessionStorage, x[0], x[1]) : store.del(sessionStorage, x[0]));
+  }
+  function trainStop(){
+    if(!trainRef) return;
+    trainRef.child("viewers").off("value", onTrainViewers);
+    trainRef.onDisconnect().cancel(); trainRef.remove(); trainRef = null;
+    const o = trainOrig; trainOrig = null;
+    if(o){ currentRole = o.role; isAdminGlobal = o.sup; assignedOrg = o.aOrg; assignedCat = o.aCat; assignedTeam = o.aTeam; adminId = o.adminId; }
+    persistRole(); updateRoleUI(); render(); trainBar();
+    // Administrateur d'une autre organisation que celle affichée : on le ramène chez lui
+    if(currentRole === "admin" && !isAdminGlobal && assignedOrg && assignedOrg !== currentOrg) switchOrganization(assignedOrg);
+    notify("Formation terminée.");
+  }
+
+  // --- Côté apprenti
+  function closeAllDlg(){ document.querySelectorAll("dialog[open]").forEach(d => d.close()); }
+  function apprJoin(code){
+    code = String(code || "").trim();
+    if(!/^\d{4}$/.test(code)){ notify("Entrez le code de formation à 4 chiffres comme mot de passe.", "info"); return; }
+    if(trainRef){ notify("Terminez d'abord votre propre formation.", "info"); return; }
+    ref("global/training/" + code).once("value").then(s => {
+      const v = s.val();
+      if(!v){ notify("Aucune formation en cours avec ce code.", "error"); return; }
+      if(editEntry) exitEdit(true);
+      demoteToViewer();
+      const r = ref("global/training/" + code), me = r.child("viewers").push();
+      me.set(true); me.onDisconnect().remove();
+      const q = obj(v.q);
+      appr = { code: code, ref: r, me: me, seq: Object.keys(q).reduce((m, k) => Math.max(m, (q[k] && q[k].seq) || 0), 0) };
+      readOnly = true;                                            // à partir d'ici, plus aucune écriture
+      $("loginPass").value = ""; closeAllDlg();
+      apprCtx(v.ctx, true);
+      r.on("value", apprOn);
+      updateRoleUI(); render(); trainBar();
+      notify("Vous suivez la formation. Votre écran refait chaque geste du formateur.", "info");
+    }, () => notify("Connexion impossible pour le moment.", "error"));
+  }
+  function apprCtx(c, force){
+    if(!c) return;
+    const changed = force || currentRole !== c.role || isAdminGlobal !== !!c.sup;
+    currentRole = c.role || "viewer"; isAdminGlobal = !!c.sup;
+    assignedOrg = c.aOrg || null; assignedCat = c.aCat || null; assignedTeam = c.aTeam || "";
+    if(c.org && (c.org !== currentOrg || c.cat !== currentCat)) switchOrganization(c.org, c.cat, undefined, c.team);
+    else if((c.team || "") !== (boardTeam || "")) switchBoard(c.team || "");
+    if(changed){ updateRoleUI(); render(); }
+  }
+  function apprOn(snap){
+    if(!appr) return;
+    const v = snap.val();
+    if(!v){                                                         // on vérifie une seconde fois avant de quitter
+      const a0 = appr;
+      setTimeout(() => { if(appr === a0) appr.ref.once("value").then(s => { if(appr === a0 && !s.val()) apprLeave("La formation est terminée."); }); }, 1200);
+      return;
+    }
+    const q = obj(v.q);
+    Object.keys(q).map(k => q[k]).filter(e => e && e.seq > appr.seq).sort((x, y) => x.seq - y.seq).forEach(e => {
+      appr.seq = e.seq;
+      try { apprApply(e); } catch(err){}
+    });
+  }
+  function flash(n){ n.classList.remove("tr-flash"); void n.offsetWidth; n.classList.add("tr-flash"); }
+  function apprApply(ev){
+    apprCtx(ev.ctx);
+    if(ev.k === "scroll"){
+      if(ev.p){ const n = qsel(ev.p); if(n) n.scrollTop = ev.top; }
+      else window.scrollTo(0, (ev.y || 0) * Math.max(0, document.documentElement.scrollHeight - innerHeight));
+      return;
+    }
+    const n = qsel(ev.p); if(!n) return;
+    const d = n.closest("dialog"); if(d && !d.open) return;         // fenêtre fermée chez l'apprenti : on n'y touche pas
+    if(ev.k === "click"){
+      if(n.id === "btnOpenPasswords"){ notify("Le formateur ouvre la gestion des mots de passe (non montrée en formation).", "info"); return; }
+      if(n.classList.contains("pwd-eye") || n.id === "btnLogin" || n.id === "btnOpenTraining") return;
+      flash(n); n.click();
+    } else {
+      if(n.type === "password") n.value = String(ev.v || "").replace(/./g, "•"); else n.value = ev.v;
+      n.dispatchEvent(new Event(ev.k === "type" ? "input" : "change", { bubbles: true }));
+      flash(n);
+    }
+  }
+  function apprLeave(msg){
+    if(!appr) return;
+    appr.ref.off("value", apprOn);
+    const me = appr.me; appr = null; readOnly = false;
+    me.onDisconnect().cancel(); me.remove();
+    closeAllDlg(); demoteToViewer(); updateRoleUI(); render(); trainBar();
+    notify(msg, "info");
+  }
+  // L'apprenti ne peut rien toucher, sauf le bouton « Quitter »
+  ["click", "dblclick", "mousedown", "pointerdown", "keydown", "submit", "input", "change", "cancel"].forEach(type => window.addEventListener(type, e => {
+    if(!appr || !e.isTrusted || inBar(e.target)) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+  }, true));
+  on("trainEnd", "click", () => {
+    if(trainRef) ask("Terminer la formation ? Les apprentis seront déconnectés.", { title: "Formation", ok: "Terminer" }).then(ok => { if(ok) trainStop(); });
+    else if(appr) apprLeave("Vous avez quitté la formation.");
+  });
+
   /* ============ Démarrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
   ref(".info/connected").on("value", s => { connected = !!s.val(); if(connected) announcePresence(); updateStatusDisplay(); });
@@ -4128,6 +4375,7 @@ document.addEventListener("DOMContentLoaded", function(){
     renderOrgsDropdownTop(); renderOrgManageList(); updateBrand(); updateTickerDisplay();
   });
   switchOrganization(currentOrg, currentCat, "init", wantedTeam);
+  if(/^\d{4}$/.test(urlParams.get("formation") || "")) setTimeout(() => apprJoin(urlParams.get("formation")), 600);
 });
 </script>
 </body>
