@@ -1702,9 +1702,11 @@ document.addEventListener("DOMContentLoaded", function(){
   function switchBoard(teamKey){ wantedTeam = cleanKey(teamKey); attachBoard(wantedTeam); }
 
   function renderTeamDropdownTop(){
+    // Affiché dès qu'une équipe de la catégorie est cochée « Équipe de l'organisation ».
+    // Avec une seule équipe, le menu montre son nom ; il ne sert à changer de tableau qu'à partir de deux équipes.
     const sel = $("teamSelectTop"), teams = presetsLoaded ? boardTeams(currentCat) : [];
-    if(teams.length < 2){ sel.style.display = "none"; return; }
-    fillSelect(sel, teams.map(k => ({ value: k, label: presets[k].name })), boardTeam);
+    if(!teams.length){ sel.style.display = "none"; return; }
+    fillSelect(sel, teams.map(k => ({ value: k, label: presets[k].name })), boardTeam || teams[0]);
     sel.style.display = "";
   }
 
@@ -1715,7 +1717,10 @@ document.addEventListener("DOMContentLoaded", function(){
     loadCats(org).then(go, () => go([currentCat]));
   });
   on("catSelectTop", "change", () => { editEntry = null; switchOrganization(currentOrg, $("catSelectTop").value); });
-  on("teamSelectTop", "change", () => { editEntry = null; switchBoard($("teamSelectTop").value); });
+  on("teamSelectTop", "change", () => {
+    if(boardTeams(currentCat).length < 2) return;            // une seule équipe : un seul tableau, rien à changer
+    editEntry = null; switchBoard($("teamSelectTop").value);
+  });
   window.addEventListener("popstate", () => {
     const p = new URLSearchParams(window.location.search); editEntry = null;
     switchOrganization(p.get("org") || currentOrg, p.get("cat") || currentCat, "pop", p.get("team"));
