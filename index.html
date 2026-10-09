@@ -1808,8 +1808,14 @@ document.addEventListener("DOMContentLoaded", function(){
                                     (!p || (key && (c.aKey === key || c.bKey === key)) || c.a === p.name || c.b === p.name))
                        .sort((x, y) => x.at - y.at)[0] || null;
   }
+  // Adresse de l'aréna d'une partie : « (1740, avenue Gilles-Villeneuve, Trois-Rivières) »
+  function arenaAddr(c){
+    const a = (c.arena && arenas[c.arena]) || Object.keys(arenas).map(k => arenas[k]).filter(x => x && x.name === c.place)[0];
+    const txt = a ? [a.address, a.city].filter(Boolean).join(", ") : "";
+    return txt ? " (" + txt + ")" : "";
+  }
   function nextGameText(c, name){
-    const where = c.place ? " · " + c.place : "";
+    const where = c.place ? " · " + c.place + arenaAddr(c) : "";
     if(!name) return "📅 Prochaine partie : " + calWhen(c) + " — " + calTitle(c) + where;
     const home = c.a === name, opp = home ? c.b : c.a;
     return "📅 " + name + " — prochaine partie : " + calWhen(c) + (home ? " contre " : " chez ") + opp + where;
@@ -2530,10 +2536,10 @@ document.addEventListener("DOMContentLoaded", function(){
   function fillArenaSelect(selectedId){
     const sel = $("calArena"); sel.textContent = "";
     const none = el("option", null, "-- Aucune --"); none.value = ""; sel.appendChild(none);
-    let group = null, city = null;
+    // Une ligne par aréna (sans titres de groupe, trop encombrants dans le menu des téléphones) : « Nom · secteur »
     arenaList().forEach(a => {
-      if(a.city !== city){ city = a.city; group = el("optgroup"); group.label = city || "Autre"; sel.appendChild(group); }
-      const o = el("option", null, a.name); o.value = a.id; group.appendChild(o);
+      const m = /\(([^)]+)\)/.exec(a.city || ""), area = m ? m[1] : (a.city || "");
+      const o = el("option", null, a.name + (area ? " · " + area : "")); o.value = a.id; sel.appendChild(o);
     });
     const add = el("option", null, "➕ Autre aréna (l'ajouter à la liste)…"); add.value = "__new"; sel.appendChild(add);
     sel.value = selectedId && (arenas[selectedId] || selectedId === "__new") ? selectedId : "";
@@ -3721,6 +3727,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const v = snap.val();
     arenasStored = !!(v && typeof v === "object" && Object.keys(v).length);
     arenas = arenasStored ? v : defaultArenas();
+    updateTickerDisplay();
   });
   dbOrgs.on("value", snap => {
     const val = toArr(snap.val()).filter(o => o && o.id);
