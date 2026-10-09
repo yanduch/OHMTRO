@@ -751,6 +751,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <label style="font-size:.8rem;color:var(--muted);margin-bottom:.2rem;">Messages de l'équipe :</label>
       <div class="msg-list" id="msgTeamList"></div>
       <button type="button" class="msg-add" id="msgTeamAdd">➕ Ajouter un message</button>
+      <small style="display:block;margin-top:.4rem;color:var(--muted);font-size:.78rem;">La prochaine partie de l'équipe inscrite dans Gestion calendrier s'affiche automatiquement, avant ces messages.</small>
     </div>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -1729,6 +1730,12 @@ document.addEventListener("DOMContentLoaded", function(){
       renderCategoriesDropdownTop();
     });
 
+    sub(ref(catBase() + "/calendar"), snap => {
+      calendarList = calEntries(snap.val());
+      if(historyLoaded) renderStats();
+      updateTickerDisplay();
+    });
+
     sub(ref(currentOrg + "/live"), snap => { const v = snap.val(); liveGames = (v && typeof v === "object") ? v : {}; updateTickerDisplay(); });
 
     sub(dbConfig, snap => {
@@ -1780,6 +1787,21 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ============ Bandeau défilant ============ */
+  // Prochaine partie au calendrier d'une équipe (ou de la catégorie si p est vide). Une partie dont l'heure est passée
+  // depuis plus de 3 h, déjà jouée, ou en cours sur ce tableau n'est plus « prochaine ».
+  function nextGameOf(p){
+    const key = p ? Object.keys(presets).filter(k => presets[k] === p)[0] : null, t = Date.now(), today = todayStr();
+    return calendarList.filter(c => !c.played && !c.histKey && c.id !== state.calId &&
+                                    (c.time ? c.at + 3 * 3600000 > t : c.date >= today) &&
+                                    (!p || (key && (c.aKey === key || c.bKey === key)) || c.a === p.name || c.b === p.name))
+                       .sort((x, y) => x.at - y.at)[0] || null;
+  }
+  function nextGameText(c, name){
+    const where = c.place ? " · " + c.place : "";
+    if(!name) return "📅 Prochaine partie : " + calWhen(c) + " — " + calTitle(c) + where;
+    const home = c.a === name, opp = home ? c.b : c.a;
+    return "📅 " + name + " — prochaine partie : " + calWhen(c) + (home ? " contre " : " chez ") + opp + where;
+  }
   let tickerSig = null, tickerMsg = [], lastWidth = window.innerWidth, resizeTimer = null;
   const TICKER_SPEED = 55;             // pixels par seconde
   function updateTickerDisplay(){
@@ -1797,15 +1819,21 @@ document.addEventListener("DOMContentLoaded", function(){
     msgsOf(org).forEach(m => messages.push(m));
     // Messages des équipes : celles du match, et toujours l'équipe du tableau affiché (même sans partie lancée)
     const shown = [];
+    const anyOwn = Object.keys(presets).some(k => presets[k] && presets[k].own);
     const addTeam = p => {
       if(!p || shown.indexOf(p) !== -1) return;
-      shown.push(p); msgsOf(p).forEach(m => messages.push(p.name + " : " + m));
+      shown.push(p);
+      // Message automatique : la prochaine partie de l'équipe inscrite au calendrier (équipes de l'organisation)
+      if(p.own || !anyOwn){ const g = nextGameOf(p); if(g) messages.push(nextGameText(g, p.name)); }
+      msgsOf(p).forEach(m => messages.push(p.name + " : " + m));
     };
     const pa = presetFor("a"), pb = presetFor("b");
     if(boardTeam && presets[boardTeam] && presets[boardTeam] !== pb) addTeam(presets[boardTeam]);
     addTeam(pa); addTeam(pb);
     // Aucune équipe reconnue à l'écran (tableau vierge) : on affiche les messages des équipes de l'organisation dans cette catégorie
     if(!shown.length) boardTeams(currentCat).forEach(k => addTeam(presets[k]));
+    // Toujours rien (aucune équipe de l'organisation désignée) : la prochaine partie de la catégorie
+    if(!shown.length){ const g = nextGameOf(null); if(g) messages.push(nextGameText(g, null)); }
     const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
     tickerSig = full; tickerMsg = messages;
@@ -2736,10 +2764,6 @@ document.addEventListener("DOMContentLoaded", function(){
   function ensureHistory(){
     if(historyOn || !dbHistory) return;
     historyOn = true;
-    sub(ref(catBase() + "/calendar"), snap => {
-      calendarList = calEntries(snap.val());
-      if(historyLoaded) renderStats();
-    });
     sub(dbHistory, snap => {
       const val = snap.val() || {};
       historyList = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
