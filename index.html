@@ -796,8 +796,15 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <input type="text" id="calOtherA" class="full-input" maxlength="18" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
     </div>
     <div class="field-group" style="margin-top:.7rem;">
-      <label for="calPlace">Aréna (facultatif) :</label>
-      <input type="text" id="calPlace" class="full-input" maxlength="60" placeholder="Ex: Aréna de Chavigny">
+      <label for="calArena">Aréna (facultatif) :</label>
+      <select id="calArena" class="full-input"></select>
+      <small id="calArenaAddr" style="display:block;margin-top:.25rem;color:var(--muted);font-size:.78rem;"></small>
+      <div id="calNewArena" class="preset-box" style="display:none;margin-top:.5rem;">
+        <label style="font-weight:700;">Nouvelle aréna (ajoutée à la liste) :</label>
+        <input type="text" id="calNewArenaName" class="full-input" maxlength="60" placeholder="Nom de l'aréna">
+        <input type="text" id="calNewArenaCity" class="full-input" maxlength="60" placeholder="Ville" style="margin-top:.3rem;">
+        <input type="text" id="calNewArenaAddr" class="full-input" maxlength="120" placeholder="Adresse (facultatif)" style="margin-top:.3rem;">
+      </div>
     </div>
 
     <div class="preset-box" style="margin-top:1rem;">
@@ -2496,6 +2503,48 @@ document.addEventListener("DOMContentLoaded", function(){
     closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
   });
 
+  /* ============ Arénas ============ */
+  // Liste commune à toutes les organisations (global/arenas). Tant qu'aucune aréna n'a été ajoutée, la liste de départ sert.
+  const DEFAULT_ARENAS = [
+    ["Aréna Claude-Mongrain", "Trois-Rivières", "1740, avenue Gilles-Villeneuve"],
+    ["Colisée Jean-Guy Talbot", "Trois-Rivières", "1740, avenue Gilles-Villeneuve"],
+    ["Aréna Fernand-Asselin", "Trois-Rivières (Cap-de-la-Madeleine)", "255, rue Maurice-L.-Duplessis"],
+    ["Aréna Jérôme-Cotnoir", "Trois-Rivières (Trois-Rivières-Ouest)", "5225, rue de Courcelette"],
+    ["Complexe Sportif de St-Louis-de-France", "Trois-Rivières (Saint-Louis-de-France)", "155, rue de la Mairie"],
+    ["Centre Gervais Auto", "Shawinigan", "1, rue Jacques-Plante"],
+    ["Aréna Gilles-Bourassa", "Shawinigan (Shawinigan-Sud)", "1607, 117e Rue"],
+    ["Aréna de Grand-Mère", "Shawinigan (Grand-Mère)", "601, 3e Avenue"],
+    ["Centre Émile-Bédard", "Shawinigan (Saint-Georges)", "650, 206e Avenue"],
+    ["Aréna Saint-Boniface", "Saint-Boniface", "130, rue de la Vérendrye"],
+    ["Sportium municipal de Saint-Tite", "Saint-Tite", "425, boulevard Saint-Joseph"],
+    ["Aréna Denis-Paul", "Louiseville", "360, avenue du Parc"],
+    ["Colisée Denis-Morel", "La Tuque", "360, rue Lucien-Filion"]
+  ];
+  const arenaKey = name => String(name).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 60) || "arena";
+  const defaultArenas = () => { const o = {}; DEFAULT_ARENAS.forEach(r => { o[arenaKey(r[0])] = { name: r[0], city: r[1], address: r[2] }; }); return o; };
+  const dbArenas = ref("global/arenas");
+  let arenas = defaultArenas(), arenasStored = false;
+  const arenaList = () => Object.keys(arenas).map(id => Object.assign({ id: id }, arenas[id]))
+    .sort((x, y) => String(x.city).localeCompare(String(y.city), "fr") || String(x.name).localeCompare(String(y.name), "fr"));
+
+  function fillArenaSelect(selectedId){
+    const sel = $("calArena"); sel.textContent = "";
+    const none = el("option", null, "-- Aucune --"); none.value = ""; sel.appendChild(none);
+    let group = null, city = null;
+    arenaList().forEach(a => {
+      if(a.city !== city){ city = a.city; group = el("optgroup"); group.label = city || "Autre"; sel.appendChild(group); }
+      const o = el("option", null, a.name); o.value = a.id; group.appendChild(o);
+    });
+    const add = el("option", null, "➕ Autre aréna (l'ajouter à la liste)…"); add.value = "__new"; sel.appendChild(add);
+    sel.value = selectedId && (arenas[selectedId] || selectedId === "__new") ? selectedId : "";
+  }
+  function arenaChanged(){
+    const id = $("calArena").value, a = arenas[id];
+    $("calNewArena").style.display = id === "__new" ? "" : "none";
+    $("calArenaAddr").textContent = a ? [a.address, a.city].filter(Boolean).join(", ") : "";
+  }
+  on("calArena", "change", arenaChanged);
+
   /* ============ Gestion du calendrier ============ */
   // Parties prévues d'une catégorie : …/<catégorie>/calendar/<id> = { date, time, a (local), b (visiteur), aKey, bKey, place,
   // scoreA, scoreB, end ("", "OT" prolongation, "TB" tirs de barrage), histKey (partie marquée sur le tableau) }
@@ -2509,7 +2558,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const at = new Date(p[0], (p[1] || 1) - 1, p[2] || 1, Number(t.slice(0, 2)), Number(t.slice(3))).getTime() || 0;
       const played = isNum(c.scoreA) && isNum(c.scoreB);
       return { id: id, date: String(c.date), time: c.time || "", a: String(c.a || "Local"), b: String(c.b || "Visiteur"),
-               aKey: c.aKey || "", bKey: c.bKey || "", place: String(c.place || ""), scoreA: played ? c.scoreA : null, scoreB: played ? c.scoreB : null,
+               aKey: c.aKey || "", bKey: c.bKey || "", place: String(c.place || ""), arena: c.arena || "", scoreA: played ? c.scoreA : null, scoreB: played ? c.scoreB : null,
                end: c.end || "", histKey: c.histKey || "", played: played, at: at };
     }).filter(Boolean);
   }
@@ -2624,7 +2673,11 @@ document.addEventListener("DOMContentLoaded", function(){
     $("calDate").value = c ? c.date : todayStr(); $("calTime").value = c ? c.time : "";
     calFillTeamSelect("b", c ? c.bKey : "", c ? c.b : ""); calFillTeamSelect("a", c ? c.aKey : "", c ? c.a : "");
     if(!c && boardTeam && presets[boardTeam]){ $("calTeamA").value = boardTeam; calToggleOther("a"); }
-    $("calPlace").value = c ? c.place : "";
+    // Aréna : choisie dans la liste ; une ancienne aréna écrite à la main est retrouvée par son nom, sinon proposée comme nouvelle
+    let aid = c ? c.arena : "";
+    if(c && !aid && c.place){ const m = arenaList().filter(a => a.name === c.place)[0]; aid = m ? m.id : "__new"; }
+    fillArenaSelect(aid); arenaChanged();
+    $("calNewArenaName").value = (aid === "__new" && c) ? c.place : ""; $("calNewArenaCity").value = ""; $("calNewArenaAddr").value = "";
     $("calScoreB").value = c && c.played ? c.scoreB : ""; $("calScoreA").value = c && c.played ? c.scoreA : "";
     $("calEnd").value = c ? c.end : "";
     $("calDelete").hidden = !c;
@@ -2647,7 +2700,25 @@ document.addEventListener("DOMContentLoaded", function(){
     if((sA === "") !== (sB === "")){ notify("Inscrivez le pointage des deux équipes, ou laissez les deux cases vides si la partie n'est pas jouée.", "info"); return; }
     const old = calEditId ? calMgr.filter(c => c.id === calEditId)[0] : null;
     const entry = { date: date, time: /^\d\d:\d\d$/.test(time) ? time : "", a: A.name, b: B.name, aKey: A.key, bKey: B.key,
-                    place: $("calPlace").value.trim().slice(0, 60), end: sA === "" ? "" : $("calEnd").value, histKey: old ? old.histKey : "" };
+                    place: "", arena: "", end: sA === "" ? "" : $("calEnd").value, histKey: old ? old.histKey : "" };
+    const aid = $("calArena").value;
+    if(aid === "__new"){
+      // Nouvelle aréna : ajoutée à la liste commune pour les prochaines parties
+      const name = $("calNewArenaName").value.trim().slice(0, 60);
+      if(!name){ notify("Écrivez le nom de la nouvelle aréna, ou choisissez-en une dans la liste.", "info"); return; }
+      const same = arenaList().filter(a => a.name.toLowerCase() === name.toLowerCase())[0];
+      let id = same ? same.id : arenaKey(name);
+      if(!same){
+        while(arenas[id]) id += "_2";
+        const a = { name: name, city: $("calNewArenaCity").value.trim().slice(0, 60), address: $("calNewArenaAddr").value.trim().slice(0, 120) };
+        if(!arenasStored){ const all = defaultArenas(); all[id] = a; dbArenas.set(all); }   // première ajout : la liste de départ est enregistrée aussi
+        else dbArenas.child(id).set(a);
+        arenas[id] = a;
+      }
+      entry.arena = id; entry.place = arenas[id].name;
+    } else if(aid && arenas[aid]){
+      entry.arena = aid; entry.place = arenas[aid].name;
+    }
     if(sA !== ""){ entry.scoreA = int(sA, 0, 99); entry.scoreB = int(sB, 0, 99); }
     ref(currentOrg + "/" + calCat + "/calendar/" + (calEditId || uid())).set(entry);
     swapDlg("calEditSheet", "calendarSheet"); notify(sA === "" ? "Partie enregistrée au calendrier." : "Résultat enregistré !");
@@ -3646,6 +3717,11 @@ document.addEventListener("DOMContentLoaded", function(){
   /* ============ Démarrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
   ref(".info/connected").on("value", s => { connected = !!s.val(); if(connected) announcePresence(); updateStatusDisplay(); });
+  dbArenas.on("value", snap => {
+    const v = snap.val();
+    arenasStored = !!(v && typeof v === "object" && Object.keys(v).length);
+    arenas = arenasStored ? v : defaultArenas();
+  });
   dbOrgs.on("value", snap => {
     const val = toArr(snap.val()).filter(o => o && o.id);
     if(val.length) organizationsList = val;
