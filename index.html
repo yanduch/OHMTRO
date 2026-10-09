@@ -456,6 +456,14 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 .cal-grid label, #calEditSheet .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.3rem}
 #calEditSheet input, #calEditSheet select, #calendarSheet select{background:#FFF;color:#0F2236;border:1px solid var(--line);border-radius:6px;padding:.45rem}
 #calLinkedNote[hidden]{display:none !important}
+
+/* --- Comptes administrateur --- */
+.acc-head{display:grid;grid-template-columns:1fr 1fr 2rem;gap:.3rem;font-size:.75rem;color:var(--muted);font-weight:600;margin:.2rem 0 .2rem}
+.acc-row{display:grid;grid-template-columns:1fr 1fr 2rem;gap:.3rem;align-items:center;margin-bottom:.35rem}
+.acc-row input{width:100%;min-width:0;padding:.45rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236}
+.acc-row input[readonly]{background:var(--ice) !important;color:var(--muted) !important}
+.acc-row .row-del{padding:.2rem 0}
+#pwdAdminList .empty{font-size:.85rem}
 </style>
 </head>
 <body class="role-viewer">
@@ -951,9 +959,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <select id="pwdOrgSelect" style="background:#FFF;color:#0F2236;"></select>
       </div>
 
-      <label for="pwdAdminInput">Administrateur de <span id="pwdOrgName">l'organisation</span> (utilisateur : admin) :</label>
-      <input type="password" id="pwdAdminInput" autocomplete="off" style="width:100%;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;">
-      <small class="super-only" style="display:block;margin-top:.25rem;color:var(--muted);font-size:.78rem;">Laissé vide, l'organisation n'a pas d'administrateur.</small>
+      <label style="font-weight:700;">Administrateurs de <span id="pwdOrgName">l'organisation</span> :</label>
+      <div class="acc-head"><span>Identifiant</span><span>Mot de passe</span></div>
+      <div id="pwdAdminList"></div>
+      <button type="button" class="msg-add super-only" id="pwdAdminAdd">➕ Ajouter un administrateur</button>
+      <small class="super-only" style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Chaque administrateur se connecte avec son identifiant et son mot de passe, l'organisation étant affichée en haut de la page.</small>
 
       <label for="pwdMarkerSelect" style="margin-top:.9rem;font-weight:700;">Marqueur (utilisateur : marqueur) :</label>
       <select id="pwdMarkerSelect" style="background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
@@ -1338,6 +1348,7 @@ document.addEventListener("DOMContentLoaded", function(){
   let assignedCat = store.get(sessionStorage, "ohmtro_assigned_cat") || null;
   let assignedOrg = store.get(sessionStorage, "ohmtro_assigned_org") || null;
   let assignedTeam = store.get(sessionStorage, "ohmtro_assigned_team") || "";
+  let adminId = store.get(sessionStorage, "ohmtro_admin_id") || "";   // compte administrateur connecté
 
   /* Tableaux par équipe : quand une catégorie compte au moins deux équipes de l'organisation,
      chacune a son propre tableau en direct (…/boards/<équipe>/match). Sinon, un seul tableau par catégorie. */
@@ -1553,7 +1564,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function demoteToViewer(){
     currentRole = "viewer"; isAdminGlobal = false; assignedCat = null; assignedOrg = null; assignedTeam = "";
-    store.del(sessionStorage, "ohmtro_assigned_team");
+    store.del(sessionStorage, "ohmtro_assigned_team"); adminId = ""; store.del(sessionStorage, "ohmtro_admin_id");
     store.del(localStorage, "ohmtro_admin_auth"); store.del(sessionStorage, "ohmtro_role");
     store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_org");
   }
@@ -1882,13 +1893,14 @@ document.addEventListener("DOMContentLoaded", function(){
   /* ============ Connexion ============ */
   const dbSuper = ref("global/superPassword");
   function loadPasswords(){
-    return Promise.all([dbPasswords.once("value"), dbSuper.once("value")]).then(r => {
-      const v = r[0].val() || {}, sup = r[1].val();
+    return Promise.all([dbPasswords.once("value"), dbSuper.once("value"), ref(currentOrg + "/admins").once("value")]).then(r => {
+      const v = r[0].val() || {}, sup = r[1].val(), adm = r[2].val();
       // Super administrateur : mot de passe global ; tant qu'il n'est pas défini, l'ancien mot de passe administrateur reste valide
       return { superPwd: (typeof sup === "string" && sup) ? sup : (v.admin || "hockey"), legacyAdmin: v.admin || "",
                orgAdmin: typeof v.orgAdmin === "string" ? v.orgAdmin : "", marqueur: v.marqueur || "buts",
                categories: (v.categories && typeof v.categories === "object") ? v.categories : {},
-               teams: (v.teams && typeof v.teams === "object") ? v.teams : {} };
+               teams: (v.teams && typeof v.teams === "object") ? v.teams : {},
+               admins: (adm && typeof adm === "object") ? adm : {} };
     });
   }
 
@@ -1911,9 +1923,11 @@ document.addEventListener("DOMContentLoaded", function(){
         currentRole = "admin"; isAdminGlobal = true; assignedCat = null; assignedOrg = null; assignedTeam = "";
         store.set(localStorage, "ohmtro_admin_auth", "true"); store.set(sessionStorage, "ohmtro_role", "admin");
         store.del(sessionStorage, "ohmtro_assigned_org"); store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_team");
-      } else if(adminUser && passwords.orgAdmin && p === passwords.orgAdmin){
-        // Administrateur de l'organisation affichée
+      } else if(p && (Object.keys(passwords.admins).some(k => { const a = passwords.admins[k]; if(a && a.user === u && a.pwd === p){ adminId = k; return true; } return false; })
+                      || (adminUser && passwords.orgAdmin && p === passwords.orgAdmin && (adminId = "__legacy")))){
+        // Compte administrateur de l'organisation affichée (créé par le super administrateur)
         currentRole = "admin"; isAdminGlobal = false; assignedCat = null; assignedOrg = currentOrg; assignedTeam = "";
+        store.set(sessionStorage, "ohmtro_admin_id", adminId);
         store.del(localStorage, "ohmtro_admin_auth"); store.set(sessionStorage, "ohmtro_role", "admin");
         store.set(sessionStorage, "ohmtro_assigned_org", currentOrg); store.del(sessionStorage, "ohmtro_assigned_cat"); store.del(sessionStorage, "ohmtro_assigned_team");
       } else if(u === "marqueur"){
@@ -2421,7 +2435,10 @@ document.addEventListener("DOMContentLoaded", function(){
   // Garde en mémoire ce qui est écrit dans les champs de l'organisation et du marqueur affichés
   function pwdStash(){
     const o = pwdOrgs[pwdOrg]; if(!o) return;
-    o.admin = $("pwdAdminInput").value.trim();
+    $("pwdAdminList").querySelectorAll(".acc-row").forEach(row => {
+      const acc = o.acc.filter(x => x.id === row.dataset.id)[0]; if(!acc) return;
+      acc.user = row.querySelector(".acc-user").value.trim().toLowerCase(); acc.pwd = row.querySelector(".acc-pwd").value.trim();
+    });
     if(pwdMarker) o.vals[pwdMarker] = $("pwdMarkerInput").value.trim();
   }
   function pwdShowMarker(){
@@ -2431,7 +2448,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function pwdShowOrg(){
     const o = pwdOrgs[pwdOrg];
     $("pwdOrgName").textContent = pwdOrgLabel(pwdOrg);
-    $("pwdAdminInput").value = o ? o.admin : ""; $("pwdAdminInput").disabled = !o;
+    pwdRenderAdmins();
     const items = o ? o.items.map(it => ({ value: it.id, label: it.label })) : [];
     pwdMarker = items.length ? items[0].value : "";
     fillSelect($("pwdMarkerSelect"), items, pwdMarker, items.length ? null : (o ? "Aucun marqueur" : "Chargement..."));
@@ -2444,7 +2461,7 @@ document.addEventListener("DOMContentLoaded", function(){
     pwdShowOrg();
     if(pwdOrgs[orgKey]) return Promise.resolve();
     const token = ++pwdToken;
-    return Promise.all([ref(orgKey + "/passwords").once("value"), loadCats(orgKey), ref(orgKey + "/teams_presets").once("value")]).then(r => {
+    return Promise.all([ref(orgKey + "/passwords").once("value"), loadCats(orgKey), ref(orgKey + "/teams_presets").once("value"), ref(orgKey + "/admins").once("value")]).then(r => {
       const v = r[0].val() || {}, cats = r[1], teams = r[2].val() || {}, items = [], vals = {};
       const pw = { legacyAdmin: v.admin || "", orgAdmin: typeof v.orgAdmin === "string" ? v.orgAdmin : "", marqueur: v.marqueur || "buts",
                    categories: (v.categories && typeof v.categories === "object") ? v.categories : {},
@@ -2459,10 +2476,46 @@ document.addEventListener("DOMContentLoaded", function(){
           items.push({ id: "team:" + k, label: cat.toUpperCase() + " - " + teams[k].name }); vals["team:" + k] = pw.teams[k] || catPwd;
         });
       });
-      pwdOrgs[orgKey] = { pw: pw, items: items, vals: vals, init: Object.assign({}, vals), admin: pw.orgAdmin };
+      // Comptes administrateur : …/admins/<id> = { user, pwd } ; l'ancien mot de passe unique (« admin ») apparaît comme un compte
+      const adm = r[3].val() || {}, acc = Object.keys(adm).filter(k => adm[k] && adm[k].user).map(k => ({ id: k, user: String(adm[k].user), pwd: String(adm[k].pwd || "") }));
+      if(pw.orgAdmin && !acc.some(a => a.user === "admin")) acc.unshift({ id: "__legacy", user: "admin", pwd: pw.orgAdmin });
+      pwdOrgs[orgKey] = { pw: pw, items: items, vals: vals, init: Object.assign({}, vals), acc: acc, accInit: JSON.stringify(acc) };
       if(token === pwdToken && pwdOrg === orgKey) pwdShowOrg();
     });
   }
+
+  // Le super administrateur ajoute, modifie et supprime les comptes ; un administrateur ne voit que le sien (mot de passe seulement)
+  function pwdRenderAdmins(){
+    const box = $("pwdAdminList"), o = pwdOrgs[pwdOrg]; box.textContent = "";
+    $("pwdAdminAdd").disabled = !o;
+    if(!o){ box.appendChild(el("p", "empty", "Chargement…")); return; }
+    const list = isSuper() ? o.acc : o.acc.filter(a => a.id === adminId);
+    if(!list.length){ box.appendChild(el("p", "empty", isSuper() ? "Aucun administrateur pour cette organisation." : "")); return; }
+    list.forEach(a => {
+      const row = el("div", "acc-row"), user = el("input", "acc-user"), pwd = el("input", "acc-pwd");
+      row.dataset.id = a.id;
+      user.type = "text"; user.value = a.user; user.placeholder = "Identifiant"; user.maxLength = 30; user.autocomplete = "off"; user.autocapitalize = "none";
+      user.readOnly = !isSuper();
+      pwd.type = "password"; pwd.value = a.pwd; pwd.placeholder = "Mot de passe"; pwd.autocomplete = "off";
+      row.appendChild(user); const pw = el("div"); pw.appendChild(pwd); row.appendChild(pw);
+      if(isSuper()){
+        const del = btn("row-del", "✕", () => {
+          pwdStash();
+          ask("Supprimer le compte administrateur « " + (a.user || "sans identifiant") + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+            if(!ok) return;
+            o.acc = o.acc.filter(x => x.id !== a.id); pwdRenderAdmins();
+          });
+        });
+        del.setAttribute("aria-label", "Supprimer ce compte"); row.appendChild(del);
+      } else row.appendChild(el("span"));
+      box.appendChild(row); addEye(pwd);
+    });
+  }
+  on("pwdAdminAdd", "click", () => {
+    const o = pwdOrgs[pwdOrg]; if(!isSuper() || !o) return;
+    pwdStash(); o.acc.push({ id: "new_" + uid(), user: "", pwd: "" }); pwdRenderAdmins();
+    const rows = $("pwdAdminList").querySelectorAll(".acc-user"); rows[rows.length - 1].focus();
+  });
 
   on("btnOpenPasswords", "click", () => {
     if(!isAdmin()) return;
@@ -2485,31 +2538,51 @@ document.addEventListener("DOMContentLoaded", function(){
   on("pwdSave", "click", () => {
     if(!isAdmin()) return;
     pwdStash();
-    const sup = isSuper() ? ($("pwdSuperInput").value.trim() || pwdSuper) : pwdSuper, writes = [];
+    const sup = isSuper() ? ($("pwdSuperInput").value.trim() || pwdSuper) : pwdSuper, writes = [], adminWrites = [];
     const keys = Object.keys(pwdOrgs).filter(k => isSuper() || k === currentOrg);
     for(let n = 0; n < keys.length; n++){
       const k = keys[n], o = pwdOrgs[k], where = isSuper() ? " (" + pwdOrgLabel(k) + ")" : "";
-      const changed = Object.keys(o.vals).filter(id => o.vals[id] !== o.init[id]), adminChanged = o.admin !== o.pw.orgAdmin;
-      if(isSuper() && o.admin && o.admin === sup){
-        notify("Le mot de passe de l'administrateur" + where + " doit être différent de celui du super administrateur.", "info"); return;
+      const changed = Object.keys(o.vals).filter(id => o.vals[id] !== o.init[id]), accChanged = JSON.stringify(o.acc) !== o.accInit;
+      // Vérification des comptes administrateur
+      const RESERVED = ["marqueur", "superadmin", "super", "yanduch"], seen = {};
+      for(let m = 0; m < o.acc.length; m++){
+        const a = o.acc[m];
+        if(!accChanged){                                       // comptes inchangés : seul le conflit avec le super mot de passe compte
+          if(isSuper() && a.pwd === sup){ notify("Le mot de passe de l'administrateur « " + a.user + " »" + where + " doit être différent de celui du super administrateur.", "info"); return; }
+          continue;
+        }
+        if(!/^[a-z0-9._-]{2,30}$/.test(a.user)){ notify("Identifiant administrateur invalide" + where + " : « " + a.user + " ».\nDe 2 à 30 caractères : lettres sans accent, chiffres, point, tiret.", "info"); return; }
+        if(RESERVED.indexOf(a.user) !== -1){ notify("L'identifiant « " + a.user + " » est réservé" + where + ". Choisissez-en un autre.", "info"); return; }
+        if(seen[a.user]){ notify("L'identifiant « " + a.user + " » est utilisé deux fois" + where + ".", "info"); return; }
+        seen[a.user] = true;
+        if(!a.pwd){ notify("Le mot de passe de l'administrateur « " + a.user + " »" + where + " ne peut pas être vide.", "info"); return; }
+        if(a.pwd === sup){ notify(isSuper() ? "Le mot de passe de l'administrateur « " + a.user + " »" + where + " doit être différent de celui du super administrateur."
+                                            : "Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
       }
-      if(!adminChanged && !changed.length) continue;
-      if(!isSuper() && adminChanged){
-        if(!o.admin){ notify("Le mot de passe administrateur ne peut pas être vide.", "info"); return; }
-        if(o.admin === sup){ notify("Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
-      }
+      if(!accChanged && !changed.length) continue;
       const empty = changed.filter(id => !o.vals[id])[0];
       if(empty){
         const it = o.items.filter(x => x.id === empty)[0];
         notify("Le mot de passe du marqueur " + (it ? it.label : "") + where + " ne peut pas être vide.", "info"); return;
       }
-      const newP = { admin: o.pw.legacyAdmin || "", orgAdmin: o.admin, marqueur: o.pw.marqueur,
+      // Les comptes sont enregistrés dans …/admins ; l'ancien mot de passe unique devient un compte comme les autres
+      if(accChanged){
+        const admins = {};
+        o.acc.forEach(a => {
+          const id = (a.id === "__legacy" || a.id.indexOf("new_") === 0) ? uid() : a.id;
+          if(a.id === "__legacy" && adminId === "__legacy"){ adminId = id; store.set(sessionStorage, "ohmtro_admin_id", id); }
+          admins[id] = { user: a.user, pwd: a.pwd };
+        });
+        adminWrites.push([k, admins]);
+      }
+      const newP = { admin: o.pw.legacyAdmin || "", orgAdmin: accChanged ? "" : o.pw.orgAdmin, marqueur: o.pw.marqueur,
                      categories: Object.assign({}, o.pw.categories), teams: Object.assign({}, o.pw.teams) };
       changed.forEach(id => { if(id.indexOf("team:") === 0) newP.teams[id.slice(5)] = o.vals[id]; else newP.categories[id.slice(4)] = o.vals[id]; });
       writes.push([k, newP]);
     }
     if(isSuper()) dbSuper.set(sup);
     writes.forEach(w => ref(w[0] + "/passwords").set(w[1]));
+    adminWrites.forEach(w => ref(w[0] + "/admins").set(w[1]));
     closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
   });
 
@@ -3737,7 +3810,7 @@ document.addEventListener("DOMContentLoaded", function(){
     applyInv(); renderShotsTable();
   });
 
-  ["loginPass","pwdSuperInput","pwdAdminInput","pwdMarkerInput"].forEach(id => addEye($(id)));
+  ["loginPass","pwdSuperInput","pwdMarkerInput"].forEach(id => addEye($(id)));
 
   /* ============ Boîtes de message ============ */
   // À la fermeture d'une fenêtre, le navigateur remet le curseur dans le dernier champ utilisé, ce qui ouvre
