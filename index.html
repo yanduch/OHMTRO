@@ -1821,8 +1821,8 @@ document.addEventListener("DOMContentLoaded", function(){
   function nextGameText(c, name){
     const where = c.place ? " · " + c.place + arenaAddr(c) : "";
     if(!name) return "📅 Prochaine partie : " + calWhen(c) + " — " + calTitle(c) + where;
-    const home = c.a === name, opp = home ? c.b : c.a;
-    return "📅 " + name + " — prochaine partie : " + calWhen(c) + (home ? " contre " : " chez ") + opp + where;
+    const opp = c.a === name ? c.b : c.a;
+    return "📅 " + name + " — prochaine partie : " + calWhen(c) + " contre " + opp + where;
   }
   let tickerSig = null, tickerMsg = [], lastWidth = window.innerWidth, resizeTimer = null;
   const TICKER_SPEED = 55;             // pixels par seconde
@@ -3740,6 +3740,16 @@ document.addEventListener("DOMContentLoaded", function(){
   ["loginPass","pwdSuperInput","pwdAdminInput","pwdMarkerInput"].forEach(id => addEye($(id)));
 
   /* ============ Boîtes de message ============ */
+  // À la fermeture d'une fenêtre, le navigateur remet le curseur dans le dernier champ utilisé, ce qui ouvre
+  // le clavier sur téléphone : on retire ce curseur (l'utilisateur touchera lui-même le champ voulu)
+  document.addEventListener("close", e => {
+    if(!(e.target instanceof HTMLDialogElement)) return;
+    setTimeout(() => {
+      const a = document.activeElement;
+      if(a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && !/^(checkbox|radio|button|submit|color)$/.test(a.type)))) a.blur();
+    }, 0);
+  }, true);
+
   on("noticeOk", "click", () => { clearTimeout(noticeTimer); closeDlg("noticeBox"); });
   on("noticeBox", "click", e => { if(e.target === $("noticeBox")){ clearTimeout(noticeTimer); closeDlg("noticeBox"); } });
   on("confirmOk", "click", () => $("confirmBox").close("ok"));
