@@ -306,9 +306,9 @@ body:not(.role-admin) .admin-only{display:none !important}
 #trainBar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:#6D28D9;color:#FFF;padding:.45rem .8rem;font-size:.8rem;font-weight:600}
 #trainBar[hidden]{display:none}
 #trainBar button{flex:none;background:#FFF;color:#6D28D9;border:0;border-radius:6px;padding:.3rem .7rem;font-weight:700;font-size:.8rem}
-body.apprentice button:not(#trainEnd), body.apprentice input, body.apprentice select, body.apprentice textarea, body.apprentice label, body.apprentice a{pointer-events:none}
-.tr-flash{animation:trFlash .9s ease-out}
-@keyframes trFlash{0%{box-shadow:0 0 0 4px rgba(109,40,217,.85)}100%{box-shadow:0 0 0 14px rgba(109,40,217,0)}}
+body.apprentice button:not(#trainEnd):not(#noticeOk), body.apprentice input, body.apprentice select, body.apprentice textarea, body.apprentice label, body.apprentice a{pointer-events:none}
+.tr-flash{outline:3px solid #7C3AED !important;outline-offset:-3px;animation:trFlash 1.6s ease-out}
+@keyframes trFlash{0%{box-shadow:0 0 0 6px rgba(124,58,237,.6);filter:brightness(1.12)}60%{box-shadow:0 0 0 2px rgba(124,58,237,.35)}100%{box-shadow:0 0 0 0 rgba(124,58,237,0)}}
 .archive-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--warn);color:#FFF;border-radius:8px;padding:.4rem .6rem;margin-bottom:.8rem;font-size:.85rem;font-weight:600}
 .archive-bar[hidden]{display:none}
 .archive-bar button{border:0;border-radius:6px;padding:.3rem .6rem;background:#FFF;color:#0F2236;font-weight:700;font-size:.8rem;white-space:nowrap}
@@ -4295,7 +4295,7 @@ document.addEventListener("DOMContentLoaded", function(){
       apprCtx(v.ctx, true);
       r.on("value", apprOn);
       updateRoleUI(); render(); trainBar();
-      notify("Vous suivez la formation. Votre écran refait chaque geste du formateur.", "info");
+      notify("Vous suivez la formation. Votre écran refait chaque geste du formateur.");
     }, () => notify("Connexion impossible pour le moment.", "error"));
   }
   function apprCtx(c, force){
@@ -4316,42 +4316,62 @@ document.addEventListener("DOMContentLoaded", function(){
       return;
     }
     const q = obj(v.q);
-    Object.keys(q).map(k => q[k]).filter(e => e && e.seq > appr.seq).sort((x, y) => x.seq - y.seq).forEach(e => {
-      appr.seq = e.seq;
-      try { apprApply(e); } catch(err){}
-    });
+    Object.keys(q).map(k => q[k]).filter(e => e && e.seq > appr.seq).sort((x, y) => x.seq - y.seq).forEach(e => { appr.seq = e.seq; apprQ.push(e); });
+    pump();
   }
-  function flash(n){ n.classList.remove("tr-flash"); void n.offsetWidth; n.classList.add("tr-flash"); }
-  function apprApply(ev){
-    apprCtx(ev.ctx);
+  // Les gestes sont refaits un à un, dans l'ordre. Si l'élément n'est pas encore là (fenêtre ou liste qui se charge),
+  // on réessaie quelques instants avant de passer au suivant.
+  let apprQ = [], apprBusy = false;
+  function pump(){
+    if(apprBusy || !appr) return;
+    const ev = apprQ.shift(); if(!ev) return;
+    apprBusy = true; tryApply(ev, 0);
+  }
+  function tryApply(ev, n){
+    if(!appr){ apprBusy = false; apprQ = []; return; }
+    let ok = true;
+    try { ok = apprApply(ev, n === 0) !== false; } catch(err){}
+    if(!ok && n < 16){ setTimeout(() => tryApply(ev, n + 1), 150); return; }
+    apprBusy = false; setTimeout(pump, 80);
+  }
+  // Montre bien le geste : l'élément est amené à l'écran et encadré un moment
+  function flash(n){
+    try { n.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch(e){}
+    n.classList.remove("tr-flash"); void n.offsetWidth; n.classList.add("tr-flash");
+    clearTimeout(n._trT); n._trT = setTimeout(() => n.classList.remove("tr-flash"), 1600);
+  }
+  function apprApply(ev, first){
+    if(first) apprCtx(ev.ctx);
     if(ev.k === "scroll"){
       if(ev.p){ const n = qsel(ev.p); if(n) n.scrollTop = ev.top; }
       else window.scrollTo(0, (ev.y || 0) * Math.max(0, document.documentElement.scrollHeight - innerHeight));
-      return;
+      return true;
     }
-    const n = qsel(ev.p); if(!n) return;
-    const d = n.closest("dialog"); if(d && !d.open) return;         // fenêtre fermée chez l'apprenti : on n'y touche pas
+    const n = qsel(ev.p); if(!n) return false;
+    const d = n.closest("dialog"); if(d && !d.open) return false;    // fenêtre pas encore ouverte chez l'apprenti
     if(ev.k === "click"){
-      if(n.id === "btnOpenPasswords"){ notify("Le formateur ouvre la gestion des mots de passe (non montrée en formation).", "info"); return; }
-      if(n.classList.contains("pwd-eye") || n.id === "btnLogin" || n.id === "btnOpenTraining") return;
+      if(n.id === "btnOpenPasswords"){ notify("Le formateur ouvre la gestion des mots de passe (non montrée en formation)."); return true; }
+      if(n.classList.contains("pwd-eye") || n.id === "btnLogin" || n.id === "btnOpenTraining") return true;
       flash(n); n.click();
     } else {
+      if(n.tagName === "SELECT" && ev.v !== "" && !Array.prototype.some.call(n.options, o => o.value === ev.v)) return false;   // liste pas encore remplie
       if(n.type === "password") n.value = String(ev.v || "").replace(/./g, "•"); else n.value = ev.v;
       n.dispatchEvent(new Event(ev.k === "type" ? "input" : "change", { bubbles: true }));
       flash(n);
     }
+    return true;
   }
   function apprLeave(msg){
     if(!appr) return;
     appr.ref.off("value", apprOn);
-    const me = appr.me; appr = null; readOnly = false;
+    const me = appr.me; appr = null; readOnly = false; apprQ = []; apprBusy = false;
     me.onDisconnect().cancel(); me.remove();
     closeAllDlg(); demoteToViewer(); updateRoleUI(); render(); trainBar();
     notify(msg, "info");
   }
   // L'apprenti ne peut rien toucher, sauf le bouton « Quitter »
   ["click", "dblclick", "mousedown", "pointerdown", "keydown", "submit", "input", "change", "cancel"].forEach(type => window.addEventListener(type, e => {
-    if(!appr || !e.isTrusted || inBar(e.target)) return;
+    if(!appr || !e.isTrusted || inBar(e.target) || (e.target.closest && e.target.closest("#noticeBox"))) return;
     e.preventDefault(); e.stopImmediatePropagation();
   }, true));
   on("trainEnd", "click", () => {
