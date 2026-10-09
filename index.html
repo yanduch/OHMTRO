@@ -436,6 +436,26 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 .pwd-wrap input{width:100% !important;padding-right:2.6rem !important}
 .pwd-eye{position:absolute;top:0;right:0;height:100%;width:2.5rem;border:0;background:transparent;font-size:1.05rem;line-height:1;opacity:.55;display:flex;align-items:center;justify-content:center;padding:0}
 .pwd-eye[aria-pressed="true"]{opacity:1}
+
+/* --- Gestion calendrier --- */
+.cal-list{list-style:none;margin:0;padding:0;display:grid;gap:.4rem;max-height:48vh;overflow-y:auto}
+.cal-group{list-style:none;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.5rem 0 0}
+.cal-item{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:.5rem .7rem}
+.cal-item.todo{border-left-color:var(--warn)}
+.cal-item.played{border-left-color:var(--ok)}
+.cal-main{min-width:0}
+.cal-when{font-size:.8rem;color:var(--muted)}
+.cal-teams{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.cal-teams strong{font-size:.92rem}
+.cal-score{font-family:var(--display);font-weight:700;font-size:1.1rem}
+.cal-res{font-size:.7rem;font-weight:700;color:#FFF;border-radius:4px;padding:.05rem .35rem}
+.cal-res.v{background:var(--ok)} .cal-res.d{background:var(--red)} .cal-res.n{background:var(--muted)}
+.cal-note{font-size:.72rem;color:var(--blue)}
+.cal-item .btn-edit{flex:none;white-space:nowrap}
+.cal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.cal-grid label, #calEditSheet .field-group label{display:block;font-size:.85rem;font-weight:600;margin-bottom:.3rem}
+#calEditSheet input, #calEditSheet select, #calendarSheet select{background:#FFF;color:#0F2236;border:1px solid var(--line);border-radius:6px;padding:.45rem}
+#calLinkedNote[hidden]{display:none !important}
 </style>
 </head>
 <body class="role-viewer">
@@ -655,6 +675,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
     <button type="button" class="act-1" id="btnOpenMessagesManage" style="width:100%;min-height:2.8rem;margin-top:0;font-weight:600;background:#1F7A4D;color:#FFF;">📢 Gestion des messages</button>
     <button type="button" class="act-1" id="btnOpenHistoryManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#2E63C6;color:#FFF;">🗂️ Gestion de l'historique</button>
+    <button type="button" class="act-1" id="btnOpenCalendar" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#B5651D;color:#FFF;">📅 Gestion calendrier</button>
     <button type="button" class="act-1 admin-only" id="btnOpenOrgManage" style="width:100%;min-height:2.8rem;margin-top:.6rem;font-weight:600;background:#8E44AD;color:#FFF;">🏢 Organisation, catégories et équipes</button>
 
     <div class="field-group admin-only" style="margin-top:1.2rem;">
@@ -736,6 +757,69 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <button type="button" class="act-2" id="msgManageBack">Retour</button>
       <button type="button" class="act-1" id="msgManageSave">Enregistrer les messages</button>
     </div>
+  </div>
+</dialog>
+
+<dialog id="calendarSheet">
+  <div class="sheet-in">
+    <h2>Gestion calendrier</h2>
+    <p class="ctx">Parties prévues de la catégorie. Inscrivez le résultat après la partie : il compte dans la fiche des équipes.</p>
+    <div class="inline-row">
+      <select id="calCatSelect" aria-label="Catégorie" style="flex:0 1 7rem;"></select>
+      <select id="calTeamFilter" aria-label="Équipe"></select>
+    </div>
+    <button type="button" class="act-1" id="calAdd" style="width:100%;min-height:2.6rem;margin-bottom:.8rem;font-size:.9rem;">➕ Ajouter une partie</button>
+    <ul class="cal-list" id="calList"></ul>
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="calBack">Retour</button>
+      <button type="button" class="act-2" id="calClose">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="calEditSheet">
+  <div class="sheet-in">
+    <h2 id="calEditTitle">Ajouter une partie</h2>
+    <div class="cal-grid">
+      <div><label for="calDate">Date :</label><input type="date" id="calDate" class="full-input"></div>
+      <div><label for="calTime">Heure :</label><input type="time" id="calTime" class="full-input"></div>
+    </div>
+    <div class="field-group" style="margin-top:.7rem;">
+      <label for="calTeamB">Équipe visiteuse :</label>
+      <select id="calTeamB" class="full-input"></select>
+      <input type="text" id="calOtherB" class="full-input" maxlength="18" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
+    </div>
+    <div class="field-group" style="margin-top:.7rem;">
+      <label for="calTeamA">Équipe locale :</label>
+      <select id="calTeamA" class="full-input"></select>
+      <input type="text" id="calOtherA" class="full-input" maxlength="18" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
+    </div>
+    <div class="field-group" style="margin-top:.7rem;">
+      <label for="calPlace">Aréna (facultatif) :</label>
+      <input type="text" id="calPlace" class="full-input" maxlength="60" placeholder="Ex: Aréna de Chavigny">
+    </div>
+
+    <div class="preset-box" style="margin-top:1rem;">
+      <label style="font-weight:700;">Résultat (après la partie) :</label>
+      <div class="cal-grid">
+        <div><label for="calScoreB">Visiteur :</label><input type="number" id="calScoreB" class="full-input" min="0" max="99" inputmode="numeric" placeholder="—"></div>
+        <div><label for="calScoreA">Local :</label><input type="number" id="calScoreA" class="full-input" min="0" max="99" inputmode="numeric" placeholder="—"></div>
+      </div>
+      <label for="calEnd" style="margin-top:.5rem;">Fin de la partie :</label>
+      <select id="calEnd" class="full-input">
+        <option value="">Temps réglementaire</option>
+        <option value="OT">Prolongation</option>
+        <option value="TB">Tirs de barrage</option>
+      </select>
+      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Laissez le pointage vide tant que la partie n'est pas jouée.</small>
+      <small id="calLinkedNote" hidden style="display:block;margin-top:.3rem;color:var(--blue);font-size:.78rem;">Cette partie a été marquée sur le tableau : pour la corriger en détail, passez par Gestion de l'historique.</small>
+    </div>
+
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="calCancel">Annuler</button>
+      <button type="button" class="act-1" id="calSave">Enregistrer</button>
+    </div>
+    <button type="button" class="danger" id="calDelete" hidden>Retirer cette partie du calendrier</button>
   </div>
 </dialog>
 
@@ -913,6 +997,12 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="newGameWizard">
   <div class="sheet-in">
     <h2>Nouvelle Partie</h2>
+    <div class="preset-box" id="wizCalBox" style="display:none;">
+      <label for="wizCalSelect">Partie du calendrier :</label>
+      <select id="wizCalSelect"></select>
+      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Choisir la partie prévue remplit les équipes. Une fois enregistrée dans l'historique, son résultat est reporté au calendrier.</small>
+    </div>
+
     <div class="preset-box">
       <label>1. Équipe Visiteuse :</label>
       <select id="wizTeamB"><option value="">-- Choisir Équipe Visiteuse --</option></select>
@@ -1221,6 +1311,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   let state = blank();
   let presets = {}, presetByName = {}, presetsRev = 0;
+  let calendarList = [];               // parties du calendrier de la catégorie (pour les fiches d'équipe)
   let historyList = [], historyOn = false, historyLoaded = false, historyWaiters = [];
   let lastLocal = 0;                   // horodatage de notre dernière écriture (évite un double rendu)
   let archiveKey = null, liveState = null;
@@ -1277,7 +1368,8 @@ document.addEventListener("DOMContentLoaded", function(){
       histKey: "",
       id: "",
       periodSec: 0,                      // durée d'une période pour cette partie (0 = durée par défaut de l'organisation)
-      playedAt: 0,                       // date de la partie dans l'historique (ne change pas quand on la corrige)
+      playedAt: 0,
+      calId: "",                         // partie du calendrier jouée sur ce tableau                       // date de la partie dans l'historique (ne change pas quand on la corrige)
       updatedAt: 0
     };
   }
@@ -1305,6 +1397,7 @@ document.addEventListener("DOMContentLoaded", function(){
     s.histKey = typeof d.histKey === "string" ? d.histKey : "";
     s.id = typeof d.id === "string" ? d.id : "";
     s.playedAt = Number(d.playedAt) || 0;
+    s.calId = typeof d.calId === "string" ? d.calId : "";
     s.periodSec = int(d.periodSec, 0, 5940);
     const last = s.events[s.events.length - 1];
     // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
@@ -1391,7 +1484,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function commit(){
     if(!canEdit()) return;
     state.updatedAt = now(); lastLocal = state.updatedAt;
-    if(editEntry) editEntry.m = state;
+    if(editEntry){ editEntry.m = state; calSyncResult(); }   // correction d'une partie archivée : le calendrier suit
     db.set(state, err => { if(err) notify("Échec de l'enregistrement : " + (err.message || err), "error"); });
     updateLiveIndex();
     render();
@@ -1502,7 +1595,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function switchOrganization(orgKey, catKey, nav, teamKey){
     subs.forEach(s => s[0].off("value", s[1])); subs = [];
-    historyOn = false; historyLoaded = false; historyList = []; historyWaiters = [];
+    historyOn = false; historyLoaded = false; historyList = []; historyWaiters = []; calendarList = [];
 
     orgKey = cleanKey(orgKey) || "ohmtro";
     catKey = cleanKey(catKey) || currentCat || "m15";
@@ -2370,6 +2463,198 @@ document.addEventListener("DOMContentLoaded", function(){
     closeDlg("passwordsSheet"); notify("Mots de passe enregistrés !");
   });
 
+  /* ============ Gestion du calendrier ============ */
+  // Parties prévues d'une catégorie : …/<catégorie>/calendar/<id> = { date, time, a (local), b (visiteur), aKey, bKey, place,
+  // scoreA, scoreB, end ("", "OT" prolongation, "TB" tirs de barrage), histKey (partie marquée sur le tableau) }
+  const pad2 = n => (n < 10 ? "0" : "") + n;
+  const todayStr = () => { const d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); };
+  const isNum = v => typeof v === "number" && isFinite(v);
+  function calEntries(val){
+    return Object.keys(val || {}).map(id => {
+      const c = val[id]; if(!c || typeof c !== "object" || !c.date) return null;
+      const t = /^\d\d:\d\d$/.test(c.time || "") ? c.time : "00:00", p = String(c.date).split("-").map(Number);
+      const at = new Date(p[0], (p[1] || 1) - 1, p[2] || 1, Number(t.slice(0, 2)), Number(t.slice(3))).getTime() || 0;
+      const played = isNum(c.scoreA) && isNum(c.scoreB);
+      return { id: id, date: String(c.date), time: c.time || "", a: String(c.a || "Local"), b: String(c.b || "Visiteur"),
+               aKey: c.aKey || "", bKey: c.bKey || "", place: String(c.place || ""), scoreA: played ? c.scoreA : null, scoreB: played ? c.scoreB : null,
+               end: c.end || "", histKey: c.histKey || "", played: played, at: at };
+    }).filter(Boolean);
+  }
+  function calWhen(c){
+    const p = c.date.split("-").map(Number), d = new Date(p[0], p[1] - 1, p[2]);
+    let s = d.toLocaleDateString("fr-CA", { weekday: "short", day: "numeric", month: "short" });
+    if(c.time) s += " · " + c.time.replace(":", " h ");
+    return s;
+  }
+  const calScore = c => c.played ? c.scoreB + " - " + c.scoreA + (c.end === "OT" ? " (prol.)" : c.end === "TB" ? " (t.b.)" : "") : "";
+  const calTitle = c => c.b + " @ " + c.a;                    // visiteur @ local, comme au tableau
+
+  // Partie marquée en direct puis enregistrée : son résultat est reporté sur la partie du calendrier
+  function calSyncResult(){
+    if(!state.calId || !state.histKey) return;
+    const r = ref(catBase() + "/calendar/" + state.calId);
+    r.child("scoreA").set(goalsOf("a")); r.child("scoreB").set(goalsOf("b"));
+    r.child("end").set(state.period === 3 ? "OT" : ""); r.child("histKey").set(state.histKey);
+  }
+
+  let calCat = "", calRef = null, calMgr = [], calEditId = null;
+  const onCal = snap => { calMgr = calEntries(snap.val()); calFillTeamFilter(); calRender(); };
+  function calStop(){ if(calRef){ calRef.off("value", onCal); calRef = null; } }
+  function calWatch(cat){
+    calStop(); calCat = cat; calMgr = []; calRender(true);
+    calRef = ref(currentOrg + "/" + cat + "/calendar"); calRef.on("value", onCal);
+  }
+  // Équipes enregistrées d'une catégorie (celles de l'organisation d'abord)
+  function calTeams(cat){
+    return Object.keys(presets).filter(k => { const p = presets[k]; return p && p.name && (!p.category || p.category === cat); })
+                 .sort((x, y) => (presets[y].own ? 1 : 0) - (presets[x].own ? 1 : 0) || String(presets[x].name).localeCompare(String(presets[y].name), "fr", { numeric: true }));
+  }
+
+  on("btnOpenCalendar", "click", () => {
+    if(!isAdmin()) return;
+    closeDlg("settingsSheet");
+    fillSelect($("calCatSelect"), categoriesList.map(c => ({ value: c, label: c.toUpperCase() })), currentCat);
+    calWatch($("calCatSelect").value || currentCat);
+    openDlg("calendarSheet");
+  });
+  on("calCatSelect", "change", () => calWatch($("calCatSelect").value));
+  on("calTeamFilter", "change", () => calRender());
+  on("calBack", "click", () => { calStop(); swapDlg("calendarSheet", "settingsSheet"); });
+  on("calClose", "click", () => { calStop(); closeDlg("calendarSheet"); });
+
+  function calFillTeamFilter(){
+    const sel = $("calTeamFilter"), prev = sel.value, names = {};
+    calTeams(calCat).forEach(k => { names[presets[k].name] = true; });
+    calMgr.forEach(c => { names[c.a] = true; names[c.b] = true; });
+    const items = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true })).map(n => ({ value: n, label: n }));
+    fillSelect(sel, items, prev || (boardTeam && presets[boardTeam] ? presets[boardTeam].name : null), "Toutes les équipes");
+  }
+  function calRender(loading){
+    const list = $("calList"); list.textContent = "";
+    if(loading === true){ list.appendChild(el("li", "empty", "Chargement…")); return; }
+    const team = $("calTeamFilter").value, today = todayStr();
+    const rows = calMgr.filter(c => !team || c.a === team || c.b === team);
+    const groups = [
+      ["Résultat à inscrire", rows.filter(c => !c.played && c.date < today).sort((x, y) => x.at - y.at)],
+      ["À venir", rows.filter(c => !c.played && c.date >= today).sort((x, y) => x.at - y.at)],
+      ["Résultats", rows.filter(c => c.played).sort((x, y) => y.at - x.at)]
+    ];
+    if(!rows.length){ list.appendChild(el("li", "empty", "Aucune partie au calendrier. Touchez « Ajouter une partie ».")); return; }
+    const frag = document.createDocumentFragment();
+    groups.forEach(g => {
+      if(!g[1].length) return;
+      frag.appendChild(el("li", "cal-group", g[0] + " (" + g[1].length + ")"));
+      g[1].forEach(c => {
+        const li = el("li", "cal-item" + (c.played ? " played" : (c.date < today ? " todo" : ""))), box = el("div", "cal-main");
+        box.appendChild(el("div", "cal-when", calWhen(c) + (c.place ? " · " + c.place : "")));
+        const line = el("div", "cal-teams"); line.appendChild(el("strong", null, calTitle(c)));
+        if(c.played){
+          line.appendChild(el("span", "cal-score", calScore(c)));
+          if(team){
+            const mine = c.a === team ? "a" : "b", gf = mine === "a" ? c.scoreA : c.scoreB, ga = mine === "a" ? c.scoreB : c.scoreA;
+            line.appendChild(el("span", "cal-res " + (gf > ga ? "v" : gf < ga ? "d" : "n"), gf > ga ? "V" : gf < ga ? "D" : "N"));
+          }
+        }
+        box.appendChild(line);
+        if(c.histKey) box.appendChild(el("div", "cal-note", "Marquée sur le tableau"));
+        li.appendChild(box);
+        li.appendChild(btn("btn-edit", c.played ? "✏️ Modifier" : (c.date < today ? "🏒 Résultat" : "✏️ Modifier"), () => calOpenEdit(c)));
+        frag.appendChild(li);
+      });
+    });
+    list.appendChild(frag);
+  }
+
+  /* --- Fiche d'une partie du calendrier --- */
+  function calFillTeamSelect(side, key, name){
+    const sel = $(side === "a" ? "calTeamA" : "calTeamB"), keys = calTeams(calCat);
+    const items = keys.map(k => ({ value: k, label: presets[k].name }));
+    items.push({ value: "__other", label: "Autre équipe…" });
+    let v = "";
+    if(key && presets[key]) v = key;
+    else if(name){ const k = keys.filter(x => presets[x].name === name)[0]; v = k || "__other"; }
+    fillSelect(sel, items, v, "-- Choisir --");
+    $(side === "a" ? "calOtherA" : "calOtherB").value = (v === "__other") ? (name || "") : "";
+    calToggleOther(side);
+  }
+  function calToggleOther(side){
+    const U = side.toUpperCase();
+    $("calOther" + U).style.display = $("calTeam" + U).value === "__other" ? "block" : "none";
+  }
+  ["a","b"].forEach(s => on("calTeam" + s.toUpperCase(), "change", () => calToggleOther(s)));
+
+  on("calAdd", "click", () => calOpenEdit(null));
+  function calOpenEdit(c){
+    if(!isAdmin()) return;
+    calEditId = c ? c.id : null;
+    $("calEditTitle").textContent = c ? (c.played || c.date >= todayStr() ? "Modifier la partie" : "Inscrire le résultat") : "Ajouter une partie";
+    $("calDate").value = c ? c.date : todayStr(); $("calTime").value = c ? c.time : "";
+    calFillTeamSelect("b", c ? c.bKey : "", c ? c.b : ""); calFillTeamSelect("a", c ? c.aKey : "", c ? c.a : "");
+    if(!c && boardTeam && presets[boardTeam]){ $("calTeamA").value = boardTeam; calToggleOther("a"); }
+    $("calPlace").value = c ? c.place : "";
+    $("calScoreB").value = c && c.played ? c.scoreB : ""; $("calScoreA").value = c && c.played ? c.scoreA : "";
+    $("calEnd").value = c ? c.end : "";
+    $("calDelete").hidden = !c;
+    $("calLinkedNote").hidden = !(c && c.histKey);
+    swapDlg("calendarSheet", "calEditSheet");
+  }
+  const calName = side => {
+    const U = side.toUpperCase(), v = $("calTeam" + U).value;
+    if(v === "__other") return { key: "", name: str($("calOther" + U).value, "") };
+    return { key: v, name: v && presets[v] ? presets[v].name : "" };
+  };
+  on("calCancel", "click", () => swapDlg("calEditSheet", "calendarSheet"));
+  on("calSave", "click", () => {
+    if(!isAdmin()) return;
+    const date = $("calDate").value, time = $("calTime").value, A = calName("a"), B = calName("b");
+    if(!/^\d{4}-\d\d-\d\d$/.test(date)){ notify("Choisissez la date de la partie.", "info"); return; }
+    if(!A.name || !B.name){ notify("Choisissez l'équipe visiteuse et l'équipe locale.", "info"); return; }
+    if(A.name === B.name){ notify("Choisissez deux équipes différentes.", "info"); return; }
+    const sA = $("calScoreA").value.trim(), sB = $("calScoreB").value.trim();
+    if((sA === "") !== (sB === "")){ notify("Inscrivez le pointage des deux équipes, ou laissez les deux cases vides si la partie n'est pas jouée.", "info"); return; }
+    const old = calEditId ? calMgr.filter(c => c.id === calEditId)[0] : null;
+    const entry = { date: date, time: /^\d\d:\d\d$/.test(time) ? time : "", a: A.name, b: B.name, aKey: A.key, bKey: B.key,
+                    place: $("calPlace").value.trim().slice(0, 60), end: sA === "" ? "" : $("calEnd").value, histKey: old ? old.histKey : "" };
+    if(sA !== ""){ entry.scoreA = int(sA, 0, 99); entry.scoreB = int(sB, 0, 99); }
+    ref(currentOrg + "/" + calCat + "/calendar/" + (calEditId || uid())).set(entry);
+    swapDlg("calEditSheet", "calendarSheet"); notify(sA === "" ? "Partie enregistrée au calendrier." : "Résultat enregistré !");
+  });
+  on("calDelete", "click", () => {
+    if(!isAdmin() || !calEditId) return;
+    const id = calEditId, cat = calCat;
+    ask("Retirer cette partie du calendrier ?" + "\nUne partie déjà enregistrée dans l'historique n'est pas touchée.", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+      if(!ok) return;
+      ref(currentOrg + "/" + cat + "/calendar/" + id).remove();
+      swapDlg("calEditSheet", "calendarSheet");
+    });
+  });
+
+  /* --- Nouvelle partie : partir d'une partie prévue au calendrier --- */
+  let wizCal = [];
+  function wizFillCalendar(){
+    const sel = $("wizCalSelect"); fillSelect(sel, [], null, "Aucune (partie hors calendrier)"); wizCal = [];
+    $("wizCalBox").style.display = "none";
+    const cat = currentCat, bt = boardTeam;
+    ref(currentOrg + "/" + cat + "/calendar").once("value").then(snap => {
+      if(cat !== currentCat) return;
+      const p = new Date(Date.now() - 2 * 86400000), from = p.getFullYear() + "-" + pad2(p.getMonth() + 1) + "-" + pad2(p.getDate());
+      wizCal = calEntries(snap.val()).filter(c => !c.played && c.date >= from && (!bt || c.aKey === bt || c.bKey === bt || !presets[bt] || c.a === presets[bt].name || c.b === presets[bt].name))
+                                     .sort((x, y) => x.at - y.at);
+      if(!wizCal.length) return;
+      fillSelect(sel, wizCal.map(c => ({ value: c.id, label: calWhen(c) + " — " + calTitle(c) })), null, "Aucune (partie hors calendrier)");
+      $("wizCalBox").style.display = "";
+    });
+  }
+  on("wizCalSelect", "change", () => {
+    const c = wizCal.filter(x => x.id === $("wizCalSelect").value)[0]; if(!c) return;
+    // Préremplit les équipes de la partie prévue (si elles sont enregistrées)
+    [["a", c.aKey, c.a], ["b", c.bKey, c.b]].forEach(t => {
+      const sel = $(t[0] === "a" ? "wizTeamA" : "wizTeamB");
+      const k = (t[1] && presets[t[1]]) ? t[1] : Object.keys(presets).filter(x => presets[x] && presets[x].name === t[2])[0];
+      if(k && Array.prototype.some.call(sel.options, o => o.value === k)){ sel.value = k; renderPresenceList(t[0], k); wizSyncColor(t[0]); }
+    });
+  });
+
   /* ============ Chronomètre ============ */
   function remaining(){
     const t = state.timer; if(!t.running) return t.sec;
@@ -2451,6 +2736,10 @@ document.addEventListener("DOMContentLoaded", function(){
   function ensureHistory(){
     if(historyOn || !dbHistory) return;
     historyOn = true;
+    sub(ref(catBase() + "/calendar"), snap => {
+      calendarList = calEntries(snap.val());
+      if(historyLoaded) renderStats();
+    });
     sub(dbHistory, snap => {
       const val = snap.val() || {};
       historyList = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
@@ -2638,6 +2927,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!state.playedAt) state.playedAt = Date.now();
     state.closed = true;
     commit();
+    calSyncResult();
     dbHistory.child(state.histKey).set(state, err => {
       if(err) notify("Échec de la sauvegarde : " + (err.message || err), "error");
       else notify("Partie sauvegardée dans l'historique !\nLe tableau reste modifiable à l'écran.");
@@ -2676,16 +2966,22 @@ document.addEventListener("DOMContentLoaded", function(){
   function renderStats(){
     const target = statsTarget(), name = target ? target.name : null;
     setText("statsTeamName", name || "");
-    let pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, shotsAgainst = 0; const res = [];
-    historyList.forEach(h => {
+    let pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, shotsAgainst = 0, gaShots = 0; const res = [];
+    // Parties marquées sur le tableau (historique) + résultats inscrits au calendrier, sans compter deux fois la même partie
+    const keys = {}; historyList.forEach(h => { keys[h.key] = true; });
+    const games = historyList.concat(calendarList.filter(c => c.played && !(c.histKey && keys[c.histKey]))
+                                                 .map(c => ({ a: c.a, b: c.b, gA: c.scoreA, gB: c.scoreB, sA: null, sB: null, at: c.at })))
+                             .sort((x, y) => x.at - y.at);
+    games.forEach(h => {
       const side = h.a === name ? "a" : (h.b === name ? "b" : null); if(!side) return;
-      const gf = side === "a" ? h.gA : h.gB, ga = side === "a" ? h.gB : h.gA;
-      pj++; bp += gf; bc += ga; shotsAgainst += side === "a" ? h.sB : h.sA;
+      const gf = side === "a" ? h.gA : h.gB, ga = side === "a" ? h.gB : h.gA, sa = side === "a" ? h.sB : h.sA;
+      pj++; bp += gf; bc += ga;
+      if(sa != null){ shotsAgainst += sa; gaShots += ga; }     // les résultats du calendrier n'ont pas de lancers
       if(gf > ga){ v++; res.push("V"); } else if(gf < ga){ d++; res.push("D"); } else { ega++; res.push("N"); }
     });
     const last10 = res.slice(-10), cnt = x => last10.filter(r => r === x).length;
     let streak = 0; for(let i = res.length - 1; i >= 0 && res[i] === res[res.length - 1]; i--) streak++;
-    const diff = bp - bc, saves = Math.max(0, shotsAgainst - bc);
+    const diff = bp - bc, saves = Math.max(0, shotsAgainst - gaShots);
     setText("stPJ", pj); setText("stV", v); setText("stD", d); setText("stEGA", ega); setText("stBP", bp); setText("stBC", bc);
     setText("stDIF", (diff > 0 ? "+" : "") + diff);
     setText("st10D", cnt("V") + "-" + cnt("D") + "-" + cnt("N"));
@@ -3056,6 +3352,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     renderPresenceList("a", $("wizTeamA").value); renderPresenceList("b", $("wizTeamB").value);
     $("wizPeriodMin").value = Math.round(defaultPeriodSec / 60);
+    wizFillCalendar();
     openDlg("newGameWizard");
   });
   on("wizCancel", "click", () => closeDlg("newGameWizard"));
@@ -3087,6 +3384,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const wasLinked = isLinked();
     state = blank(); state.id = uid(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
     state.periodSec = int($("wizPeriodMin").value || Math.round(defaultPeriodSec / 60), 1, 99) * 60;   // durée choisie pour cette partie
+    state.calId = $("wizCalSelect").value || "";
     state.timer.sec = state.periodSec;
     ["a","b"].forEach(t => {
       const p = presets[keys[t]]; if(!p) return;
