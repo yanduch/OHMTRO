@@ -967,13 +967,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <button type="button" class="msg-add super-only" id="pwdAdminAdd">➕ Ajouter un administrateur</button>
       <small class="super-only" style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Administrateurs et marqueurs se connectent avec leur identifiant et leur mot de passe, de n'importe quelle page : ils arrivent directement sur la leur.</small>
 
-      <label for="pwdMarkerSelect" style="margin-top:.9rem;font-weight:700;">Marqueurs :</label>
+      <label for="pwdMarkerSelect" style="margin-top:.9rem;font-weight:700;">Marqueurs de la catégorie :</label>
       <select id="pwdMarkerSelect" style="background:#FFF;color:#0F2236;margin-bottom:.4rem;"></select>
-      <div class="acc-head mk"><span>Identifiant</span><span>Mot de passe</span></div>
-      <div class="acc-row mk">
-        <input type="text" id="pwdMarkerUser" class="acc-user" maxlength="30" autocomplete="off" autocapitalize="none" placeholder="Identifiant" aria-label="Identifiant du marqueur">
-        <div><input type="password" id="pwdMarkerInput" class="acc-pwd" autocomplete="off" placeholder="Mot de passe" aria-label="Mot de passe du marqueur"></div>
-      </div>
+      <div class="acc-head"><span>Identifiant</span><span>Mot de passe</span></div>
+      <div id="pwdMarkerList"></div>
+      <button type="button" class="msg-add" id="pwdMarkerAdd">➕ Ajouter un marqueur</button>
     </div>
     <p class="ctx" style="margin:.6rem 0 0;font-size:.8rem;">Vous pouvez modifier plusieurs mots de passe avant d'enregistrer : tout est sauvegardé d'un coup.</p>
 
@@ -1970,28 +1968,38 @@ document.addEventListener("DOMContentLoaded", function(){
 
   /* ============ Comptes d'une organisation ============ */
   // Administrateurs : …/admins/<id> = { user, pwd } (+ l'ancien mot de passe unique « admin »).
-  // Marqueurs : un par catégorie, ou un par équipe quand la catégorie compte plusieurs équipes de l'organisation ;
-  // mots de passe dans passwords.categories / passwords.teams, identifiants dans passwords.catUsers / passwords.teamUsers.
+  // Marqueurs : rattachés à une « place » = une catégorie, ou une équipe quand la catégorie compte plusieurs équipes de
+  // l'organisation. Comptes dans passwords.markers/<id> = { user, pwd, slot }. Une place sans compte enregistré utilise
+  // encore l'ancien accès unique (identifiant « marqueur » et mot de passe de la catégorie ou de l'équipe).
   const obj = v => (v && typeof v === "object") ? v : {};
   function parseOrgLogins(v, adm, cats, teams){
     v = v || {}; adm = obj(adm); teams = obj(teams);
     const pw = { legacyAdmin: v.admin || "", orgAdmin: typeof v.orgAdmin === "string" ? v.orgAdmin : "", marqueur: v.marqueur || "buts",
-                 categories: obj(v.categories), teams: obj(v.teams), catUsers: obj(v.catUsers), teamUsers: obj(v.teamUsers) };
+                 categories: obj(v.categories), teams: obj(v.teams), catUsers: obj(v.catUsers), teamUsers: obj(v.teamUsers), markers: obj(v.markers) };
     const admins = Object.keys(adm).filter(k => adm[k] && adm[k].user).map(k => ({ id: k, user: String(adm[k].user), pwd: String(adm[k].pwd || "") }));
     if(pw.orgAdmin && !admins.some(a => a.user === "admin")) admins.unshift({ id: "__legacy", user: "admin", pwd: pw.orgAdmin });
-    const markers = [];
+    const slots = [];
     cats.forEach(cat => {
       const own = Object.keys(teams).filter(k => { const p = teams[k]; return p && p.name && p.own && (!p.category || p.category === cat); })
                         .sort((x, y) => String(teams[x].name).localeCompare(String(teams[y].name), "fr", { numeric: true }));
       const catPwd = pw.categories[cat] || pw.marqueur, catUser = pw.catUsers[cat] || "marqueur";
-      if(own.length < 2) markers.push({ id: "cat:" + cat, label: cat.toUpperCase(), cat: cat, team: "", user: catUser, pwd: catPwd });
+      if(own.length < 2) slots.push({ id: "cat:" + cat, label: cat.toUpperCase(), cat: cat, team: "", legacy: { user: catUser, pwd: catPwd } });
       else own.forEach(k => {
-        if(markers.some(m => m.id === "team:" + k)) return;
-        markers.push({ id: "team:" + k, label: cat.toUpperCase() + " - " + teams[k].name, cat: cat, team: k,
-                       user: pw.teamUsers[k] || catUser, pwd: pw.teams[k] || catPwd });
+        if(slots.some(s => s.id === "team:" + k)) return;
+        slots.push({ id: "team:" + k, label: cat.toUpperCase() + " - " + teams[k].name, cat: cat, team: k,
+                     legacy: { user: pw.teamUsers[k] || catUser, pwd: pw.teams[k] || catPwd } });
       });
     });
-    return { pw: pw, admins: admins, markers: markers };
+    // Comptes de chaque place : ceux enregistrés, sinon l'ancien accès unique
+    const accounts = {};
+    slots.forEach(s => {
+      const list = Object.keys(pw.markers).filter(k => pw.markers[k] && pw.markers[k].slot === s.id)
+                         .map(k => ({ id: k, user: String(pw.markers[k].user || ""), pwd: String(pw.markers[k].pwd || "") }));
+      accounts[s.id] = list.length ? list : [{ id: "legacy:" + s.id, user: s.legacy.user, pwd: s.legacy.pwd }];
+    });
+    const markers = [];
+    slots.forEach(s => accounts[s.id].forEach(a => markers.push({ id: a.id, slot: s.id, label: s.label, cat: s.cat, team: s.team, user: a.user, pwd: a.pwd })));
+    return { pw: pw, admins: admins, slots: slots, accounts: accounts, markers: markers };
   }
   function fetchOrgLogins(org){
     return Promise.all([ref(org + "/passwords").once("value"), loadCats(org), ref(org + "/teams_presets").once("value"), ref(org + "/admins").once("value")])
@@ -2469,52 +2477,37 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   /* ============ Gestion : mots de passe ============ */
-  // Le super administrateur choisit l'organisation dans une liste ; l'administrateur ne voit que la sienne.
-  // Plusieurs mots de passe (et plusieurs organisations) peuvent être modifiés avant d'enregistrer.
-  let pwdSuper = "", pwdOrg = "", pwdMarker = "", pwdOrgs = {}, pwdToken = 0;
+  // Le super administrateur choisit l'organisation ; l'administrateur ne voit que la sienne.
+  // Administrateurs et marqueurs : comptes (identifiant + mot de passe) ajoutés, modifiés, supprimés ici.
+  // Plusieurs changements (et plusieurs organisations) peuvent être faits avant d'enregistrer.
+  let pwdSuper = "", pwdOrg = "", pwdSlot = "", pwdOrgs = {}, pwdToken = 0;
   const pwdOrgLabel = k => { const o = organizationsList.find(x => x.id === k); return o ? o.name : String(k).toUpperCase(); };
+  const cloneAcc = a => a.map(x => ({ id: x.id, user: x.user, pwd: x.pwd }));
 
-  // Garde en mémoire ce qui est écrit dans les champs de l'organisation et du marqueur affichés
+  // Garde en mémoire ce qui est écrit dans les lignes affichées
+  function readRows(boxId, list){
+    $(boxId).querySelectorAll(".acc-row").forEach(row => {
+      const a = list.filter(x => x.id === row.dataset.id)[0]; if(!a) return;
+      a.user = row.querySelector(".acc-user").value.trim().toLowerCase(); a.pwd = row.querySelector(".acc-pwd").value.trim();
+    });
+  }
   function pwdStash(){
     const o = pwdOrgs[pwdOrg]; if(!o) return;
-    $("pwdAdminList").querySelectorAll(".acc-row").forEach(row => {
-      const acc = o.acc.filter(x => x.id === row.dataset.id)[0]; if(!acc) return;
-      acc.user = row.querySelector(".acc-user").value.trim().toLowerCase(); acc.pwd = row.querySelector(".acc-pwd").value.trim();
-    });
-    if(pwdMarker){ o.vals[pwdMarker] = $("pwdMarkerInput").value.trim(); o.users[pwdMarker] = $("pwdMarkerUser").value.trim().toLowerCase(); }
+    readRows("pwdAdminList", o.acc);
+    if(pwdSlot && o.mk[pwdSlot]) readRows("pwdMarkerList", o.mk[pwdSlot]);
   }
-  function pwdShowMarker(){
-    const o = pwdOrgs[pwdOrg], has = !!(o && pwdMarker);
-    $("pwdMarkerInput").value = has ? o.vals[pwdMarker] : ""; $("pwdMarkerInput").disabled = !has;
-    $("pwdMarkerUser").value = has ? o.users[pwdMarker] : ""; $("pwdMarkerUser").disabled = !has;
+  // Lignes « identifiant / mot de passe / ✕ »
+  function accRow(a, opts){
+    const row = el("div", "acc-row"), user = el("input", "acc-user"), pwd = el("input", "acc-pwd");
+    row.dataset.id = a.id;
+    user.type = "text"; user.value = a.user; user.placeholder = "Identifiant"; user.maxLength = 30; user.autocomplete = "off"; user.autocapitalize = "none";
+    user.readOnly = !!opts.lockUser;
+    pwd.type = "password"; pwd.value = a.pwd; pwd.placeholder = "Mot de passe"; pwd.autocomplete = "off";
+    row.appendChild(user); const pw = el("div"); pw.appendChild(pwd); row.appendChild(pw);
+    if(opts.onDelete){ const del = btn("row-del", "✕", opts.onDelete); del.setAttribute("aria-label", "Supprimer ce compte"); row.appendChild(del); }
+    else row.appendChild(el("span"));
+    return [row, pwd];
   }
-  function pwdShowOrg(){
-    const o = pwdOrgs[pwdOrg];
-    $("pwdOrgName").textContent = pwdOrgLabel(pwdOrg);
-    pwdRenderAdmins();
-    const items = o ? o.items.map(it => ({ value: it.id, label: it.label })) : [];
-    pwdMarker = items.length ? items[0].value : "";
-    fillSelect($("pwdMarkerSelect"), items, pwdMarker, items.length ? null : (o ? "Aucun marqueur" : "Chargement..."));
-    pwdShowMarker();
-  }
-  // Mots de passe, catégories et équipes d'une organisation : un marqueur par catégorie, ou un par équipe
-  // quand la catégorie compte plusieurs équipes de l'organisation
-  function pwdLoadOrg(orgKey){
-    pwdOrg = orgKey; pwdMarker = "";
-    pwdShowOrg();
-    if(pwdOrgs[orgKey]) return Promise.resolve();
-    const token = ++pwdToken;
-    return fetchOrgLogins(orgKey).then(d => {
-      const vals = {}, users = {};
-      d.markers.forEach(m => { vals[m.id] = m.pwd; users[m.id] = m.user; });
-      const acc = d.admins;
-      pwdOrgs[orgKey] = { pw: d.pw, items: d.markers, vals: vals, init: Object.assign({}, vals), users: users, usersInit: Object.assign({}, users),
-                          acc: acc, accInit: JSON.stringify(acc) };
-      if(token === pwdToken && pwdOrg === orgKey) pwdShowOrg();
-    });
-  }
-
-  // Le super administrateur ajoute, modifie et supprime les comptes ; un administrateur ne voit que le sien (mot de passe seulement)
   function pwdRenderAdmins(){
     const box = $("pwdAdminList"), o = pwdOrgs[pwdOrg]; box.textContent = "";
     $("pwdAdminAdd").disabled = !o;
@@ -2522,29 +2515,61 @@ document.addEventListener("DOMContentLoaded", function(){
     const list = isSuper() ? o.acc : o.acc.filter(a => a.id === adminId);
     if(!list.length){ box.appendChild(el("p", "empty", isSuper() ? "Aucun administrateur pour cette organisation." : "")); return; }
     list.forEach(a => {
-      const row = el("div", "acc-row"), user = el("input", "acc-user"), pwd = el("input", "acc-pwd");
-      row.dataset.id = a.id;
-      user.type = "text"; user.value = a.user; user.placeholder = "Identifiant"; user.maxLength = 30; user.autocomplete = "off"; user.autocapitalize = "none";
-      user.readOnly = !isSuper();
-      pwd.type = "password"; pwd.value = a.pwd; pwd.placeholder = "Mot de passe"; pwd.autocomplete = "off";
-      row.appendChild(user); const pw = el("div"); pw.appendChild(pwd); row.appendChild(pw);
-      if(isSuper()){
-        const del = btn("row-del", "✕", () => {
-          pwdStash();
-          ask("Supprimer le compte administrateur « " + (a.user || "sans identifiant") + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
-            if(!ok) return;
-            o.acc = o.acc.filter(x => x.id !== a.id); pwdRenderAdmins();
-          });
+      const r = accRow(a, { lockUser: !isSuper(), onDelete: isSuper() ? () => {
+        pwdStash();
+        ask("Supprimer le compte administrateur « " + (a.user || "sans identifiant") + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+          if(!ok) return; o.acc = o.acc.filter(x => x.id !== a.id); pwdRenderAdmins();
         });
-        del.setAttribute("aria-label", "Supprimer ce compte"); row.appendChild(del);
-      } else row.appendChild(el("span"));
-      box.appendChild(row); addEye(pwd);
+      } : null });
+      box.appendChild(r[0]); addEye(r[1]);
+    });
+  }
+  // Comptes marqueur de la place choisie (catégorie ou équipe) ; il en reste toujours au moins un
+  function pwdRenderMarkers(){
+    const box = $("pwdMarkerList"), o = pwdOrgs[pwdOrg]; box.textContent = "";
+    const list = (o && pwdSlot) ? o.mk[pwdSlot] : null;
+    $("pwdMarkerAdd").disabled = !list;
+    if(!list){ box.appendChild(el("p", "empty", o ? "Aucune catégorie." : "Chargement…")); return; }
+    list.forEach(a => {
+      const r = accRow(a, { onDelete: () => {
+        pwdStash();
+        if(o.mk[pwdSlot].length <= 1){ notify("Il doit rester au moins un marqueur pour cette catégorie.", "info"); return; }
+        ask("Supprimer le marqueur « " + (a.user || "sans identifiant") + " » ?", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => {
+          if(!ok) return; o.mk[pwdSlot] = o.mk[pwdSlot].filter(x => x.id !== a.id); pwdRenderMarkers();
+        });
+      } });
+      box.appendChild(r[0]); addEye(r[1]);
+    });
+  }
+  function pwdShowOrg(){
+    const o = pwdOrgs[pwdOrg];
+    $("pwdOrgName").textContent = pwdOrgLabel(pwdOrg);
+    pwdRenderAdmins();
+    const items = o ? o.slots.map(s => ({ value: s.id, label: s.label })) : [];
+    pwdSlot = items.length ? items[0].value : "";
+    fillSelect($("pwdMarkerSelect"), items, pwdSlot, items.length ? null : (o ? "Aucune catégorie" : "Chargement..."));
+    pwdRenderMarkers();
+  }
+  function pwdLoadOrg(orgKey){
+    pwdOrg = orgKey; pwdSlot = "";
+    pwdShowOrg();
+    if(pwdOrgs[orgKey]) return Promise.resolve();
+    const token = ++pwdToken;
+    return fetchOrgLogins(orgKey).then(d => {
+      const mk = {}; d.slots.forEach(s => { mk[s.id] = cloneAcc(d.accounts[s.id]); });
+      pwdOrgs[orgKey] = { pw: d.pw, slots: d.slots, mk: mk, mkInit: JSON.stringify(mk), acc: cloneAcc(d.admins), accInit: JSON.stringify(d.admins) };
+      if(token === pwdToken && pwdOrg === orgKey) pwdShowOrg();
     });
   }
   on("pwdAdminAdd", "click", () => {
     const o = pwdOrgs[pwdOrg]; if(!isSuper() || !o) return;
     pwdStash(); o.acc.push({ id: "new_" + uid(), user: "", pwd: "" }); pwdRenderAdmins();
     const rows = $("pwdAdminList").querySelectorAll(".acc-user"); rows[rows.length - 1].focus();
+  });
+  on("pwdMarkerAdd", "click", () => {
+    const o = pwdOrgs[pwdOrg]; if(!isAdmin() || !o || !pwdSlot) return;
+    pwdStash(); o.mk[pwdSlot].push({ id: "new_" + uid(), user: "", pwd: "" }); pwdRenderMarkers();
+    const rows = $("pwdMarkerList").querySelectorAll(".acc-user"); rows[rows.length - 1].focus();
   });
 
   on("btnOpenPasswords", "click", () => {
@@ -2563,41 +2588,61 @@ document.addEventListener("DOMContentLoaded", function(){
     pwdStash();
     pwdLoadOrg($("pwdOrgSelect").value).catch(() => notify("Impossible de charger les mots de passe de cette organisation.", "error"));
   });
-  on("pwdMarkerSelect", "change", () => { pwdStash(); pwdMarker = $("pwdMarkerSelect").value; pwdShowMarker(); });
+  on("pwdMarkerSelect", "change", () => { pwdStash(); pwdSlot = $("pwdMarkerSelect").value; pwdRenderMarkers(); });
   on("pwdCancel", "click", () => closeDlg("passwordsSheet"));
+
   on("pwdSave", "click", () => {
     if(!isAdmin()) return;
     pwdStash();
     const sup = isSuper() ? ($("pwdSuperInput").value.trim() || pwdSuper) : pwdSuper, writes = [], adminWrites = [], newPairs = [];
     const keys = Object.keys(pwdOrgs).filter(k => isSuper() || k === currentOrg);
+    const bad = (who, a) => {                                // vérifications communes à un compte
+      if(!IDENT_RE.test(a.user)) return "Identifiant invalide pour " + who + " : « " + a.user + " ».\nDe 2 à 30 caractères : lettres sans accent, chiffres, point, tiret.";
+      if(["superadmin", "super", "yanduch"].indexOf(a.user) !== -1) return "L'identifiant « " + a.user + " » est réservé. Choisissez-en un autre.";
+      if(!a.pwd) return "Le mot de passe de " + who + " ne peut pas être vide.";
+      if(a.pwd === sup) return isSuper() ? "Le mot de passe de " + who + " doit être différent de celui du super administrateur." : "Ce mot de passe n'est pas disponible pour " + who + ". Choisissez-en un autre.";
+      return "";
+    };
     for(let n = 0; n < keys.length; n++){
       const k = keys[n], o = pwdOrgs[k], where = isSuper() ? " (" + pwdOrgLabel(k) + ")" : "";
-      const changed = Object.keys(o.vals).filter(id => o.vals[id] !== o.init[id] || o.users[id] !== o.usersInit[id]), accChanged = JSON.stringify(o.acc) !== o.accInit;
-      // Vérification des comptes administrateur
-      const RESERVED = ["marqueur", "superadmin", "super", "yanduch"], seen = {};
-      for(let m = 0; m < o.acc.length; m++){
-        const a = o.acc[m];
-        if(!accChanged){                                       // comptes inchangés : seul le conflit avec le super mot de passe compte
-          if(isSuper() && a.pwd === sup){ notify("Le mot de passe de l'administrateur « " + a.user + " »" + where + " doit être différent de celui du super administrateur.", "info"); return; }
-          continue;
+      const accChanged = JSON.stringify(o.acc) !== o.accInit, mkInit = JSON.parse(o.mkInit);
+      const slotChanged = o.slots.filter(s => JSON.stringify(o.mk[s.id]) !== JSON.stringify(mkInit[s.id]));
+      // Administrateurs
+      if(accChanged){
+        const seen = {};
+        for(let m = 0; m < o.acc.length; m++){
+          const a = o.acc[m], who = "l'administrateur « " + a.user + " »" + where, err = bad(who, a);
+          if(err){ notify(err, "info"); return; }
+          if(a.user === "marqueur"){ notify("L'identifiant « marqueur » est réservé aux marqueurs. Choisissez-en un autre.", "info"); return; }
+          if(seen[a.user]){ notify("L'identifiant « " + a.user + " » est utilisé deux fois" + where + ".", "info"); return; }
+          seen[a.user] = true;
         }
-        if(!/^[a-z0-9._-]{2,30}$/.test(a.user)){ notify("Identifiant administrateur invalide" + where + " : « " + a.user + " ».\nDe 2 à 30 caractères : lettres sans accent, chiffres, point, tiret.", "info"); return; }
-        if(RESERVED.indexOf(a.user) !== -1){ notify("L'identifiant « " + a.user + " » est réservé" + where + ". Choisissez-en un autre.", "info"); return; }
-        if(seen[a.user]){ notify("L'identifiant « " + a.user + " » est utilisé deux fois" + where + ".", "info"); return; }
-        seen[a.user] = true;
-        if(!a.pwd){ notify("Le mot de passe de l'administrateur « " + a.user + " »" + where + " ne peut pas être vide.", "info"); return; }
-        if(a.pwd === sup){ notify(isSuper() ? "Le mot de passe de l'administrateur « " + a.user + " »" + where + " doit être différent de celui du super administrateur."
-                                            : "Ce mot de passe n'est pas disponible. Choisissez-en un autre.", "info"); return; }
+      } else if(isSuper() && o.acc.some(a => a.pwd === sup)){
+        notify("Le mot de passe d'un administrateur" + where + " doit être différent de celui du super administrateur.", "info"); return;
       }
-      if(!accChanged && !changed.length) continue;
-      for(let m = 0; m < changed.length; m++){
-        const id = changed[m], it = o.items.filter(x => x.id === id)[0], lab = (it ? it.label : "") + where, us = o.users[id];
-        if(!IDENT_RE.test(us)){ notify("Identifiant du marqueur " + lab + " invalide : « " + us + " ».\nDe 2 à 30 caractères : lettres sans accent, chiffres, point, tiret.", "info"); return; }
-        if(["superadmin", "super", "yanduch"].indexOf(us) !== -1){ notify("L'identifiant « " + us + " » est réservé. Choisissez-en un autre.", "info"); return; }
-        if(!o.vals[id]){ notify("Le mot de passe du marqueur " + lab + " ne peut pas être vide.", "info"); return; }
-        if(o.vals[id] === sup){ notify("Ce mot de passe n'est pas disponible pour le marqueur " + lab + ". Choisissez-en un autre.", "info"); return; }
+      // Marqueurs : au moins un par place, identifiants uniques dans une même catégorie
+      for(let m = 0; m < slotChanged.length; m++){
+        const s = slotChanged[m], list = o.mk[s.id];
+        if(!list.length){ notify("Il doit rester au moins un marqueur pour " + s.label + where + ".", "info"); return; }
+        for(let q = 0; q < list.length; q++){
+          const err = bad("le marqueur « " + list[q].user + " » (" + s.label + (isSuper() ? ", " + pwdOrgLabel(k) : "") + ")", list[q]);
+          if(err){ notify(err, "info"); return; }
+        }
       }
-      // Les comptes sont enregistrés dans …/admins ; l'ancien mot de passe unique devient un compte comme les autres
+      // Identifiant ajouté ou renommé : il ne doit pas déjà exister dans la même catégorie
+      // (les anciens accès « marqueur » de plusieurs équipes d'une catégorie restent permis tant qu'on ne les renomme pas)
+      const wasUser = (id, u) => Object.keys(mkInit).some(sid => (mkInit[sid] || []).some(x => x.id === id && x.user === u));
+      for(let m = 0; m < slotChanged.length; m++){
+        const s = slotChanged[m], same = o.slots.filter(x => x.cat === s.cat);
+        const fresh = o.mk[s.id].filter(a => !wasUser(a.id, a.user));
+        for(let q = 0; q < fresh.length; q++){
+          const a = fresh[q], n2 = same.reduce((t, x) => t + o.mk[x.id].filter(y => y.user === a.user).length, 0);
+          if(n2 > 1){ notify("L'identifiant « " + a.user + " » est déjà utilisé par un autre marqueur de la catégorie " + s.cat.toUpperCase() + where + ".\nChoisissez un identifiant différent.", "info"); return; }
+        }
+      }
+      if(!accChanged && !slotChanged.length) continue;
+
+      // À enregistrer : administrateurs (…/admins) et comptes marqueur (passwords.markers)
       if(accChanged){
         const admins = {};
         o.acc.forEach(a => {
@@ -2607,37 +2652,37 @@ document.addEventListener("DOMContentLoaded", function(){
         });
         adminWrites.push([k, admins]);
       }
-      const newP = { admin: o.pw.legacyAdmin || "", orgAdmin: accChanged ? "" : o.pw.orgAdmin, marqueur: o.pw.marqueur,
-                     categories: Object.assign({}, o.pw.categories), teams: Object.assign({}, o.pw.teams) };
-      newP.catUsers = Object.assign({}, o.pw.catUsers); newP.teamUsers = Object.assign({}, o.pw.teamUsers);
-      changed.forEach(id => {
-        if(id.indexOf("team:") === 0){ newP.teams[id.slice(5)] = o.vals[id]; newP.teamUsers[id.slice(5)] = o.users[id]; }
-        else { newP.categories[id.slice(4)] = o.vals[id]; newP.catUsers[id.slice(4)] = o.users[id]; }
-      });
-      writes.push([k, newP]);
+      const markers = {};
+      Object.keys(o.pw.markers).forEach(id => { const m = o.pw.markers[id]; if(m && !slotChanged.some(s => s.id === m.slot)) markers[id] = m; });
+      slotChanged.forEach(s => o.mk[s.id].forEach(a => {
+        const id = (a.id.indexOf("legacy:") === 0 || a.id.indexOf("new_") === 0) ? uid() : a.id;
+        markers[id] = { user: a.user, pwd: a.pwd, slot: s.id };
+      }));
+      writes.push([k, { admin: o.pw.legacyAdmin || "", orgAdmin: accChanged ? "" : o.pw.orgAdmin, marqueur: o.pw.marqueur,
+                        categories: o.pw.categories, teams: o.pw.teams, catUsers: o.pw.catUsers, teamUsers: o.pw.teamUsers, markers: markers }]);
       // Paires identifiant + mot de passe nouvelles ou modifiées : elles doivent mener à un seul compte
       const initAcc = JSON.parse(o.accInit);
-      o.acc.forEach(a => { if(!initAcc.some(x => x.id === a.id && x.user === a.user && x.pwd === a.pwd)) newPairs.push({ org: k, id: "adm:" + a.id, user: a.user, pwd: a.pwd, label: "administrateur « " + a.user + " »" + where }); });
-      changed.forEach(id => { const it = o.items.filter(x => x.id === id)[0]; newPairs.push({ org: k, id: id, user: o.users[id], pwd: o.vals[id], label: "marqueur " + (it ? it.label : "") + where }); });
+      o.acc.forEach(a => { if(!initAcc.some(x => x.id === a.id && x.user === a.user && x.pwd === a.pwd)) newPairs.push({ org: k, id: "adm:" + a.id, user: a.user, pwd: a.pwd, label: "l'administrateur « " + a.user + " »" + where }); });
+      slotChanged.forEach(s => o.mk[s.id].forEach(a => {
+        if(!(mkInit[s.id] || []).some(x => x.id === a.id && x.user === a.user && x.pwd === a.pwd))
+          newPairs.push({ org: k, id: "mk:" + a.id, user: a.user, pwd: a.pwd, label: "le marqueur « " + a.user + " » (" + s.label + (isSuper() ? ", " + pwdOrgLabel(k) : "") + ")" });
+      }));
     }
     // Comptes de toutes les organisations (brouillons de cette fenêtre, sinon ce qui est enregistré)
     const others = organizationsList.map(x => x.id).filter(k => !pwdOrgs[k] || (!isSuper() && k !== currentOrg));
     const btnS = $("pwdSave"); btnS.disabled = true;
     Promise.all(others.map(k => fetchOrgLogins(k).catch(() => null))).then(fetched => {
       const all = [];
-      Object.keys(pwdOrgs).filter(k => isSuper() || k === currentOrg).forEach(k => {
-        const o = pwdOrgs[k];
-        o.acc.forEach(a => all.push({ org: k, id: "adm:" + a.id, user: a.user, pwd: a.pwd, label: "administrateur « " + a.user + " » (" + pwdOrgLabel(k) + ")" }));
-        o.items.forEach(it => all.push({ org: k, id: it.id, user: o.users[it.id], pwd: o.vals[it.id], label: "marqueur " + it.label + " (" + pwdOrgLabel(k) + ")" }));
-      });
-      fetched.forEach(d => { if(!d) return;
-        d.admins.forEach(a => all.push({ org: d.org, id: "adm:" + a.id, user: a.user, pwd: a.pwd, label: "administrateur « " + a.user + " » (" + pwdOrgLabel(d.org) + ")" }));
-        d.markers.forEach(m => all.push({ org: d.org, id: m.id, user: m.user, pwd: m.pwd, label: "marqueur " + m.label + " (" + pwdOrgLabel(d.org) + ")" }));
-      });
+      const addOrg = (k, admins, slots, mk) => {
+        admins.forEach(a => all.push({ org: k, id: "adm:" + a.id, user: a.user, pwd: a.pwd, label: "l'administrateur « " + a.user + " » (" + pwdOrgLabel(k) + ")" }));
+        slots.forEach(s => mk[s.id].forEach(a => all.push({ org: k, id: "mk:" + a.id, user: a.user, pwd: a.pwd, label: "le marqueur « " + a.user + " » (" + s.label + ", " + pwdOrgLabel(k) + ")" })));
+      };
+      Object.keys(pwdOrgs).filter(k => isSuper() || k === currentOrg).forEach(k => addOrg(k, pwdOrgs[k].acc, pwdOrgs[k].slots, pwdOrgs[k].mk));
+      fetched.forEach(d => { if(d) addOrg(d.org, d.admins, d.slots, d.accounts); });
       for(let n = 0; n < newPairs.length; n++){
         const np = newPairs[n], clash = all.filter(x => x.user === np.user && x.pwd === np.pwd && !(x.org === np.org && x.id === np.id))[0];
         if(clash){
-          notify("Ce même identifiant et ce même mot de passe sont déjà utilisés par : " + clash.label + ".\nChangez l'identifiant ou le mot de passe de : " + np.label + ". Chaque connexion doit mener à une seule page.", "info");
+          notify("Ce même identifiant et ce même mot de passe sont déjà utilisés par " + clash.label + ".\nChangez l'identifiant ou le mot de passe " + (np.label.indexOf("le ") === 0 ? "du " + np.label.slice(3) : "de " + np.label) + ". Chaque connexion doit mener à une seule page.", "info");
           return;
         }
       }
@@ -3873,7 +3918,7 @@ document.addEventListener("DOMContentLoaded", function(){
     applyInv(); renderShotsTable();
   });
 
-  ["loginPass","pwdSuperInput","pwdMarkerInput"].forEach(id => addEye($(id)));
+  ["loginPass","pwdSuperInput"].forEach(id => addEye($(id)));
 
   /* ============ Boîtes de message ============ */
   // À la fermeture d'une fenêtre, le navigateur remet le curseur dans le dernier champ utilisé, ce qui ouvre
