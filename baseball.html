@@ -84,6 +84,9 @@ button.base{cursor:pointer}
 .rules label{font-size:.75rem;min-height:2.1em;display:flex;align-items:flex-end}
 .rules input{width:100%;border:1px solid var(--line);border-radius:8px;padding:.5rem;text-align:center;font-weight:700}
 .rulesline{text-align:center;font-size:.75rem;color:var(--muted);margin-top:.1rem}
+.teamsel{margin-bottom:.35rem}
+.team-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.45rem 0;border-bottom:1px solid var(--line);cursor:pointer}
+.team-row:last-child{border-bottom:0}
 .tip{font-size:.78rem;color:var(--muted);margin:.5rem 0 0;text-align:center}
 .std table{border-collapse:collapse;width:100%;font-size:.82rem}
 .std th,.std td{padding:.35rem .3rem;text-align:center;border-bottom:1px solid var(--line)}
@@ -107,6 +110,11 @@ button.base{cursor:pointer}
     <div class="card std" id="standings"><p class="muted" style="margin:0;">Aucune partie terminée.</p></div>
     <h2 style="margin-top:1.2rem;">Historique des parties</h2>
     <div id="history"></div>
+    <div class="scorer hidden">
+      <h2 style="margin-top:1.2rem;">Équipes du tournoi</h2>
+      <div class="card" id="teamList"></div>
+      <button type="button" class="btn full" id="btnAddTeam">➕ Ajouter une équipe</button>
+    </div>
   </section>
 
   <!-- Une partie -->
@@ -175,12 +183,14 @@ button.base{cursor:pointer}
 <!-- Alignements -->
 <dialog id="dlgLineups"><div class="dlg">
   <h3 id="luTitle">Nouvelle partie</h3>
-  <p class="muted" style="margin:0;">Une équipe déjà inscrite reprend son dernier alignement.</p>
+  <p class="muted" style="margin:0;">Choisissez une équipe préparée ou écrivez un nom. L'alignement peut être ajusté pour cette partie.</p>
   <label for="luNameA">Équipe visiteuse</label>
+  <select id="luTeamA" class="teamsel"></select>
   <input type="text" id="luNameA" maxlength="30" placeholder="Nom de l'équipe" list="teamNames" autocomplete="off">
   <label for="luPlayersA">Alignement visiteur — un joueur par ligne, dans l'ordre des frappeurs</label>
   <textarea id="luPlayersA" placeholder="12 Tremblay&#10;7 Gagnon&#10;…"></textarea>
   <label for="luNameB">Équipe locale</label>
+  <select id="luTeamB" class="teamsel"></select>
   <input type="text" id="luNameB" maxlength="30" placeholder="Nom de l'équipe" list="teamNames" autocomplete="off">
   <datalist id="teamNames"></datalist>
   <label for="luPlayersB">Alignement local — un joueur par ligne, dans l'ordre des frappeurs</label>
@@ -199,6 +209,17 @@ button.base{cursor:pointer}
   <h3 id="runnerTitle">Coureur</h3>
   <div class="picker" id="runnerActs" style="grid-template-columns:1fr;"></div>
   <div class="actions"><button type="button" class="btn" id="runnerCancel">Annuler</button></div>
+</div></dialog>
+
+<!-- Équipe du tournoi -->
+<dialog id="dlgTeam"><div class="dlg">
+  <h3 id="tmTitle">Équipe</h3>
+  <label for="tmName">Nom de l'équipe</label>
+  <input type="text" id="tmName" maxlength="30" autocomplete="off">
+  <label for="tmPlayers">Alignement — un joueur par ligne, dans l'ordre des frappeurs</label>
+  <textarea id="tmPlayers" placeholder="12 Tremblay&#10;7 Gagnon&#10;…"></textarea>
+  <div class="actions"><button type="button" class="btn" id="tmCancel">Annuler</button><button type="button" class="btn primary" id="tmSave">Enregistrer</button></div>
+  <button type="button" class="btn danger full admin hidden" id="tmDelete" style="margin-top:.6rem;">Supprimer cette équipe</button>
 </div></dialog>
 
 <!-- Mots de passe -->
@@ -366,15 +387,62 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------- Équipes du tournoi (nom + dernier alignement) ---------- */
   let teams = {};
   const teamKey = name => String(name).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "equipe";
+  const sortedTeams = () => Object.keys(teams).filter(k => teams[k] && teams[k].name).sort((x, y) => teams[x].name.localeCompare(teams[y].name, "fr", { numeric: true }));
   ref("teams").on("value", s => {
     teams = s.val() || {};
     const dl = $("teamNames"); dl.textContent = "";
-    Object.keys(teams).map(k => teams[k].name).sort((x, y) => x.localeCompare(y, "fr")).forEach(n => { const o = el("option"); o.value = n; dl.appendChild(o); });
+    sortedTeams().forEach(k => { const o = el("option"); o.value = teams[k].name; dl.appendChild(o); });
+    const box = $("teamList"); box.textContent = "";
+    if(!sortedTeams().length) box.appendChild(el("p", "muted", "Aucune équipe. Préparez-les à l'avance avec leur alignement.")).style.margin = "0";
+    sortedTeams().forEach(k => {
+      const r = el("div", "team-row"), n = (teams[k].players || []).length;
+      r.appendChild(el("strong", null, teams[k].name)); r.appendChild(el("span", "muted", n + " joueur" + (n > 1 ? "s" : "") + " ✏️"));
+      r.addEventListener("click", () => openTeam(k)); box.appendChild(r);
+    });
   });
   ["A", "B"].forEach(X => on("luName" + X, "change", () => {
     const t = teams[teamKey($("luName" + X).value)];
     if(t && t.players && !$("luPlayers" + X).value.trim()) $("luPlayers" + X).value = t.players.join("\n");
   }));
+  // Choisir une équipe préparée remplit son nom et son alignement
+  function fillTeamSel(X, name){
+    const sel = $("luTeam" + X); sel.textContent = "";
+    const add = (v, t) => { const o = el("option", null, t); o.value = v; sel.appendChild(o); };
+    add("", sortedTeams().length ? "-- Choisir une équipe préparée --" : "Aucune équipe préparée");
+    sortedTeams().forEach(k => add(k, teams[k].name));
+    sel.value = name && teams[teamKey(name)] ? teamKey(name) : "";
+    sel.style.display = sortedTeams().length ? "" : "none";
+  }
+  ["A", "B"].forEach(X => on("luTeam" + X, "change", () => {
+    const t = teams[$("luTeam" + X).value]; if(!t) return;
+    $("luName" + X).value = t.name; $("luPlayers" + X).value = (t.players || []).join("\n");
+  }));
+  let tmKey = "";
+  function openTeam(k){
+    if(!canScore()) return;
+    tmKey = k || ""; const t = k ? teams[k] : null;
+    $("tmTitle").textContent = t ? "Modifier l'équipe" : "Nouvelle équipe";
+    $("tmName").value = t ? t.name : ""; $("tmPlayers").value = t && t.players ? t.players.join("\n") : "";
+    $("tmDelete").classList.toggle("hidden", !t || role !== "admin");
+    $("dlgTeam").showModal();
+  }
+  on("btnAddTeam", "click", () => openTeam(""));
+  on("tmCancel", "click", () => $("dlgTeam").close());
+  on("tmSave", "click", () => {
+    if(!canScore()) return;
+    const name = $("tmName").value.trim().slice(0, 30), players = parsePlayers($("tmPlayers").value), k = teamKey(name);
+    if(!name){ notify("Écrivez le nom de l'équipe."); return; }
+    if(k !== tmKey && teams[k]){ notify("L'équipe « " + teams[k].name + " » existe déjà."); return; }
+    if(players.some((p, i) => players.indexOf(p) !== i)){ notify("Un joueur apparaît deux fois dans l'alignement."); return; }
+    if(tmKey && tmKey !== k) ref("teams/" + tmKey).remove();
+    ref("teams/" + k).set({ name: name, players: players });
+    $("dlgTeam").close(); notify("Équipe enregistrée.");
+  });
+  on("tmDelete", "click", () => {
+    const k = tmKey; if(role !== "admin" || !k) return;
+    ask("Supprimer l'équipe « " + teams[k].name + " » ?\nLes parties déjà jouées ne sont pas touchées.", { title: "Supprimer", ok: "Supprimer", danger: true })
+      .then(ok => { if(ok){ ref("teams/" + k).remove(); $("dlgTeam").close(); } });
+  });
 
   ref("games").on("value", s => { games = s.val() || {}; renderList(); if(curId && !games[curId]) showList(); });
   function gameCard(id){
@@ -553,6 +621,7 @@ document.addEventListener("DOMContentLoaded", () => {
     luMode = mode; const g = mode === "edit" ? cur : null;
     $("luTitle").textContent = g ? "Alignements" : "Nouvelle partie";
     $("luNameA").value = g && g.a ? g.a.name || "" : ""; $("luNameB").value = g && g.b ? g.b.name || "" : "";
+    fillTeamSel("A", $("luNameA").value); fillTeamSel("B", $("luNameB").value);
     $("luPlayersA").value = g && g.a && g.a.players ? g.a.players.join("\n") : "";
     $("luPlayersB").value = g && g.b && g.b.players ? g.b.players.join("\n") : "";
     const r = g ? cleanRules(g.rules) : defRules;
