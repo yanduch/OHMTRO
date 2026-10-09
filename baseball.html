@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baseball en direct</title>
+<meta name="theme-color" content="#0F2236">
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#EEF2F6;--surface:#FFF;--ink:#0F2236;--muted:#5B6B7C;--line:#D5DDE6;--blue:#1F5FA8;--red:#C0392B;--ok:#1F7A44;--warn:#B8860B;--navy:#0F2236}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+header{background:var(--navy);color:#FFF;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;position:sticky;top:0;z-index:5}
+header h1{font-size:1.05rem;margin:0;white-space:nowrap}
+header button{white-space:nowrap;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#FFF;border-radius:8px;padding:.35rem .7rem;font-size:.85rem}
+main{max-width:640px;margin:0 auto;padding:1rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:.8rem}
+.muted{color:var(--muted);font-size:.85rem}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:.65rem .8rem;font-weight:600;cursor:pointer;min-height:2.8rem}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#FFF}
+.btn.danger{background:#FCEBEA;border-color:#E9B8B3;color:var(--red)}
+.btn.full{width:100%}
+.btn:disabled{opacity:.45}
+.game-item{display:flex;justify-content:space-between;align-items:center;gap:.5rem;cursor:pointer}
+.game-item strong{font-size:1rem}
+.pill{font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;background:#E3F4EA;color:var(--ok);white-space:nowrap}
+.pill.final{background:#E9EDF2;color:var(--muted)}
+.score-head{display:flex;justify-content:space-around;align-items:center;text-align:center;gap:.5rem}
+.score-head .t{flex:1;min-width:0}
+.score-head .name{font-weight:700;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score-head .runs{font-size:2.6rem;font-weight:800;line-height:1.1}
+.score-head .bat{font-size:.72rem;color:var(--blue);font-weight:700;min-height:1em}
+.situation{text-align:center;font-weight:700;margin:.4rem 0 .1rem}
+.outs{display:inline-flex;gap:.25rem;vertical-align:middle;margin-left:.3rem}
+.outs i{width:.7rem;height:.7rem;border-radius:50%;border:2px solid var(--red);display:inline-block}
+.outs i.on{background:var(--red)}
+.line{overflow-x:auto}
+.line table{border-collapse:collapse;width:100%;font-size:.85rem}
+.line th,.line td{padding:.3rem .35rem;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.line td:first-child,.line th:first-child{text-align:left;max-width:8rem;overflow:hidden;text-overflow:ellipsis}
+.line .cur{background:#E6EEF8}
+.line .tot{font-weight:800}
+.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:.45rem}
+.pad .btn{padding:.5rem .2rem;font-size:.85rem}
+.pad .hit{background:#E6EEF8;border-color:#BFD2EA;color:var(--blue)}
+.pad .walk{background:#FFF6E0;border-color:#EBD9A6;color:#8A6400}
+.pad .out{background:#FCEBEA;border-color:#E9B8B3;color:var(--red)}
+.pad .run{background:#E3F4EA;border-color:#B5DCC4;color:var(--ok);grid-column:span 2}
+.pad .wide{grid-column:span 2}
+label{display:block;font-size:.85rem;font-weight:600;margin:.5rem 0 .25rem}
+select,input[type=text],input[type=password],textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:.55rem .6rem;background:#FFF}
+textarea{min-height:11rem;resize:vertical;line-height:1.4}
+.row{display:flex;gap:.5rem}
+.row>*{flex:1}
+.log{list-style:none;margin:0;padding:0;font-size:.85rem}
+.log li{padding:.3rem 0;border-bottom:1px solid var(--line)}
+.log li:last-child{border-bottom:0}
+.stats table{border-collapse:collapse;width:100%;font-size:.8rem}
+.stats th,.stats td{padding:.25rem .3rem;text-align:center;border-bottom:1px solid var(--line)}
+.stats td:nth-child(2),.stats th:nth-child(2){text-align:left}
+.stats tr.now td{background:#E6EEF8;font-weight:700}
+h2{font-size:1rem;margin:.1rem 0 .6rem}
+dialog{border:0;border-radius:14px;padding:0;width:min(92vw,440px);max-height:90vh;overflow:auto}
+dialog::backdrop{background:rgba(15,34,54,.55)}
+.dlg{padding:1rem}
+.dlg h3{margin:0 0 .5rem}
+.actions{display:flex;gap:.5rem;margin-top:1rem}
+.actions .btn{flex:1}
+.picker{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.5rem}
+.picker .btn{font-size:.85rem;min-height:2.5rem}
+#toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--navy);color:#FFF;padding:.6rem 1rem;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
+#toast.show{opacity:1}
+.hidden{display:none !important}
+.back{background:none;border:0;color:var(--blue);font-weight:700;padding:.2rem 0;margin-bottom:.5rem;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚾ Baseball en direct</h1>
+  <button type="button" id="btnLogin">Connexion</button>
+</header>
+<main>
+  <!-- Liste des parties -->
+  <section id="viewList">
+    <button type="button" class="btn primary full scorer hidden" id="btnNewGame" style="margin-bottom:.8rem;">➕ Nouvelle partie</button>
+    <div id="gameList"><p class="muted">Chargement…</p></div>
+  </section>
+
+  <!-- Une partie -->
+  <section id="viewGame" class="hidden">
+    <button type="button" class="back" id="btnBack">← Toutes les parties</button>
+    <div class="card">
+      <div class="score-head">
+        <div class="t"><div class="name" id="nameA"></div><div class="runs" id="runsA">0</div><div class="bat" id="batA"></div></div>
+        <div class="muted" style="font-weight:700;">–</div>
+        <div class="t"><div class="name" id="nameB"></div><div class="runs" id="runsB">0</div><div class="bat" id="batB"></div></div>
+      </div>
+      <div class="situation" id="situation"></div>
+      <div class="line" id="lineScore"></div>
+    </div>
+
+    <div class="card scorer hidden" id="scorePad">
+      <label for="batterSel" style="margin-top:0;">Au bâton :</label>
+      <select id="batterSel"></select>
+      <div class="pad" style="margin-top:.6rem;">
+        <button type="button" class="btn hit" data-ev="1B">Simple</button>
+        <button type="button" class="btn hit" data-ev="2B">Double</button>
+        <button type="button" class="btn hit" data-ev="3B">Triple</button>
+        <button type="button" class="btn hit" data-ev="HR">Circuit</button>
+        <button type="button" class="btn walk wide" data-ev="BB">But sur balles</button>
+        <button type="button" class="btn walk wide" data-ev="HBP">Atteint (lancer)</button>
+        <button type="button" class="btn out wide" data-ev="OUT">Retiré</button>
+        <button type="button" class="btn out wide" data-ev="ROUT">Coureur retiré</button>
+        <button type="button" class="btn run" id="btnRun">➕ Point marqué</button>
+        <button type="button" class="btn wide" id="btnHalf">Fin de la demi-manche</button>
+        <button type="button" class="btn wide" id="btnUndo">↶ Annuler</button>
+        <button type="button" class="btn wide" id="btnLineups">✏️ Alignements</button>
+      </div>
+      <button type="button" class="btn danger full" id="btnEnd" style="margin-top:.6rem;">Terminer la partie</button>
+    </div>
+    <div class="card scorer hidden" id="finalPad">
+      <p class="muted" style="margin-top:0;">Partie terminée.</p>
+      <div class="row"><button type="button" class="btn" id="btnReopen">Rouvrir la partie</button><button type="button" class="btn danger admin hidden" id="btnDelete">Supprimer</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Jeu par jeu</h2>
+      <ul class="log" id="log"></ul>
+    </div>
+    <div class="card stats"><h2 id="statsTitleA"></h2><div id="statsA"></div></div>
+    <div class="card stats"><h2 id="statsTitleB"></h2><div id="statsB"></div></div>
+  </section>
+
+  <div class="card admin hidden" id="adminBox" style="margin-top:1rem;">
+    <h2>Administration</h2>
+    <button type="button" class="btn full" id="btnPasswords">🔑 Mots de passe</button>
+  </div>
+</main>
+
+<!-- Connexion -->
+<dialog id="dlgLogin"><form class="dlg" method="dialog" id="formLogin">
+  <h3>Connexion</h3>
+  <label for="loginUser">Identifiant</label>
+  <input type="text" id="loginUser" autocomplete="username" autocapitalize="none" placeholder="admin ou marqueur">
+  <label for="loginPass">Mot de passe</label>
+  <input type="password" id="loginPass" autocomplete="current-password">
+  <div class="actions"><button type="button" class="btn" id="loginCancel">Annuler</button><button type="submit" class="btn primary">Se connecter</button></div>
+</form></dialog>
+
+<!-- Alignements -->
+<dialog id="dlgLineups"><div class="dlg">
+  <h3 id="luTitle">Nouvelle partie</h3>
+  <label for="luNameA">Équipe visiteuse</label>
+  <input type="text" id="luNameA" maxlength="30" placeholder="Nom de l'équipe">
+  <label for="luPlayersA">Alignement visiteur — un joueur par ligne, dans l'ordre des frappeurs</label>
+  <textarea id="luPlayersA" placeholder="12 Tremblay&#10;7 Gagnon&#10;…"></textarea>
+  <label for="luNameB">Équipe locale</label>
+  <input type="text" id="luNameB" maxlength="30" placeholder="Nom de l'équipe">
+  <label for="luPlayersB">Alignement local — un joueur par ligne, dans l'ordre des frappeurs</label>
+  <textarea id="luPlayersB" placeholder="3 Roy&#10;21 Côté&#10;…"></textarea>
+  <div class="actions"><button type="button" class="btn" id="luCancel">Annuler</button><button type="button" class="btn primary" id="luSave">Enregistrer</button></div>
+</div></dialog>
+
+<!-- Point marqué : qui ? -->
+<dialog id="dlgRun"><div class="dlg">
+  <h3>Qui a marqué ?</h3>
+  <div class="picker" id="runPicker"></div>
+  <div class="actions"><button type="button" class="btn" id="runCancel">Annuler</button></div>
+</div></dialog>
+
+<!-- Mots de passe -->
+<dialog id="dlgPwd"><div class="dlg">
+  <h3>Mots de passe</h3>
+  <label for="pwdAdmin">Administrateur (identifiant : admin)</label>
+  <input type="text" id="pwdAdmin" autocomplete="off" autocapitalize="none">
+  <label for="pwdMarker">Marqueur (identifiant : marqueur)</label>
+  <input type="text" id="pwdMarker" autocomplete="off" autocapitalize="none">
+  <div class="actions"><button type="button" class="btn" id="pwdCancel">Annuler</button><button type="button" class="btn primary" id="pwdSave">Enregistrer</button></div>
+</div></dialog>
+
+<!-- Confirmation -->
+<dialog id="dlgAsk"><div class="dlg">
+  <h3 id="askTitle">Confirmer</h3>
+  <p id="askText" style="white-space:pre-line;"></p>
+  <div class="actions"><button type="button" class="btn" id="askNo">Annuler</button><button type="button" class="btn primary" id="askYes">OK</button></div>
+</div></dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; };
+  const ROOT = "_baseball";
+  let toastT = null;
+  function notify(t){ const b = $("toast"); b.textContent = t; b.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => b.classList.remove("show"), 2600); }
+  function ask(text, opts){
+    opts = opts || {};
+    return new Promise(res => {
+      $("askTitle").textContent = opts.title || "Confirmer"; $("askText").textContent = text;
+      $("askYes").textContent = opts.ok || "OK"; $("askYes").className = "btn " + (opts.danger ? "danger" : "primary");
+      const d = $("dlgAsk"), done = v => { d.close(); $("askYes").onclick = $("askNo").onclick = null; res(v); };
+      $("askYes").onclick = () => done(true); $("askNo").onclick = () => done(false);
+      d.showModal();
+    });
+  }
+
+  if(typeof firebase === "undefined"){ $("gameList").innerHTML = '<div class="card"><strong>Connexion au direct impossible ici.</strong><p class="muted">Cette page doit être ouverte depuis son adresse en ligne (ex. yanduch.github.io/OHMTRO/baseball.html), avec Internet. Un aperçu de fichier ou une page enregistrée sur l\'appareil ne peut pas joindre le direct.</p></div>'; return; }
+  firebase.initializeApp({
+    apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
+    authDomain: "ohmtro-26e56.firebaseapp.com",
+    databaseURL: "https://ohmtro-26e56-default-rtdb.firebaseio.com",
+    projectId: "ohmtro-26e56"
+  });
+  const DB = firebase.database(), ref = p => DB.ref(ROOT + "/" + p);
+
+  /* ---------- Rôles : visiteur, marqueur, administrateur ---------- */
+  let role = "";
+  try { role = sessionStorage.getItem("bb_role") || ""; } catch(e){}
+  let config = { adminPwd: "admin", markerPwd: "marqueur" };
+  ref("config").on("value", s => { const v = s.val() || {}; config = { adminPwd: v.adminPwd || "admin", markerPwd: v.markerPwd || "marqueur" }; });
+  const canScore = () => role === "admin" || role === "marqueur";
+  function applyRole(){
+    document.querySelectorAll(".scorer").forEach(e => e.classList.toggle("hidden", !canScore()));
+    document.querySelectorAll(".admin").forEach(e => e.classList.toggle("hidden", role !== "admin"));
+    $("btnLogin").textContent = role ? "Déconnexion (" + (role === "admin" ? "admin" : "marqueur") + ")" : "Connexion";
+    if(curId) render();
+  }
+  on("btnLogin", "click", () => {
+    if(role){ role = ""; try { sessionStorage.removeItem("bb_role"); } catch(e){} applyRole(); notify("Déconnecté."); return; }
+    $("loginUser").value = ""; $("loginPass").value = ""; $("dlgLogin").showModal();
+  });
+  on("loginCancel", "click", () => $("dlgLogin").close());
+  on("formLogin", "submit", ev => {
+    ev.preventDefault();
+    const u = $("loginUser").value.trim().toLowerCase(), p = $("loginPass").value.trim();
+    let r = "";
+    if(u === "admin" && p === config.adminPwd) r = "admin";
+    else if(u === "marqueur" && p === config.markerPwd) r = "marqueur";
+    if(!r){ notify("Identifiant ou mot de passe incorrect."); return; }
+    role = r; try { sessionStorage.setItem("bb_role", r); } catch(e){}
+    $("dlgLogin").close(); applyRole(); notify("Connecté : " + (r === "admin" ? "administrateur" : "marqueur") + ".");
+  });
+  on("btnPasswords", "click", () => { if(role !== "admin") return; $("pwdAdmin").value = config.adminPwd; $("pwdMarker").value = config.markerPwd; $("dlgPwd").showModal(); });
+  on("pwdCancel", "click", () => $("dlgPwd").close());
+  on("pwdSave", "click", () => {
+    const a = $("pwdAdmin").value.trim(), m = $("pwdMarker").value.trim();
+    if(!a || !m){ notify("Les mots de passe ne peuvent pas être vides."); return; }
+    if(a === m){ notify("Les deux mots de passe doivent être différents."); return; }
+    ref("config").set({ adminPwd: a, markerPwd: m }); $("dlgPwd").close(); notify("Mots de passe enregistrés.");
+  });
+
+  /* ---------- Parties ---------- */
+  let games = {}, curId = "", cur = null, curRef = null;
+  const evKey = () => String(Date.now()).padStart(14, "0") + Math.random().toString(36).slice(2, 6);
+  const parsePlayers = txt => String(txt || "").split("\n").map(s => s.trim()).filter(Boolean).slice(0, 30);
+  const evList = g => { const e = (g && g.events) || {}; return Object.keys(e).sort().map(k => Object.assign({ k: k }, e[k])); };
+  const ord = n => n === 1 ? "1re" : n + "e";
+
+  // Tout l'état d'une partie se déduit de la liste des jeux (l'annulation retire simplement le dernier)
+  function compute(g){
+    const lineup = { a: (g.a && g.a.players) || [], b: (g.b && g.b.players) || [] };
+    const st = { half: 0, outs: 0, runs: { a: [], b: [] }, hits: { a: 0, b: 0 }, last: { a: -1, b: -1 }, stats: { a: {}, b: {} }, log: [] };
+    const S = (t, n) => st.stats[t][n] = st.stats[t][n] || { AB: 0, H: 0, D: 0, T: 0, HR: 0, BB: 0, HBP: 0, R: 0, O: 0 };
+    const addRun = (t, n) => { const i = Math.floor(st.half / 2); st.runs[t][i] = (st.runs[t][i] || 0) + 1; if(n) S(t, n).R++; };
+    evList(g).forEach(e => {
+      const t = st.half % 2 === 0 ? "a" : "b", inn = Math.floor(st.half / 2) + 1, side = (st.half % 2 === 0 ? "▲ " : "▼ ") + ord(inn);
+      if(e.t === "HALF"){ st.log.push({ side: side, txt: "Fin de la demi-manche" }); st.half++; st.outs = 0; return; }
+      if(e.t === "RUN"){ addRun(t, e.n); st.log.push({ side: side, txt: "Point marqué" + (e.n ? " par " + e.n : "") }); return; }
+      if(e.t === "ROUT"){ st.outs++; st.log.push({ side: side, txt: "Coureur retiré" }); return; }
+      const n = e.n || "?", s = S(t, n), i = lineup[t].indexOf(n);
+      if(i !== -1) st.last[t] = i;
+      const lab = { "1B": "Simple", "2B": "Double", "3B": "Triple", "HR": "Circuit", "BB": "But sur balles", "HBP": "Atteint par un lancer", "OUT": "Retiré" }[e.t] || e.t;
+      if(["1B","2B","3B","HR","OUT"].indexOf(e.t) !== -1) s.AB++;
+      if(["1B","2B","3B","HR"].indexOf(e.t) !== -1){ s.H++; st.hits[t]++; }
+      if(e.t === "2B") s.D++; if(e.t === "3B") s.T++;
+      if(e.t === "HR"){ s.HR++; addRun(t, n); }
+      if(e.t === "BB") s.BB++; if(e.t === "HBP") s.HBP++;
+      if(e.t === "OUT"){ s.O++; st.outs++; }
+      st.log.push({ side: side, txt: n + " : " + lab + (e.t === "HR" ? " (1 point)" : "") });
+    });
+    st.bat = st.half % 2 === 0 ? "a" : "b";
+    st.inning = Math.floor(st.half / 2) + 1;
+    st.next = { a: lineup.a.length ? (st.last.a + 1) % lineup.a.length : -1, b: lineup.b.length ? (st.last.b + 1) % lineup.b.length : -1 };
+    st.total = { a: st.runs.a.reduce((x, y) => x + (y || 0), 0), b: st.runs.b.reduce((x, y) => x + (y || 0), 0) };
+    st.lineup = lineup;
+    return st;
+  }
+
+  ref("games").on("value", s => { games = s.val() || {}; renderList(); if(curId && !games[curId]) showList(); });
+  function renderList(){
+    const box = $("gameList"); box.textContent = "";
+    const ids = Object.keys(games).sort((x, y) => (games[x].status === "final") - (games[y].status === "final") || (games[y].created || 0) - (games[x].created || 0));
+    if(!ids.length){ box.appendChild(el("p", "muted", "Aucune partie pour le moment.")); return; }
+    ids.forEach(id => {
+      const g = games[id], st = compute(g), fin = g.status === "final";
+      const c = el("div", "card game-item"), left = el("div");
+      left.appendChild(el("strong", null, (g.a && g.a.name || "Visiteur") + " " + st.total.a + " – " + st.total.b + " " + (g.b && g.b.name || "Local")));
+      left.appendChild(el("div", "muted", fin ? "Finale" + (st.inning > 1 || st.half ? " · " + Math.ceil((st.half + 1) / 2) + " manches" : "") : (st.half % 2 === 0 ? "▲ Début " : "▼ Fin ") + "de la " + ord(st.inning) + " manche"));
+      c.appendChild(left); c.appendChild(el("span", "pill" + (fin ? " final" : ""), fin ? "Terminée" : "En direct"));
+      c.addEventListener("click", () => openGame(id));
+      box.appendChild(c);
+    });
+  }
+  function showList(){
+    if(curRef){ curRef.off(); curRef = null; }
+    curId = ""; cur = null;
+    $("viewGame").classList.add("hidden"); $("viewList").classList.remove("hidden");
+    try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+  }
+  function openGame(id){
+    if(curRef) curRef.off();
+    curId = id; cur = games[id] || null;
+    $("viewList").classList.add("hidden"); $("viewGame").classList.remove("hidden");
+    try { history.replaceState(null, "", "#g=" + id); } catch(e){}
+    curRef = ref("games/" + id);
+    curRef.on("value", s => { cur = s.val(); if(cur) render(); });
+    if(cur) render();
+    window.scrollTo(0, 0);
+  }
+  on("btnBack", "click", showList);
+
+  function render(){
+    if(!cur) return;
+    const g = cur, st = compute(g), fin = g.status === "final", nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
+    $("nameA").textContent = nA; $("nameB").textContent = nB;
+    $("runsA").textContent = st.total.a; $("runsB").textContent = st.total.b;
+    $("batA").textContent = !fin && st.bat === "a" ? "● AU BÂTON" : ""; $("batB").textContent = !fin && st.bat === "b" ? "● AU BÂTON" : "";
+    const sit = $("situation"); sit.textContent = "";
+    if(fin) sit.textContent = "Partie terminée";
+    else {
+      sit.appendChild(document.createTextNode((st.bat === "a" ? "▲ Début" : "▼ Fin") + " de la " + ord(st.inning) + " manche · " + st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
+      const o = el("span", "outs"); for(let i = 0; i < Math.max(3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); sit.appendChild(o);
+    }
+    // Pointage par manche
+    const nInn = Math.max(6, st.inning, st.runs.a.length, st.runs.b.length), tb = el("table"), hr = el("tr");
+    hr.appendChild(el("th", null, "")); for(let i = 1; i <= nInn; i++) hr.appendChild(el("th", !fin && i === st.inning ? "cur" : "", i));
+    hr.appendChild(el("th", "tot", "P")); hr.appendChild(el("th", "tot", "CS")); tb.appendChild(hr);
+    [["a", nA], ["b", nB]].forEach(r => {
+      const tr = el("tr"); tr.appendChild(el("td", null, r[1]));
+      for(let i = 0; i < nInn; i++){
+        const played = st.half >= i * 2 + (r[0] === "b" ? 1 : 0);
+        tr.appendChild(el("td", !fin && i + 1 === st.inning && st.bat === r[0] ? "cur" : "", played ? String(st.runs[r[0]][i] || 0) : ""));
+      }
+      tr.appendChild(el("td", "tot", st.total[r[0]])); tr.appendChild(el("td", "tot", st.hits[r[0]])); tb.appendChild(tr);
+    });
+    $("lineScore").textContent = ""; $("lineScore").appendChild(tb);
+    // Marqueur
+    $("scorePad").classList.toggle("hidden", !canScore() || fin);
+    $("finalPad").classList.toggle("hidden", !canScore() || !fin);
+    if(canScore() && !fin){
+      const sel = $("batterSel"), lu = st.lineup[st.bat], prev = sel.dataset.sig === curId + st.half + ":" + st.last[st.bat] ? sel.value : null;
+      sel.textContent = "";
+      lu.forEach((n, i) => { const o = el("option", null, (i + 1) + ". " + n); o.value = n; sel.appendChild(o); });
+      if(!lu.length){ const o = el("option", null, "Aucun joueur : ajoutez l'alignement"); o.value = ""; sel.appendChild(o); }
+      sel.value = prev && lu.indexOf(prev) !== -1 ? prev : (lu[st.next[st.bat]] || "");
+      sel.dataset.sig = curId + st.half + ":" + st.last[st.bat];
+    }
+    // Jeu par jeu (le plus récent en haut)
+    const log = $("log"); log.textContent = "";
+    if(!st.log.length) log.appendChild(el("li", "muted", "Aucun jeu pour le moment."));
+    st.log.slice(-30).reverse().forEach(l => { const li = el("li"); li.appendChild(el("span", "muted", l.side + " · ")); li.appendChild(document.createTextNode(l.txt)); log.appendChild(li); });
+    // Statistiques par joueur, dans l'ordre de l'alignement
+    [["a", nA, "statsA", "statsTitleA"], ["b", nB, "statsB", "statsTitleB"]].forEach(r => {
+      $(r[3]).textContent = r[1] + " — alignement";
+      const names = st.lineup[r[0]].slice(); Object.keys(st.stats[r[0]]).forEach(n => { if(names.indexOf(n) === -1) names.push(n); });
+      const box = $(r[2]); box.textContent = "";
+      if(!names.length){ box.appendChild(el("p", "muted", "Aucun joueur.")); return; }
+      const t = el("table"), h = el("tr");
+      ["#", "Joueur", "PA", "CS", "2B", "3B", "CC", "BB", "AL", "P", "RET"].forEach(x => h.appendChild(el("th", null, x))); t.appendChild(h);
+      names.forEach((n, i) => {
+        const s = st.stats[r[0]][n] || { AB: 0, H: 0, D: 0, T: 0, HR: 0, BB: 0, HBP: 0, R: 0, O: 0 };
+        const tr = el("tr", !fin && st.bat === r[0] && st.next[r[0]] === i ? "now" : "");
+        [i < st.lineup[r[0]].length ? i + 1 : "–", n, s.AB, s.H, s.D, s.T, s.HR, s.BB, s.HBP, s.R, s.O].forEach(x => tr.appendChild(el("td", null, x)));
+        t.appendChild(tr);
+      });
+      box.appendChild(t);
+    });
+  }
+
+  function push(e){ if(!canScore() || !curId) return; ref("games/" + curId + "/events/" + evKey()).set(e); }
+  document.querySelectorAll("[data-ev]").forEach(b => b.addEventListener("click", () => {
+    const t = b.dataset.ev;
+    if(t === "ROUT"){ push({ t: "ROUT" }); return; }
+    const n = $("batterSel").value;
+    if(!n){ notify("Ajoutez d'abord l'alignement (✏️ Alignements)."); return; }
+    push({ t: t, n: n });
+  }));
+  on("btnRun", "click", () => {
+    if(!cur) return;
+    const st = compute(cur), box = $("runPicker"); box.textContent = "";
+    st.lineup[st.bat].forEach(n => { const b = el("button", "btn", n); b.type = "button"; b.onclick = () => { push({ t: "RUN", n: n }); $("dlgRun").close(); }; box.appendChild(b); });
+    const any = el("button", "btn", "Sans nom"); any.type = "button"; any.onclick = () => { push({ t: "RUN" }); $("dlgRun").close(); }; box.appendChild(any);
+    $("dlgRun").showModal();
+  });
+  on("runCancel", "click", () => $("dlgRun").close());
+  on("btnHalf", "click", () => {
+    const st = compute(cur);
+    ask("Terminer la demi-manche ? " + ((st.bat === "a" ? (cur.b && cur.b.name) || "Local" : (cur.a && cur.a.name) || "Visiteur")) + " passe au bâton.", { title: "Changement", ok: "Oui" })
+      .then(ok => { if(ok) push({ t: "HALF" }); });
+  });
+  on("btnUndo", "click", () => {
+    const ev = evList(cur); if(!ev.length){ notify("Rien à annuler."); return; }
+    ref("games/" + curId + "/events/" + ev[ev.length - 1].k).remove(); notify("Dernier jeu annulé.");
+  });
+  on("btnEnd", "click", () => ask("Terminer cette partie ?", { title: "Fin de partie", ok: "Terminer", danger: true }).then(ok => { if(ok) ref("games/" + curId + "/status").set("final"); }));
+  on("btnReopen", "click", () => { if(canScore()) ref("games/" + curId + "/status").set("live"); });
+  on("btnDelete", "click", () => ask("Supprimer définitivement cette partie ?", { title: "Supprimer", ok: "Supprimer", danger: true })
+    .then(ok => { if(ok && role === "admin"){ const id = curId; showList(); ref("games/" + id).remove(); } }));
+
+  // Nouvelle partie / modifier les alignements
+  let luMode = "new";
+  function openLineups(mode){
+    luMode = mode; const g = mode === "edit" ? cur : null;
+    $("luTitle").textContent = g ? "Alignements" : "Nouvelle partie";
+    $("luNameA").value = g && g.a ? g.a.name || "" : ""; $("luNameB").value = g && g.b ? g.b.name || "" : "";
+    $("luPlayersA").value = g && g.a && g.a.players ? g.a.players.join("\n") : "";
+    $("luPlayersB").value = g && g.b && g.b.players ? g.b.players.join("\n") : "";
+    $("dlgLineups").showModal();
+  }
+  on("btnNewGame", "click", () => { if(canScore()) openLineups("new"); });
+  on("btnLineups", "click", () => openLineups("edit"));
+  on("luCancel", "click", () => $("dlgLineups").close());
+  on("luSave", "click", () => {
+    if(!canScore()) return;
+    const a = { name: $("luNameA").value.trim().slice(0, 30) || "Visiteur", players: parsePlayers($("luPlayersA").value) };
+    const b = { name: $("luNameB").value.trim().slice(0, 30) || "Local", players: parsePlayers($("luPlayersB").value) };
+    if(a.name === b.name){ notify("Donnez un nom différent aux deux équipes."); return; }
+    const dupe = [a, b].filter(t => t.players.some((p, i) => t.players.indexOf(p) !== i))[0];
+    if(dupe){ notify("Un joueur apparaît deux fois dans l'alignement de " + dupe.name + "."); return; }
+    $("dlgLineups").close();
+    if(luMode === "edit"){ ref("games/" + curId + "/a").set(a); ref("games/" + curId + "/b").set(b); notify("Alignements enregistrés."); return; }
+    const id = "g" + evKey();
+    ref("games/" + id).set({ created: Date.now(), status: "live", a: a, b: b });
+    games[id] = { created: Date.now(), status: "live", a: a, b: b };
+    openGame(id); notify("Partie créée. Bonne partie !");
+  });
+
+  applyRole();
+  const m = /#g=([\w-]+)/.exec(location.hash);
+  if(m) ref("games/" + m[1]).once("value").then(s => { if(s.val()){ games[m[1]] = s.val(); openGame(m[1]); } });
+});
+</script>
+</body>
+</html>
