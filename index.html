@@ -443,6 +443,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 .cal-item{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:.5rem .7rem}
 .cal-item.todo{border-left-color:var(--warn)}
 .cal-item.played{border-left-color:var(--ok)}
+.ics-h{font-size:.9rem;margin:1rem 0 .3rem}
+.ics-team{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.5rem .6rem;margin-bottom:.45rem}
+.ics-file{font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:.3rem;letter-spacing:.02em}
+.ics-tag{flex:none;font-size:.7rem;font-weight:700;padding:.15rem .45rem;border-radius:999px;background:#E3F4EA;color:#1F7A44}
+.ics-tag.upd{background:#E6EEF8;color:var(--blue)}
 .cal-main{min-width:0}
 .cal-when{font-size:.8rem;color:var(--muted)}
 .cal-teams{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
@@ -784,11 +789,29 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <select id="calCatSelect" aria-label="Catégorie" style="flex:0 1 7rem;"></select>
       <select id="calTeamFilter" aria-label="Équipe"></select>
     </div>
-    <button type="button" class="act-1" id="calAdd" style="width:100%;min-height:2.6rem;margin-bottom:.8rem;font-size:.9rem;">➕ Ajouter une partie</button>
+    <button type="button" class="act-1" id="calAdd" style="width:100%;min-height:2.6rem;margin-bottom:.5rem;font-size:.9rem;">➕ Ajouter une partie</button>
+    <button type="button" class="act-2 super-only" id="calImport" style="width:100%;min-height:2.4rem;margin-bottom:.8rem;font-size:.88rem;">📥 Importer un horaire (.ics)</button>
+    <input type="file" id="calIcsFile" accept=".ics,text/calendar" hidden>
     <ul class="cal-list" id="calList"></ul>
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="calBack">Retour</button>
       <button type="button" class="act-2" id="calClose">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="calImportSheet">
+  <div class="sheet-in">
+    <h2>Importer un horaire</h2>
+    <p class="ctx">Les parties seront ajoutées à : <strong id="icsTarget"></strong></p>
+    <h3 class="ics-h">Équipes du fichier</h3>
+    <p class="ctx" style="margin-top:0;">Associez chaque nom à une équipe enregistrée, ou gardez « Autre équipe ». C'est retenu pour la prochaine importation.</p>
+    <div id="icsTeams"></div>
+    <h3 class="ics-h" id="icsCount"></h3>
+    <ul class="cal-list" id="icsGames"></ul>
+    <div class="actions" style="margin-top:1.2rem;">
+      <button type="button" class="act-2" id="icsCancel">Annuler</button>
+      <button type="button" class="act-1" id="icsSave">Importer</button>
     </div>
   </div>
 </dialog>
@@ -803,12 +826,12 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <div class="field-group" style="margin-top:.7rem;">
       <label for="calTeamB">Équipe visiteuse :</label>
       <select id="calTeamB" class="full-input"></select>
-      <input type="text" id="calOtherB" class="full-input" maxlength="18" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
+      <input type="text" id="calOtherB" class="full-input" maxlength="30" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
     </div>
     <div class="field-group" style="margin-top:.7rem;">
       <label for="calTeamA">Équipe locale :</label>
       <select id="calTeamA" class="full-input"></select>
-      <input type="text" id="calOtherA" class="full-input" maxlength="18" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
+      <input type="text" id="calOtherA" class="full-input" maxlength="30" placeholder="Nom de l'équipe" style="display:none;margin-top:.3rem;">
     </div>
     <div class="field-group" style="margin-top:.7rem;">
       <label for="calArena">Aréna (facultatif) :</label>
@@ -2736,6 +2759,20 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   on("calArena", "change", arenaChanged);
 
+  // Ajoute une aréna à la liste commune (ou retrouve celle du même nom) ; rend son identifiant
+  function addArena(name, city, address){
+    name = String(name).trim().slice(0, 60);
+    const same = arenaList().filter(a => a.name.toLowerCase() === name.toLowerCase())[0];
+    if(same) return same.id;
+    let id = arenaKey(name);
+    while(arenas[id]) id += "_2";
+    const a = { name: name, city: String(city || "").trim().slice(0, 60), address: String(address || "").trim().slice(0, 120) };
+    if(!arenasStored){ const all = Object.assign(defaultArenas(), arenas); all[id] = a; dbArenas.set(all); arenasStored = true; }   // premier ajout : la liste de départ est enregistrée aussi
+    else dbArenas.child(id).set(a);
+    arenas[id] = a;
+    return id;
+  }
+
   /* ============ Gestion du calendrier ============ */
   // Parties prévues d'une catégorie : …/<catégorie>/calendar/<id> = { date, time, a (local), b (visiteur), aKey, bKey, place,
   // scoreA, scoreB, end ("", "OT" prolongation, "TB" tirs de barrage), histKey (partie marquée sur le tableau) }
@@ -2898,7 +2935,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   const calName = side => {
     const U = side.toUpperCase(), v = $("calTeam" + U).value;
-    if(v === "__other") return { key: "", name: str($("calOther" + U).value, "") };
+    if(v === "__other") return { key: "", name: $("calOther" + U).value.trim().slice(0, 30) };
     return { key: v, name: v && calPresets[v] ? calPresets[v].name : "" };
   };
   on("calCancel", "click", () => swapDlg("calEditSheet", "calendarSheet"));
@@ -2918,15 +2955,7 @@ document.addEventListener("DOMContentLoaded", function(){
       // Nouvelle aréna : ajoutée à la liste commune pour les prochaines parties
       const name = $("calNewArenaName").value.trim().slice(0, 60);
       if(!name){ notify("Écrivez le nom de la nouvelle aréna, ou choisissez-en une dans la liste.", "info"); return; }
-      const same = arenaList().filter(a => a.name.toLowerCase() === name.toLowerCase())[0];
-      let id = same ? same.id : arenaKey(name);
-      if(!same){
-        while(arenas[id]) id += "_2";
-        const a = { name: name, city: $("calNewArenaCity").value.trim().slice(0, 60), address: $("calNewArenaAddr").value.trim().slice(0, 120) };
-        if(!arenasStored){ const all = defaultArenas(); all[id] = a; dbArenas.set(all); }   // première ajout : la liste de départ est enregistrée aussi
-        else dbArenas.child(id).set(a);
-        arenas[id] = a;
-      }
+      const id = addArena(name, $("calNewArenaCity").value, $("calNewArenaAddr").value);
       entry.arena = id; entry.place = arenas[id].name;
     } else if(aid && arenas[aid]){
       entry.arena = aid; entry.place = arenas[aid].name;
@@ -2943,6 +2972,145 @@ document.addEventListener("DOMContentLoaded", function(){
       ref(calOrg + "/" + cat + "/calendar/" + id).remove();
       swapDlg("calEditSheet", "calendarSheet");
     });
+  });
+
+  /* --- Importation d'un horaire .ics (Spordle et autres) : super administrateur --- */
+  // Le fichier ne dit pas la catégorie : les parties vont dans la catégorie choisie dans la fenêtre du calendrier.
+  // Chaque partie garde le numéro du fichier (UID) : réimporter le même horaire met les parties à jour, sans doublon.
+  // Les noms d'équipes du fichier sont associés une fois aux équipes enregistrées ; l'association est retenue (…/<cat>/icsTeams).
+  const normKey = s => arenaKey(s);
+  function icsParse(text){
+    const lines = String(text).replace(/\r\n?/g, "\n").replace(/\n[ \t]/g, "").split("\n");
+    const unesc = v => v.replace(/\\n/gi, " ").replace(/\\([,;\\])/g, "$1").trim();
+    const out = []; let ev = null;
+    lines.forEach(line => {
+      if(/^BEGIN:VEVENT/i.test(line)){ ev = {}; return; }
+      if(/^END:VEVENT/i.test(line)){ if(ev) out.push(ev); ev = null; return; }
+      if(!ev) return;
+      const i = line.indexOf(":"); if(i < 0) return;
+      const head = line.slice(0, i).split(";"), name = head[0].toUpperCase();
+      ev[name] = unesc(line.slice(i + 1)); ev[name + "_P"] = head.slice(1).join(";");
+    });
+    return out.map(e => {
+      const m = /^(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d)(\d\d)?(Z)?)?/.exec(e.DTSTART || ""); if(!m) return null;
+      let date, time = "";
+      if(m[4] && m[7]){                                         // heure universelle : convertie à l'heure locale
+        const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]));
+        date = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); time = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      } else { date = m[1] + "-" + m[2] + "-" + m[3]; if(m[4]) time = m[4] + ":" + m[5]; }
+      // « Match - VISITEUR @ LOCAL »
+      let sum = String(e.SUMMARY || "").replace(/^\s*(match|partie|game)\s*[-:–]\s*/i, "");
+      const at = sum.split(/\s+@\s+/);
+      if(at.length !== 2) { const vs = sum.split(/\s+(?:vs\.?|contre)\s+/i); if(vs.length !== 2) return null; at[0] = vs[1]; at[1] = vs[0]; }
+      // « Aréna X (Glace 1) - 5225 Rue de Courcelette, Trois-Rivières, QC »
+      const loc = String(e.LOCATION || ""), dash = loc.indexOf(" - ");
+      const arenaName = (dash >= 0 ? loc.slice(0, dash) : loc.split(",")[0]).replace(/\s*\((glace|patinoire|rink|surface)[^)]*\)\s*/ig, " ").replace(/\s+/g, " ").trim();
+      const parts = (dash >= 0 ? loc.slice(dash + 3) : "").split(",").map(x => x.trim()).filter(Boolean);
+      if(parts.length && /^(qc|québec|quebec|on|ontario|canada)$/i.test(parts[parts.length - 1])) parts.pop();
+      const city = parts.length > 1 ? parts.pop() : "";
+      const address = parts.join(", ").replace(/^(\d+[a-z]?)\s+(rue|av\.?|avenue|boul\.?|boulevard|ch\.?|chemin|rang|route|place|montée)\b/i, (s0, n, w) => n + ", " + w.toLowerCase());
+      return { uid: String(e.UID || ""), date: date, time: time, b: at[0].trim(), a: at[1].trim(), arenaName: arenaName, city: city, address: address };
+    }).filter(Boolean);
+  }
+  // NOM EN MAJUSCULES → Nom en majuscules (les sigles courts restent en majuscules)
+  const niceName = s => String(s).trim().replace(/\s+/g, " ").replace(/[^\s-]+/g, w => (w.length <= 4 && w === w.toUpperCase() && /[A-Z]/.test(w) && !/[AEIOUYÉÈ]/.test(w)) ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).slice(0, 30);
+  function icsGuessTeam(fileName, saved){
+    const k = normKey(fileName);
+    if(saved && typeof saved[k] === "string" && (saved[k].charAt(0) === "=" || saved[k] === "" || calPresets[saved[k]])) return (saved[k] === "" || saved[k].charAt(0) === "=") ? "__other" : saved[k];
+    const keys = calTeams(calCat);
+    const exact = keys.filter(t => normKey(calPresets[t].name) === k)[0]; if(exact) return exact;
+    const inside = keys.filter(t => { const n = normKey(calPresets[t].name); return n.length >= 3 && ("_" + k + "_").indexOf("_" + n + "_") !== -1; })
+                       .sort((x, y) => normKey(calPresets[y].name).length - normKey(calPresets[x].name).length);
+    return inside[0] || "__other";
+  }
+  function icsArena(g){
+    const k = normKey(g.arenaName).replace(/^(arena|centre|complexe|colisee)_/, "");
+    const hit = arenaList().filter(a => { const n = normKey(a.name).replace(/^(arena|centre|complexe|colisee)_/, ""); return n === k; })[0];
+    return hit ? hit.id : "";
+  }
+  let icsGames = [], icsNames = [], icsMap = {}, icsSaved = {};
+  on("calImport", "click", () => { if(isSuper() && calCat) $("calIcsFile").click(); });
+  on("calIcsFile", "change", () => {
+    const f = $("calIcsFile").files[0]; $("calIcsFile").value = ""; if(!f || !isSuper()) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      icsGames = icsParse(rd.result);
+      if(!icsGames.length){ notify("Aucune partie trouvée dans ce fichier.\nVérifiez qu'il s'agit bien d'un horaire au format .ics.", "info"); return; }
+      ref(calOrg + "/" + calCat + "/icsTeams").once("value").then(snap => {
+        icsSaved = obj(snap.val()); icsMap = {};
+        const names = {}; icsGames.forEach(g => { names[g.b] = true; names[g.a] = true; });
+        icsNames = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true }));
+        icsNames.forEach(n => { const v = icsGuessTeam(n, icsSaved), s = icsSaved[normKey(n)];
+          icsMap[n] = { key: v, other: (typeof s === "string" && s.charAt(0) === "=" && s.length > 1) ? s.slice(1) : niceName(n) }; });
+        icsOpen();
+      }, () => notify("Impossible de lire les associations d'équipes.", "error"));
+    };
+    rd.onerror = () => notify("Impossible de lire ce fichier.", "error");
+    rd.readAsText(f);
+  });
+  const icsTeamOf = n => { const m = icsMap[n]; return m.key !== "__other" && calPresets[m.key] ? { key: m.key, name: calPresets[m.key].name } : { key: "", name: (String(m.other || "").trim() || niceName(n)).slice(0, 30) }; };
+  const icsId = g => g.uid ? "ics" + cleanKey(g.uid).slice(0, 40) : "";
+  function icsOpen(){
+    $("icsTarget").textContent = pwdOrgLabelOf(calOrg) + " · " + calCat.toUpperCase();
+    const box = $("icsTeams"); box.textContent = "";
+    const keys = calTeams(calCat), items = keys.map(k => ({ value: k, label: calPresets[k].name + (calPresets[k].own ? "" : " (adverse)") }));
+    items.push({ value: "__other", label: "Autre équipe (nom ci-dessous)" });
+    icsNames.forEach(n => {
+      const row = el("div", "ics-team"), lab = el("div", "ics-file", n), sel = el("select", "full-input"), other = el("input", "full-input");
+      fillSelect(sel, items, icsMap[n].key);
+      other.type = "text"; other.maxLength = 30; other.value = icsMap[n].other; other.placeholder = "Nom de l'équipe";
+      other.style.display = icsMap[n].key === "__other" ? "" : "none"; other.style.marginTop = ".3rem";
+      sel.addEventListener("change", () => { icsMap[n].key = sel.value; other.style.display = sel.value === "__other" ? "" : "none"; icsRenderGames(); });
+      other.addEventListener("input", () => { icsMap[n].other = other.value; icsRenderGames(); });
+      row.appendChild(lab); row.appendChild(sel); row.appendChild(other); box.appendChild(row);
+    });
+    icsRenderGames();
+    swapDlg("calendarSheet", "calImportSheet");
+  }
+  function icsRenderGames(){
+    const list = $("icsGames"); list.textContent = "";
+    const have = {}; calMgr.forEach(c => { have[c.id] = c; });
+    let nNew = 0, nUpd = 0;
+    icsGames.slice().sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time)).forEach(g => {
+      const A = icsTeamOf(g.a), B = icsTeamOf(g.b), aid = icsArena(g), old = have[icsId(g)];
+      const li = el("li", "cal-item"), box = el("div", "cal-main");
+      box.appendChild(el("div", "cal-when", calWhen(g) + " · " + (aid ? arenas[aid].name : g.arenaName || "Aréna non précisée")));
+      const line = el("div", "cal-teams"); line.appendChild(el("strong", null, B.name + " @ " + A.name)); box.appendChild(line);
+      if(g.arenaName && !aid) box.appendChild(el("div", "cal-note", "Nouvelle aréna ajoutée à la liste" + (g.city ? " (" + g.city + ")" : "")));
+      li.appendChild(box);
+      li.appendChild(el("span", "ics-tag" + (old ? " upd" : ""), old ? "Mise à jour" : "Nouvelle"));
+      if(old) nUpd++; else nNew++;
+      list.appendChild(li);
+    });
+    $("icsCount").textContent = icsGames.length + " partie" + (icsGames.length > 1 ? "s" : "") + " : " + nNew + " nouvelle" + (nNew > 1 ? "s" : "") + ", " + nUpd + " mise" + (nUpd > 1 ? "s" : "") + " à jour";
+  }
+  const pwdOrgLabelOf = k => { const o = organizationsList.find(x => x.id === k); return o ? o.name : String(k).toUpperCase(); };
+  on("icsCancel", "click", () => swapDlg("calImportSheet", "calendarSheet"));
+  on("icsSave", "click", () => {
+    if(!isSuper()) return;
+    for(let i = 0; i < icsNames.length; i++){
+      const m = icsMap[icsNames[i]];
+      if(m.key === "__other" && !String(m.other || "").trim()){ notify("Écrivez un nom pour l'équipe « " + icsNames[i] + " ».", "info"); return; }
+    }
+    const have = {}; calMgr.forEach(c => { have[c.id] = c; });
+    const base = calOrg + "/" + calCat; let added = 0, updated = 0;
+    icsGames.forEach(g => {
+      const A = icsTeamOf(g.a), B = icsTeamOf(g.b), id = icsId(g) || uid(), old = have[id];
+      let aid = icsArena(g);
+      if(!aid && g.arenaName) aid = addArena(g.arenaName, g.city, g.address);
+      const entry = { date: g.date, time: g.time, a: A.name, b: B.name, aKey: A.key, bKey: B.key,
+                      place: aid ? arenas[aid].name : "", arena: aid || "", end: old ? old.end : "", histKey: old ? old.histKey : "", ics: g.uid };
+      if(old && old.played){ entry.scoreA = old.scoreA; entry.scoreB = old.scoreB; }
+      if(old && old.started) entry.started = old.started;
+      if(A.name === B.name) return;
+      ref(base + "/calendar/" + id).set(entry);
+      if(old) updated++; else added++;
+    });
+    const map = Object.assign({}, icsSaved);
+    icsNames.forEach(n => { const m = icsMap[n]; map[normKey(n)] = m.key === "__other" ? "=" + icsTeamOf(n).name : m.key; });
+    ref(base + "/icsTeams").set(map);
+    swapDlg("calImportSheet", "calendarSheet");
+    notify("Horaire importé dans " + calCat.toUpperCase() + " : " + added + " partie" + (added > 1 ? "s" : "") + " ajoutée" + (added > 1 ? "s" : "") + ", " + updated + " mise" + (updated > 1 ? "s" : "") + " à jour.");
   });
 
   /* --- Nouvelle partie : partir d'une partie prévue au calendrier --- */
@@ -3962,4 +4130,4 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
 </body>
-</html>
+        </html>
