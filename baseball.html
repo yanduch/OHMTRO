@@ -72,6 +72,13 @@ main{max-width:640px;margin:0 auto;padding:1rem}
 #cheerList .empty{color:var(--muted);font-style:italic;padding-top:.3rem}
 @keyframes cheerIn{0%{background:rgba(249,168,37,.45)}100%{background:transparent}}
 .cheerbtn{width:100%;min-height:2.4rem;font-size:.85rem;margin-top:.1rem}
+.talkdot{width:2.3rem;height:2.3rem;border-radius:50%;border:2px solid var(--ok-bd);background:var(--ok-bg);color:var(--ok);font-size:1rem;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;flex:none}
+.talkdot.rec{background:#C62828;border-color:#C62828;color:#FFF;animation:recPulse 1s infinite}
+.talkdot.busy{opacity:.6}
+.nextbar{position:relative;overflow:hidden;height:1.35rem;margin:.1rem 0 .45rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:.8rem;color:var(--muted);font-weight:600}
+.nextbar span{position:absolute;top:50%;left:0;white-space:nowrap;transform:translate(var(--from),-50%);animation:scrollL var(--dur) linear infinite}
+.nextbar b{color:var(--ink)}
+@keyframes scrollL{from{transform:translate(var(--from),-50%)}to{transform:translate(var(--to),-50%)}}
 #halfMsg{position:fixed;left:50%;top:13.5rem;transform:translateX(-50%);width:min(92vw,26rem);background:var(--surface);color:var(--ink);border:2px solid var(--tc,var(--line));border-radius:14px;padding:1rem 1.1rem;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:70;text-align:center;animation:msgIn .4s ease-out;cursor:pointer}
 #halfMsg strong{display:block;font-size:1.05rem;margin-bottom:.35rem}
 #halfMsg p{margin:.2rem 0;font-size:.95rem}
@@ -200,7 +207,7 @@ select{color:var(--ink)}
 
   <!-- Une partie -->
   <section id="viewGame" class="hidden">
-    <div class="toprow"><button type="button" class="back" id="btnBack">← Toutes les parties</button><span class="live hidden" id="liveBadge">En direct</span></div>
+    <div class="toprow"><button type="button" class="back" id="btnBack">← Toutes les parties</button><button type="button" class="talkdot admin hidden" id="btnTalk2" aria-label="Maintenir pour annoncer" title="Maintenir pour annoncer">🎙️</button><span class="live hidden" id="liveBadge">En direct</span></div>
     <div class="card">
       <div class="score-head">
         <div class="t"><div class="name" id="nameA"></div><div class="runs" id="runsA">0</div></div>
@@ -213,6 +220,7 @@ select{color:var(--ink)}
         <fieldset class="cheers" id="cheersBox"><legend><span class="lg">MESSAGES</span></legend><div id="cheerList"></div></fieldset>
         <button type="button" class="ctog" id="btnCheerToggle">Cacher</button>
       </div>
+      <div class="nextbar" id="nextBar"><span id="nextText"></span></div>
       <button type="button" class="btn cheerbtn" id="btnCheer">💬 Envoyer un encouragement</button>
       <div class="line" id="lineScore"></div>
     </div>
@@ -1006,6 +1014,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let rec = null, myVoiceId = "", voiceSeen = null;
   function talkUI(state, secs){
     const b = $("btnTalk"); b.classList.toggle("rec", state === "rec"); b.classList.toggle("busy", state === "busy");
+    const d = $("btnTalk2"); d.classList.toggle("rec", state === "rec"); d.classList.toggle("busy", state === "busy");
+    d.textContent = state === "rec" ? String(secs) : state === "busy" ? "…" : "🎙️";
     $("talkLabel").textContent = state === "rec" ? "🔴 Parlez… " + secs + " s" : state === "busy" ? "Envoi…" : "🎙️ Maintenir pour annoncer";
     $("talkHint").textContent = state === "rec" ? "Relâchez pour envoyer" : "10 secondes maximum · relâchez pour envoyer";
   }
@@ -1062,10 +1072,11 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => ref("voice").once("value").then(s => { const v = s.val(); if(v && v.id === id) ref("voice").remove(); }), 90000);   // rien ne s'accumule
     }, () => { talkUI(); notify("Envoi impossible. Vérifiez la connexion."); });
   }
-  const tb = $("btnTalk");
-  tb.addEventListener("pointerdown", e => { try { tb.setPointerCapture(e.pointerId); } catch(x){} talkStart(e); });
-  ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => tb.addEventListener(t, () => talkStop()));
-  tb.addEventListener("contextmenu", e => e.preventDefault());
+  [$("btnTalk"), $("btnTalk2")].forEach(tb => {
+    tb.addEventListener("pointerdown", e => { try { tb.setPointerCapture(e.pointerId); } catch(x){} talkStart(e); });
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => tb.addEventListener(t, () => talkStop()));
+    tb.addEventListener("contextmenu", e => e.preventDefault());
+  });
   // Réception : chaque appareil joue l'annonce (sauf celui qui l'a enregistrée)
   ref("voice").on("value", snap => {
     const v = snap.val();
@@ -1228,6 +1239,32 @@ document.addEventListener("DOMContentLoaded", () => {
     $("dlgCheer").close(); notify("Message envoyé. Merci !");
   });
 
+  /* ---------- Bandeau : les 3 prochains frappeurs et leur fiche (coups sûrs / présences) ---------- */
+  let nextSig = "";
+  function setNextBar(html, plain){
+    const bar = $("nextBar"), sp = $("nextText");
+    if(plain === nextSig) return;                                  // même texte : on laisse le défilement continuer
+    nextSig = plain; sp.innerHTML = html;
+    const w = bar.clientWidth || 300, tw = sp.scrollWidth || 300, speed = 38;   // pixels par seconde : lent
+    sp.style.setProperty("--from", w + "px"); sp.style.setProperty("--to", (-tw) + "px");
+    sp.style.setProperty("--dur", ((w + tw) / speed) + "s");
+    sp.style.animation = "none"; void sp.offsetWidth; sp.style.animation = "";
+  }
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  function updateNextBar(st, fin, regDone){
+    const lu = st.lineup[st.bat];
+    if(fin || regDone || !lu.length){ $("nextBar").classList.add("hidden"); nextSig = ""; return; }
+    $("nextBar").classList.remove("hidden");
+    const team = st.bat === "a" ? ((cur.a && cur.a.name) || "Visiteur") : ((cur.b && cur.b.name) || "Local");
+    const items = [];
+    for(let i = 0; i < Math.min(3, lu.length); i++){
+      const n = lu[(st.next[st.bat] + i) % lu.length], s = st.stats[st.bat][n] || blank();
+      items.push([short(n), s.H + "/" + s.AB]);
+    }
+    const plain = team + "|" + items.map(x => x.join(" ")).join("|");
+    setNextBar("⚾ " + esc(team) + " — Prochains frappeurs : " + items.map((x, i) => (i + 1) + ". <b>" + esc(x[0]) + "</b> (" + x[1] + ")").join(" · "), plain);
+  }
+
   function render(){
     if(!cur) return;
     const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
@@ -1282,6 +1319,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lu = st.lineup[st.bat], selV = canScore() ? $("batterSel").value : "";
     drawDiamond(g, st, fin, fin || regDone ? "" : (selV && lu.indexOf(selV) !== -1 ? selV : lu[st.next[st.bat]] || ""));
     renderCheers();
+    updateNextBar(st, fin, regDone);
     // Jeu par jeu (le plus récent en haut)
     const log = $("log"); log.textContent = "";
     if(!st.log.length) log.appendChild(el("li", "muted", "Aucun jeu pour le moment."));
