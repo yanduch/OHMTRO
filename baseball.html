@@ -87,7 +87,7 @@ dialog::backdrop{background:var(--backdrop)}
 .base{position:absolute;transform:translate(-50%,-50%) rotate(45deg);width:1.9rem;height:1.9rem;border-radius:4px;border:2px solid var(--line);background:var(--field)}
 .base.home{transform:translate(-50%,-50%);border-radius:50%;width:1.7rem;height:1.7rem}
 .blab{position:absolute;transform:translate(-50%,-50%);font-size:.7rem;font-weight:700;color:var(--muted);pointer-events:none}
-.runner{position:absolute;transform:translate(-50%,-50%);max-width:7.2rem;padding:.3rem .6rem;border-radius:999px;background:var(--warn);color:#FFF;font-size:.85rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .32s ease-in-out,top .32s ease-in-out,opacity .3s;z-index:2}
+.runner{position:absolute;transform:translate(-50%,-50%);max-width:7.2rem;padding:.3rem .6rem;border-radius:999px;background:var(--warn);color:#FFF;font-size:.85rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left 1.28s ease-in-out,top 1.28s ease-in-out,opacity .4s;z-index:2}
 button.runner{cursor:pointer}
 .runner.batter{background:var(--primary);font-size:.8rem}
 .runner.gone{opacity:0}
@@ -116,7 +116,7 @@ select{color:var(--ink)}
 <body>
 <header>
   <h1>⚾ <span id="appTitle">Baseball en direct</span></h1>
-  <div class="hbtns"><button type="button" id="btnTheme" aria-label="Mode sombre ou clair">🌙</button><button type="button" id="btnLogin">Connexion</button></div>
+  <div class="hbtns"><button type="button" id="btnSound" aria-label="Musique">🔊</button><button type="button" id="btnTheme" aria-label="Mode sombre ou clair">🌙</button><button type="button" id="btnLogin">Connexion</button></div>
 </header>
 <main>
   <!-- Liste des parties -->
@@ -596,19 +596,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && cur && canScore() && !isFinal(cur)) keepAwake(true); });
   /* ---------- Losange : coureurs animés, frappeur au marbre, confettis quand un coureur croise le marbre ---------- */
+  const STEP = 1340;                                              // durée d'un but à l'autre (ms)
   const SPOT = { 0: [50, 90], 1: [87, 51], 2: [50, 12], 3: [13, 51], 4: [50, 90] };
   const short = n => String(n).replace(/^\d+\s+/, "");
   let dPrev = null, dTokens = {}, dSt = null, dTimers = [];
   const place = (x, b) => { x.style.left = SPOT[b][0] + "%"; x.style.top = SPOT[b][1] + "%"; };
   function walk(x, path, done){                                   // d'un but à l'autre, en suivant les lignes
     let i = 0;
-    const step = () => { if(i >= path.length){ if(done) done(); return; } place(x, path[i++]); dTimers.push(setTimeout(step, 340)); };
+    const step = () => { if(i >= path.length){ if(done) done(); return; } place(x, path[i++]); dTimers.push(setTimeout(step, STEP)); };
     step();
   }
-  function confetti(){
+  function confetti(gold){
     if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const box = el("div", "confetti"), cols = ["#F2C14E", "#E4572E", "#29B6F6", "#66BB6A", "#AB47BC", "#FFFFFF"];
-    for(let i = 0; i < 90; i++){
+    const box = el("div", "confetti"), cols = gold ? ["#FFD700", "#F5C542", "#E6B422", "#FFF1A8", "#C9A227", "#FFE680"] : ["#F2C14E", "#E4572E", "#29B6F6", "#66BB6A", "#AB47BC", "#FFFFFF"];
+    for(let i = 0; i < (gold ? 140 : 90); i++){
       const c = el("i"); c.style.left = (Math.random() * 100) + "vw"; c.style.background = cols[i % cols.length];
       c.style.setProperty("--dx", (Math.random() * 120 - 60) + "px"); c.style.setProperty("--r", (Math.random() * 720 - 360) + "deg");
       c.style.animationDuration = (1.8 + Math.random() * 1.6) + "s"; c.style.animationDelay = (Math.random() * .5) + "s";
@@ -626,8 +627,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const evN = evList(g).length;
     // Animation seulement pour un nouveau jeu de la même partie (pas au chargement ni après une annulation)
     const anim = !!(dPrev && dPrev.id === curId && evN === dPrev.evN + 1);
-    if(anim && st.recent.length) confetti();
+    // Un jeu en remplace un autre en cours d'animation : on termine l'ancien tout de suite
     dTimers.forEach(clearTimeout); dTimers = [];
+    dm.querySelectorAll(".runner.leaving").forEach(x => x.remove());
+    const hr = anim && st.lastBat && st.lastBat.t === "HR" && st.recent.length;
+    let fx = false;                                               // confettis lancés à l'arrivée d'un coureur
+    const home = x => { x.classList.add("gone"); if(!fx){ fx = true; confetti(hr); } setTimeout(() => x.remove(), 400); };
     const want = {};                                              // nom -> but (1 à 3), 0 = frappeur au marbre
     [1, 2, 3].forEach(b => { if(st.bases[b - 1]) want[st.bases[b - 1]] = b; });
     if(batter && want[batter] === undefined) want[batter] = 0;
@@ -639,13 +644,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const from = dPrev && dPrev.place[n] !== undefined ? dPrev.place[n] : 0;
       if(anim && st.recent.indexOf(n) !== -1 && from > 0){
         const path = []; for(let b = from + 1; b <= 4; b++) path.push(b);
-        x.classList.remove("batter"); walk(x, path, () => { x.classList.add("gone"); setTimeout(() => x.remove(), 350); });
+        x.classList.remove("batter"); x.classList.add("leaving"); walk(x, path, () => { x.classList.remove("leaving"); home(x); });
       } else { x.classList.add("gone"); setTimeout(() => x.remove(), 350); }
     });
     // Circuit : le frappeur fait le tour complet
     if(anim && dPrev.batter && st.recent.indexOf(dPrev.batter) !== -1 && want[dPrev.batter] === undefined && !dTokens[dPrev.batter]){
-      const x = el("div", "runner", short(dPrev.batter)); place(x, 0); dm.appendChild(x);
-      walk(x, [1, 2, 3, 4], () => { x.classList.add("gone"); setTimeout(() => x.remove(), 350); });
+      const x = el("div", "runner leaving", short(dPrev.batter)); place(x, 0); dm.appendChild(x);
+      walk(x, [1, 2, 3, 4], () => { x.classList.remove("leaving"); home(x); });
     }
     Object.keys(want).forEach(n => {
       const to = want[n];
@@ -662,12 +667,68 @@ document.addEventListener("DOMContentLoaded", () => {
       if(scorer){ x.type = "button"; x.onclick = () => { const b = dSt.bases.indexOf(n) + 1; if(b) openRunner(b, n, dSt); }; } else x.onclick = null;
       const from = sameHalf ? (dPrev.place[n] !== undefined ? dPrev.place[n] : (n === dPrev.batter ? 0 : to)) : to;
       if(anim && to === 0 && from > 0 && st.recent.indexOf(n) !== -1){   // a marqué et revient aussitôt au bâton (petit alignement)
-        const path = []; for(let b = from + 1; b <= 4; b++) path.push(b); dTimers.push(setTimeout(() => walk(x, path), 20));
+        const path = []; for(let b = from + 1; b <= 4; b++) path.push(b); dTimers.push(setTimeout(() => walk(x, path, () => { if(!fx){ fx = true; confetti(hr); } }), 20));
       }
       else if(anim && from < to){ const path = []; for(let b = Math.max(from, 0) + 1; b <= to; b++) path.push(b); dTimers.push(setTimeout(() => walk(x, path), 20)); }
       else place(x, to);
     });
+    if(anim && st.recent.length && !dm.querySelector(".runner.leaving") && !dTimers.length) confetti(hr);
+    // Musique : à chaque nouvelle demi-manche
+    if(anim && st.half > dPrev.half && !fin) music(st.half);
     dPrev = { id: curId, evN: evN, half: st.half, place: want, batter: batter };
+  }
+
+  /* ---------- Orgue du stade (sons créés dans le navigateur) ---------- */
+  let actx = null, soundOn = true;
+  try { soundOn = localStorage.getItem("bb_sound") !== "off"; } catch(e){}
+  const unlock = () => { try { if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if(actx.state === "suspended") actx.resume(); } catch(e){} };
+  ["pointerdown", "keydown"].forEach(t => document.addEventListener(t, unlock, { capture: true, passive: true }));
+  function soundBtn(){ $("btnSound").textContent = soundOn ? "🔊" : "🔇"; $("btnSound").title = soundOn ? "Couper la musique" : "Activer la musique"; }
+  on("btnSound", "click", () => { soundOn = !soundOn; try { localStorage.setItem("bb_sound", soundOn ? "on" : "off"); } catch(e){} soundBtn(); if(soundOn){ unlock(); playTune(TUNES.charge); } });
+  soundBtn();
+  const NOTE = n => { const m = /^([A-G])(#?)(\d)$/.exec(n); const i = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (i - 9) / 12 + (+m[3] - 4)); };
+  function playTune(t){
+    if(!soundOn || !actx || actx.state !== "running") return;
+    const out = actx.createGain(); out.gain.value = .22; out.connect(actx.destination);
+    let at = actx.currentTime + .05;
+    t.notes.forEach(([n, beats]) => {
+      const d = beats * t.beat;
+      if(n !== "-"){
+        const f = NOTE(n), g = actx.createGain();
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(1, at + .015);
+        g.gain.setValueAtTime(1, at + d * .85); g.gain.linearRampToValueAtTime(0, at + d * .98);
+        g.connect(out);
+        // Son d'orgue : fondamentale + octave + quinte, léger vibrato
+        [[1, "square", .22], [2, "sine", .35], [3, "sine", .12]].forEach(([mul, type, v]) => {
+          const o = actx.createOscillator(), og = actx.createGain(); o.type = type; o.frequency.value = f * mul; og.gain.value = v;
+          const lfo = actx.createOscillator(), lg = actx.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * mul * .004; lfo.connect(lg); lg.connect(o.frequency);
+          o.connect(og); og.connect(g); o.start(at); lfo.start(at); o.stop(at + d); lfo.stop(at + d);
+        });
+      }
+      at += d;
+    });
+  }
+  const TUNES = {
+    // « Charge ! » : l'appel de clairon du stade
+    charge: { beat: .16, notes: [["G4", 1], ["C5", 1], ["E5", 1], ["G5", 2], ["E5", 1], ["G5", 4]] },
+    // « Take Me Out to the Ball Game » (1908, domaine public) : les premières phrases
+    ballgame: { beat: .3, notes: [["C5", 2], ["C6", 1], ["A5", 1], ["G5", 1], ["E5", 1], ["G5", 3], ["D5", 3],
+                                  ["C5", 2], ["C6", 1], ["A5", 1], ["G5", 1], ["E5", 1], ["G5", 6],
+                                  ["A5", 1], ["G#5", 1], ["A5", 1], ["E5", 1], ["F5", 1], ["G5", 1], ["A5", 2], ["F5", 1], ["D5", 3],
+                                  ["A5", 2], ["A5", 1], ["A5", 1], ["B5", 1], ["C6", 1], ["D6", 1], ["B5", 1], ["A5", 1], ["G5", 1], ["E5", 1], ["D5", 1],
+                                  ["C5", 2], ["C6", 1], ["A5", 1], ["G5", 1], ["E5", 1], ["G5", 3], ["D5", 3],
+                                  ["C5", 2], ["D5", 1], ["E5", 1], ["F5", 1], ["G5", 1], ["A5", 3], ["A5", 1], ["B5", 1], ["C6", 1], ["D6", 3], ["D6", 1], ["B5", 1], ["G5", 1],
+                                  ["A5", 3], ["F5", 3], ["C6", 3], ["-", 1], ["C5", 1], ["D5", 1], ["E5", 3], ["F5", 3], ["G5", 6]] },
+    // 8e manche : un air d'orgue original pour faire lever la foule (avec battements de mains)
+    rally: { beat: .19, notes: [["C5", 1], ["E5", 1], ["G5", 1], ["C6", 2], ["-", 1], ["G5", 1], ["C6", 3], ["-", 1],
+                                ["D5", 1], ["F5", 1], ["A5", 1], ["D6", 2], ["-", 1], ["A5", 1], ["D6", 3], ["-", 1],
+                                ["E5", 1], ["G5", 1], ["B5", 1], ["E6", 2], ["D6", 1], ["C6", 1], ["B5", 1], ["C6", 6]] }
+  };
+  function music(half){
+    document.body.dataset.tune = half === 10 ? "ballgame" : half === 14 ? "rally" : "charge";
+    if(half === 10) playTune(TUNES.ballgame);                     // début de la 6e manche
+    else if(half === 14) playTune(TUNES.rally);                   // début de la 8e manche
+    else playTune(TUNES.charge);                                  // chaque demi-manche
   }
   function render(){
     if(!cur) return;
