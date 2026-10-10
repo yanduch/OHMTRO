@@ -303,6 +303,36 @@ dialog .ctx{margin:.1rem 0 1.2rem;color:var(--muted);font-size:.9rem}
 @media (prefers-reduced-motion:reduce){ .bump{animation:none} }
 .empty{font-size:.85rem;color:var(--muted);list-style:none;margin:0;padding:.2rem 0}
 body:not(.role-admin) .admin-only{display:none !important}
+/* Console d'ambiance (administrateur) et sons */
+.amb{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-top:1rem}
+.amb h2{font-size:1rem;margin:0 0 .6rem}
+.amb label{display:block;font-size:.85rem;font-weight:600;margin:.8rem 0 .3rem}
+.amb input{width:100%;padding:.55rem .6rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.amb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.35rem}
+.amb-grid button{min-height:3.4rem;padding:.25rem .1rem;font-size:.68rem;line-height:1.15;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-weight:600;cursor:pointer}
+.amb-grid button b{font-size:1.25rem;font-weight:400}
+.amb-stop{width:100%;margin-top:.45rem;min-height:2.6rem;border-radius:10px;border:1px solid #E9B8B3;background:#FCEBEA;color:#C0392B;font-weight:700;cursor:pointer}
+.amb-row{display:flex;gap:.5rem;margin-top:.4rem}
+.amb-row>*{flex:1}
+.amb-msgs{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem}
+.amb-msgs button{min-height:2.2rem;font-size:.8rem;padding:.3rem .6rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer}
+.talk{width:100%;min-height:4rem;margin-bottom:.6rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;font-size:1.05rem;font-weight:700;border-radius:10px;border:1px solid #B5DCC4;background:#E3F4EA;color:#1F7A44;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.talk small{font-size:.72rem;font-weight:600;opacity:.85}
+.talk.rec{background:#C62828;border-color:#C62828;color:#FFF;animation:recPulse 1s infinite}
+.talk.busy{opacity:.7}
+@keyframes recPulse{50%{box-shadow:0 0 0 .4rem rgba(198,40,40,.25)}}
+.msg-row{display:flex;gap:.4rem;align-items:center;padding:.35rem 0;border-bottom:1px solid var(--line)}
+.msg-row input{flex:1;padding:.45rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.msg-row button{min-height:2.2rem;padding:.3rem .55rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer}
+#btnSound{position:fixed;right:.7rem;bottom:calc(.7rem + env(safe-area-inset-bottom,0px));width:2.5rem;height:2.5rem;border-radius:50%;border:1px solid var(--line);background:var(--surface);box-shadow:0 3px 10px rgba(0,0,0,.2);font-size:1.05rem;z-index:60;cursor:pointer}
+#audioHint{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:#F9A825;color:#111;border:0;padding:.65rem 1.1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:74;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:pointer}
+#voiceTag{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#C62828;color:#FFF;padding:.55rem 1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:76;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+#annMsg{position:fixed;left:50%;top:9rem;transform:translateX(-50%);width:min(94vw,28rem);background:var(--blue);color:#FFF;border-radius:16px;padding:1.1rem 1.2rem;box-shadow:0 12px 34px rgba(0,0,0,.35);z-index:75;text-align:center;font-size:1.25rem;font-weight:800;line-height:1.3;cursor:pointer;overflow-wrap:anywhere}
+#audioHint[hidden],#voiceTag[hidden],#annMsg[hidden]{display:none}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:80}
+.confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translate3d(var(--dx),110vh,0) rotate(var(--r));}}
+@media (prefers-reduced-motion: reduce){.confetti{display:none}}
 .archive-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:var(--warn);color:#FFF;border-radius:8px;padding:.4rem .6rem;margin-bottom:.8rem;font-size:.85rem;font-weight:600}
 .archive-bar[hidden]{display:none}
 .archive-bar button{border:0;border-radius:6px;padding:.3rem .6rem;background:#FFF;color:#0F2236;font-weight:700;font-size:.8rem;white-space:nowrap}
@@ -666,10 +696,48 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
+  <section class="amb admin-only" id="ambBox">
+    <h2>🎛️ Console d'ambiance</h2>
+    <button type="button" class="talk" id="btnTalk"><span id="talkLabel">🎙️ Maintenir pour annoncer</span><small id="talkHint">10 secondes maximum · relâchez pour envoyer</small></button>
+    <div class="amb-grid">
+      <button type="button" data-fx="charge"><b>📯</b>Charge!</button>
+      <button type="button" data-fx="applause"><b>👏</b>Applaudir</button>
+      <button type="button" data-fx="ooh"><b>😮</b>Hooo!</button>
+      <button type="button" data-fx="letsgo"><b>🙌</b>Let's go!</button>
+      <button type="button" data-fx="goalhorn"><b>🚨</b>Sirène de but</button>
+      <button type="button" data-fx="drum"><b>🥁</b>Tambour</button>
+      <button type="button" data-fx="bell"><b>🔔</b>Cloche</button>
+      <button type="button" data-fx="organ"><b>🎹</b>Orgue</button>
+      <button type="button" data-fx="rally"><b>🎶</b>Ralliement</button>
+      <button type="button" data-fx="confetti"><b>🎉</b>Confettis</button>
+    </div>
+    <button type="button" class="amb-stop" data-fx="stop">⏹ Arrêter le son (pour tout le monde)</button>
+    <label for="annText">Message à afficher à tout le monde</label>
+    <input type="text" id="annText" maxlength="120" placeholder="Ex. : Bravo aux bénévoles !" autocomplete="off">
+    <div class="amb-row"><button type="button" class="act-1" id="annSend">📣 Afficher</button><button type="button" class="act-2" id="annSave">💾 Enregistrer</button></div>
+    <div class="amb-msgs" id="annList"></div>
+    <button type="button" class="act-2" id="annManage" style="width:100%;margin-top:.5rem;">✏️ Gérer les messages enregistrés</button>
+  </section>
+
   <button type="button" class="btn-reset-board marqueur-only" id="btnTeamMessages">📢 Messages de l'équipe</button>
   <button type="button" class="quiet" id="btnManageSettings" style="margin-top:1rem;">⚙️️ Gestion</button>
   <button type="button" class="btn-login-bottom" id="btnLogin">🔒 Connexion</button>
 </div>
+
+<button type="button" id="btnSound" aria-label="Son">🔊</button>
+<button type="button" id="audioHint" hidden>🔊 Touchez ici pour activer le son</button>
+<div id="voiceTag" hidden>🎙️ Annonce en cours…</div>
+<div id="annMsg" hidden role="status" aria-live="assertive"></div>
+
+<dialog id="msgsSheet">
+  <div class="sheet-in">
+    <h2>Messages enregistrés</h2>
+    <div id="msgRows"></div>
+    <label for="msgNew" style="display:block;font-size:.85rem;font-weight:600;margin:.6rem 0 .3rem;">Nouveau message</label>
+    <div class="amb-row"><input type="text" id="msgNew" maxlength="120" autocomplete="off" class="full-input"><button type="button" class="act-1" id="msgAdd" style="flex:none;width:3rem;">➕</button></div>
+    <div class="actions" style="margin-top:1rem;"><button type="button" class="act-2" id="msgClose">Fermer</button></div>
+  </div>
+</dialog>
 
 <!-- Modale d'invitation à la Prolongation -->
 <dialog id="overtimeSheet">
@@ -1645,6 +1713,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function switchOrganization(orgKey, catKey, nav, teamKey){
     subs.forEach(s => s[0].off("value", s[1])); subs = [];
+    setTimeout(() => { if(typeof watchAnns === "function") watchAnns(); }, 0);
     historyOn = false; historyLoaded = false; historyList = []; historyWaiters = []; calendarList = [];
 
     orgKey = cleanKey(orgKey) || "ohmtro";
@@ -1702,6 +1771,7 @@ document.addEventListener("DOMContentLoaded", function(){
     myPresenceRef = dbPresence.push();
     if(connected) announcePresence();
     bsub(dbPresence, snap => { onlineCount = snap.numChildren() || 1; updateStatusDisplay(); });
+    ambAttach();
 
     // Confrontation entre deux équipes de l'organisation : ce tableau peut pointer vers la partie de l'autre équipe
     if(boardTeam) bsub(ref(boardBase + "/link"), snap => {
@@ -4111,6 +4181,245 @@ document.addEventListener("DOMContentLoaded", function(){
     lastWidth = window.innerWidth; clearTimeout(resizeTimer); resizeTimer = setTimeout(layoutTicker, 200);
   });
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutTicker);
+
+  /* ============ Ambiance : sons, messages à l'écran et annonces vocales (administrateur) ============ */
+  // L'administrateur déclenche un effet ou une annonce ; tous les appareils qui regardent ce tableau le jouent.
+  // Les sons sont créés par le navigateur (aucun fichier audio). Un seul son à la fois. Chacun peut couper le son chez lui.
+  let actx = null, soundOn = true, bus = null;
+  try { soundOn = localStorage.getItem("ohmtro_sound") !== "off"; } catch(e){}
+  function audioHint(){ $("audioHint").hidden = !(soundOn && ambWanted && !(actx && actx.state === "running")); }
+  let ambWanted = false;                                          // un son a été envoyé alors que le son n'était pas activé ici
+  function unlock(){
+    try {
+      if(navigator.audioSession) navigator.audioSession.type = "playback";
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state !== "running") actx.resume().then(audioHint, audioHint);
+      const b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0);
+    } catch(e){}
+    audioHint();
+  }
+  ["touchend", "click", "pointerup", "keydown"].forEach(t => document.addEventListener(t, unlock, { capture: true, passive: true }));
+  const ready = () => { if(soundOn && actx && actx.state === "suspended") actx.resume().catch(() => {}); const r = !!(soundOn && actx && actx.state === "running"); if(!r && soundOn){ ambWanted = true; audioHint(); } return r; };
+  function stopAll(){
+    if(!bus || !actx) return;
+    const b = bus; bus = null;
+    try { b.gain.setValueAtTime(b.gain.value, actx.currentTime); b.gain.linearRampToValueAtTime(0, actx.currentTime + .12); } catch(e){}
+    setTimeout(() => { try { b.disconnect(); } catch(e){} }, 200);
+  }
+  function newBus(){ stopAll(); bus = actx.createGain(); bus.gain.value = 1; bus.connect(actx.destination); return bus; }
+  function soundBtn(){ $("btnSound").textContent = soundOn ? "🔊" : "🔇"; $("btnSound").title = soundOn ? "Couper le son" : "Activer le son"; audioHint(); }
+  on("btnSound", "click", () => {
+    soundOn = !soundOn; try { localStorage.setItem("ohmtro_sound", soundOn ? "on" : "off"); } catch(e){}
+    soundBtn(); if(soundOn){ unlock(); notify("Son activé."); } else { stopAll(); notify("Son coupé sur cet appareil."); }
+  });
+  on("audioHint", "click", () => { unlock(); ambWanted = false; audioHint(); });
+  soundBtn();
+
+  const NOTE = n => { const m = /^([A-G])(#?)(\d)$/.exec(n); const i = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (i - 9) / 12 + (+m[3] - 4)); };
+  function playTune(t){
+    const out = actx.createGain(); out.gain.value = .22; out.connect(newBus());
+    let at = actx.currentTime + .05;
+    t.notes.forEach(([n, beats]) => {
+      const d = beats * t.beat;
+      if(n !== "-"){
+        const f = NOTE(n), g = actx.createGain();
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(1, at + .015); g.gain.setValueAtTime(1, at + d * .85); g.gain.linearRampToValueAtTime(0, at + d * .98);
+        g.connect(out);
+        [[1, "square", .22], [2, "sine", .35], [3, "sine", .12]].forEach(([mul, type, v]) => {
+          const o = actx.createOscillator(), og = actx.createGain(); o.type = type; o.frequency.value = f * mul; og.gain.value = v;
+          o.connect(og); og.connect(g); o.start(at); o.stop(at + d);
+        });
+      }
+      at += d;
+    });
+  }
+  const TUNES = {
+    charge: { beat: .16, notes: [["G4", 1], ["C5", 1], ["E5", 1], ["G5", 2], ["E5", 1], ["G5", 4]] },
+    rally: { beat: .19, notes: [["C5", 1], ["E5", 1], ["G5", 1], ["C6", 2], ["-", 1], ["G5", 1], ["C6", 3], ["-", 1], ["D5", 1], ["F5", 1], ["A5", 1], ["D6", 2], ["-", 1], ["A5", 1], ["D6", 3], ["-", 1], ["E5", 1], ["G5", 1], ["B5", 1], ["E6", 2], ["D6", 1], ["C6", 1], ["B5", 1], ["C6", 6]] },
+    // Air d'orgue original, style aréna
+    organ: { beat: .14, notes: [["D5", 1], ["D5", 1], ["-", 1], ["D5", 1], ["F5", 1], ["A5", 2], ["G5", 1], ["F5", 1], ["E5", 1], ["D5", 1], ["E5", 2], ["A4", 2], ["-", 1], ["D5", 1], ["D5", 1], ["-", 1], ["D5", 1], ["F5", 1], ["A5", 2], ["C6", 1], ["A5", 1], ["G5", 1], ["E5", 1], ["D5", 4]] }
+  };
+  let noiseBuf = null;
+  function noise(){ if(noiseBuf) return noiseBuf; noiseBuf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate); const d = noiseBuf.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return noiseBuf; }
+  function burst(at, dur, freq, q, vol, out){
+    const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+    src.buffer = noise(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
+    g.gain.setValueAtTime(vol, at); g.gain.exponentialRampToValueAtTime(.001, at + dur);
+    src.connect(f); f.connect(g); g.connect(out); src.start(at, Math.random()); src.stop(at + dur + .02);
+  }
+  function master(v, extra){ const g = actx.createGain(); g.gain.value = v; g.connect(extra ? actx.destination : newBus()); return g; }
+  const SFX = {
+    applause(){ const out = master(.5), t0 = actx.currentTime + .03; for(let i = 0; i < 260; i++) burst(t0 + Math.pow(Math.random(), .8) * 3.6, .05 + Math.random() * .05, 900 + Math.random() * 1600, 1.2, .25 + Math.random() * .35, out); },
+    ooh(){
+      const out = master(.18), t0 = actx.currentTime + .03, lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900; lp.connect(out);
+      for(let i = 0; i < 12; i++){
+        const o = actx.createOscillator(), g = actx.createGain(), base = 170 + Math.random() * 110;
+        o.type = "sawtooth"; o.frequency.setValueAtTime(base, t0); o.frequency.linearRampToValueAtTime(base * 1.35, t0 + .7); o.frequency.linearRampToValueAtTime(base * .9, t0 + 2);
+        g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.12, t0 + .4); g.gain.linearRampToValueAtTime(.08, t0 + 1.4); g.gain.linearRampToValueAtTime(0, t0 + 2.1);
+        o.connect(g); g.connect(lp); o.start(t0 + Math.random() * .12); o.stop(t0 + 2.2);
+      }
+    },
+    letsgo(){ const out = master(.6); let t = actx.currentTime + .05; for(let r = 0; r < 3; r++){ [0, .3, .75, .95, 1.15].forEach(d => burst(t + d, .08, 1300, 1, .9, out)); t += 1.8; } },
+    goalhorn(){                                                   // sirène de but : grosse corne grave
+      const out = master(.2), t0 = actx.currentTime + .03, lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400; lp.connect(out);
+      [110, 138.6, 164.8, 220].forEach(f => {
+        const o = actx.createOscillator(), g = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+        o.type = "sawtooth"; o.frequency.value = f; lfo.frequency.value = 6; lg.gain.value = f * .01; lfo.connect(lg); lg.connect(o.frequency);
+        g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(1, t0 + .08); g.gain.setValueAtTime(1, t0 + 3.2); g.gain.linearRampToValueAtTime(0, t0 + 3.6);
+        o.connect(g); g.connect(lp); o.start(t0); lfo.start(t0); o.stop(t0 + 3.7); lfo.stop(t0 + 3.7);
+      });
+    },
+    drum(){ const out = master(.5), t0 = actx.currentTime + .03; for(let i = 0; i < 44; i++) burst(t0 + i * .055, .06, 2200, .8, .15 + i / 44 * .6, out); burst(t0 + 2.5, 1.6, 5000, .4, 1, out); burst(t0 + 2.5, .4, 120, 1, 1, out); },
+    bell(extra){
+      const out = master(extra ? .18 : .3, extra), t0 = actx.currentTime + .03;
+      [0, .45, .9].forEach(d => [[880, .6], [2420, .25], [4750, .1]].forEach(([f, v]) => {
+        const o = actx.createOscillator(), g = actx.createGain(); o.type = "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(v, t0 + d); g.gain.exponentialRampToValueAtTime(.0005, t0 + d + 1.6); o.connect(g); g.connect(out); o.start(t0 + d); o.stop(t0 + d + 1.7);
+      }));
+    }
+  };
+  function confetti(){
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const box = el("div", "confetti"), cols = ["#F2C14E", "#E4572E", "#29B6F6", "#66BB6A", "#AB47BC", "#FFFFFF"];
+    for(let i = 0; i < 90; i++){
+      const c = el("i"); c.style.left = (Math.random() * 100) + "vw"; c.style.background = cols[i % cols.length];
+      c.style.setProperty("--dx", (Math.random() * 120 - 60) + "px"); c.style.setProperty("--r", (Math.random() * 720 - 360) + "deg");
+      c.style.animationDuration = (1.8 + Math.random() * 1.6) + "s"; c.style.animationDelay = (Math.random() * .5) + "s"; box.appendChild(c);
+    }
+    document.body.appendChild(box); setTimeout(() => box.remove(), 4200);
+  }
+  function playFx(t){
+    if(t === "stop"){ stopAll(); return; }
+    if(t === "confetti"){ confetti(); if(ready()) SFX.bell(); return; }
+    if(!ready()) return;
+    if(TUNES[t]) playTune(TUNES[t]); else if(SFX[t]) SFX[t]();
+  }
+  let annT = null;
+  function showAnn(text){
+    const box = $("annMsg"); box.textContent = String(text || "").slice(0, 120); box.hidden = false;
+    clearTimeout(annT); annT = setTimeout(() => { box.hidden = true; }, 5000);
+    if(ready()) SFX.bell(true);
+  }
+  on("annMsg", "click", () => { $("annMsg").hidden = true; });
+
+  // Abonnements du tableau affiché (on ne rejoue pas ce qui avait été envoyé avant l'ouverture de la page)
+  let fxSeen = null, voiceSeen = null, myVoiceId = "";
+  function ambAttach(){
+    fxSeen = null; voiceSeen = null;
+    bsub(ref(boardBase + "/fx"), snap => {
+      const v = snap.val();
+      if(fxSeen === null){ fxSeen = v && v.id || ""; return; }
+      if(!v || !v.id || v.id === fxSeen) return;
+      fxSeen = v.id;
+      if(Date.now() - (v.at || 0) > 20000) return;
+      if(v.t === "msg") showAnn(v.text); else playFx(v.t);
+    });
+    bsub(ref(boardBase + "/voice"), snap => {
+      const v = snap.val();
+      if(voiceSeen === null){ voiceSeen = v && v.id || ""; return; }
+      if(!v || !v.id || v.id === voiceSeen) return;
+      voiceSeen = v.id;
+      if(v.id === myVoiceId || Date.now() - (v.at || 0) > 30000 || !ready()) return;
+      try {
+        const bin = atob(v.data), pcm = new Int16Array(bin.length >> 1);
+        for(let i = 0; i < pcm.length; i++){ let x = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if(x >= 32768) x -= 65536; pcm[i] = x; }
+        const buf = actx.createBuffer(1, pcm.length, v.rate || 12000), ch = buf.getChannelData(0);
+        for(let i = 0; i < pcm.length; i++) ch[i] = pcm[i] / 32768;
+        const src = actx.createBufferSource(); src.buffer = buf; src.connect(newBus()); src.start();
+        $("voiceTag").hidden = false; src.onended = () => { $("voiceTag").hidden = true; };
+        setTimeout(() => { $("voiceTag").hidden = true; }, buf.duration * 1000 + 800);
+      } catch(e){}
+    });
+  }
+  // Envoi : sur ce tableau, et sur celui de l'autre équipe de l'organisation si les deux sont liés
+  const ambTargets = () => [boardBase].concat(isLinked() && boardLink.team !== boardTeam ? [catBase() + "/boards/" + boardLink.team] : []);
+  function sendFx(t, text){ if(!isAdmin()) return; unlock(); const v = { id: uid(), t: t, text: text || "", at: Date.now() }; ambTargets().forEach(p => ref(p + "/fx").set(v)); }
+  document.querySelectorAll("[data-fx]").forEach(b => b.addEventListener("click", () => sendFx(b.dataset.fx)));
+  on("annSend", "click", () => { const t = $("annText").value.trim(); if(!t){ notify("Écrivez le message à afficher.", "info"); return; } sendFx("msg", t); $("annText").value = ""; });
+
+  // Messages enregistrés (par organisation)
+  let anns = {}, annsRef = null, annsOrg = "";
+  const onAnns = snap => { const v = snap.val(); anns = v && typeof v === "object" ? v : {}; renderAnns(); };
+  function watchAnns(){ if(annsOrg === currentOrg) return; if(annsRef) annsRef.off("value", onAnns); annsOrg = currentOrg; annsRef = ref(currentOrg + "/anns"); annsRef.on("value", onAnns); }
+  const annIds = () => Object.keys(anns).filter(k => anns[k] && anns[k].text).sort((x, y) => (anns[x].order || 0) - (anns[y].order || 0));
+  function renderAnns(){
+    const list = $("annList"); list.textContent = "";
+    annIds().forEach(k => list.appendChild(btn("", "💬 " + anns[k].text, () => sendFx("msg", anns[k].text))));
+    const rows = $("msgRows"); rows.textContent = "";
+    if(!annIds().length) rows.appendChild(el("p", "empty", "Aucun message enregistré."));
+    annIds().forEach(k => {
+      const r = el("div", "msg-row"), inp = el("input"); inp.type = "text"; inp.value = anns[k].text; inp.maxLength = 120;
+      r.appendChild(inp);
+      r.appendChild(btn("", "💾", () => { const t = inp.value.trim(); if(t){ ref(currentOrg + "/anns/" + k + "/text").set(t); notify("Message modifié."); } }));
+      r.appendChild(btn("", "✕", () => ask("Supprimer ce message ?\n« " + anns[k].text + " »", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => { if(ok) ref(currentOrg + "/anns/" + k).remove(); })));
+      rows.appendChild(r);
+    });
+  }
+  const addAnn = t => { t = String(t || "").trim().slice(0, 120); if(!t) return false; ref(currentOrg + "/anns/" + uid()).set({ text: t, order: Date.now() }); return true; };
+  on("annSave", "click", () => { if(!isAdmin()) return; if(addAnn($("annText").value)) notify("Message enregistré."); else notify("Écrivez d'abord le message.", "info"); });
+  on("annManage", "click", () => { if(!isAdmin()) return; renderAnns(); openDlg("msgsSheet"); });
+  on("msgAdd", "click", () => { if(addAnn($("msgNew").value)) $("msgNew").value = ""; });
+  on("msgClose", "click", () => closeDlg("msgsSheet"));
+
+  // Annonce vocale : maintenir le bouton (10 s max.), la voix part en qualité « téléphone » vers tous les appareils
+  const VOICE_RATE = 12000, VOICE_MAX = 10;
+  let rec = null;
+  function talkUI(state, secs){
+    const b = $("btnTalk"); b.classList.toggle("rec", state === "rec"); b.classList.toggle("busy", state === "busy");
+    $("talkLabel").textContent = state === "rec" ? "🔴 Parlez… " + secs + " s" : state === "busy" ? "Envoi…" : "🎙️ Maintenir pour annoncer";
+    $("talkHint").textContent = state === "rec" ? "Relâchez pour envoyer" : "10 secondes maximum · relâchez pour envoyer";
+  }
+  function talkStart(ev){
+    if(ev) ev.preventDefault();
+    if(!isAdmin() || rec) return;
+    unlock();
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ notify("Le micro n'est pas disponible sur cet appareil.", "info"); return; }
+    rec = { chunks: [], len: 0, held: true, stream: null, t0: 0 };
+    const r = rec;
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(stream => {
+      if(rec !== r){ stream.getTracks().forEach(t => t.stop()); return; }
+      if(!r.held){ stream.getTracks().forEach(t => t.stop()); rec = null; talkUI(); notify("Micro autorisé. Maintenez le bouton enfoncé pendant que vous parlez.", "info"); return; }
+      r.stream = stream;
+      const src = actx.createMediaStreamSource(stream), proc = actx.createScriptProcessor(4096, 1, 1), mute = actx.createGain();
+      mute.gain.value = 0;
+      proc.onaudioprocess = e => { const d = e.inputBuffer.getChannelData(0); r.chunks.push(new Float32Array(d)); r.len += d.length; };
+      src.connect(proc); proc.connect(mute); mute.connect(actx.destination);
+      r.nodes = [src, proc, mute]; r.t0 = Date.now();
+      const tick = () => { if(rec !== r) return; const left = VOICE_MAX - Math.floor((Date.now() - r.t0) / 1000); if(left <= 0){ talkStop(); return; } talkUI("rec", left); r.timer = setTimeout(tick, 200); };
+      tick();
+    }).catch(() => { rec = null; talkUI(); notify("Le micro a été refusé. Autorisez-le dans les réglages du navigateur pour faire des annonces.", "error"); });
+  }
+  function talkStop(){
+    const r = rec; if(!r) return;
+    r.held = false;
+    if(!r.stream) return;
+    rec = null; clearTimeout(r.timer);
+    r.nodes.forEach(n => { try { n.disconnect(); } catch(e){} }); r.stream.getTracks().forEach(t => t.stop());
+    const secs = (Date.now() - r.t0) / 1000;
+    if(secs < .6 || !r.len){ talkUI(); notify("Annonce trop courte : maintenez le bouton pendant que vous parlez.", "info"); return; }
+    talkUI("busy");
+    const all = new Float32Array(r.len); let o = 0; r.chunks.forEach(c => { all.set(c, o); o += c.length; });
+    const ratio = actx.sampleRate / VOICE_RATE, n = Math.min(Math.floor(all.length / ratio), VOICE_RATE * VOICE_MAX), out = new Float32Array(n);
+    let peak = 0;
+    for(let i = 0; i < n; i++){ const a = Math.floor(i * ratio), b = Math.min(all.length, Math.floor((i + 1) * ratio)); let sum = 0; for(let j = a; j < b; j++) sum += all[j]; out[i] = sum / Math.max(1, b - a); peak = Math.max(peak, Math.abs(out[i])); }
+    const gain = peak > 0 ? Math.min(4, .9 / peak) : 1, pcm = new Int16Array(n);
+    for(let i = 0; i < n; i++) pcm[i] = Math.max(-32767, Math.min(32767, out[i] * gain * 32767));
+    const bytes = new Uint8Array(pcm.buffer); let bin = "";
+    for(let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    myVoiceId = uid();
+    const v = { id: myVoiceId, rate: VOICE_RATE, data: btoa(bin), at: Date.now() }, targets = ambTargets();
+    Promise.all(targets.map(p => ref(p + "/voice").set(v))).then(() => {
+      talkUI(); notify("Annonce envoyée.");
+      const id = myVoiceId;
+      setTimeout(() => targets.forEach(p => ref(p + "/voice").once("value").then(s => { const x = s.val(); if(x && x.id === id) ref(p + "/voice").remove(); })), 90000);
+    }, () => { talkUI(); notify("Envoi impossible. Vérifiez la connexion.", "error"); });
+  }
+  (() => {
+    const tb = $("btnTalk");
+    tb.addEventListener("pointerdown", e => { try { tb.setPointerCapture(e.pointerId); } catch(x){} talkStart(e); });
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => tb.addEventListener(t, () => talkStop()));
+    tb.addEventListener("contextmenu", e => e.preventDefault());
+  })();
 
   /* ============ Démarrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
