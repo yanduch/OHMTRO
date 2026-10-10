@@ -8,26 +8,33 @@
 <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-:root{--bg:#EEF2F6;--surface:#FFF;--ink:#0F2236;--muted:#5B6B7C;--line:#D5DDE6;--blue:#1F5FA8;--red:#C0392B;--ok:#1F7A44;--warn:#B8860B;--navy:#0F2236}
+:root{color-scheme:light;--bg:#EEF2F6;--surface:#FFF;--ink:#0F2236;--muted:#5B6B7C;--line:#D5DDE6;--blue:#1F5FA8;--red:#C0392B;--ok:#1F7A44;--warn:#B8860B;--navy:#0F2236;--primary:#0F2236;--field:#FFF;
+  --tint:#E6EEF8;--hit-bd:#BFD2EA;--walk-bg:#FFF6E0;--walk-bd:#EBD9A6;--walk-ink:#8A6400;--out-bg:#FCEBEA;--out-bd:#E9B8B3;--ok-bg:#E3F4EA;--ok-bd:#B5DCC4;--grey-bg:#E9EDF2;--backdrop:rgba(15,34,54,.55)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0E1621;--surface:#172231;--ink:#E6EDF5;--muted:#93A3B5;--line:#2A3A4E;--blue:#7DB3F0;--red:#F08A7E;--ok:#62CF90;--warn:#D9A441;--navy:#08101A;--primary:#2F6DB5;--field:#0F1A27;
+  --tint:#1C3350;--hit-bd:#2D4A70;--walk-bg:#3A2F12;--walk-bd:#5C4A1C;--walk-ink:#EBC970;--out-bg:#3A1A18;--out-bd:#5E2A26;--ok-bg:#173A27;--ok-bd:#24573A;--grey-bg:#243243;--backdrop:rgba(0,0,0,.65)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0E1621;--surface:#172231;--ink:#E6EDF5;--muted:#93A3B5;--line:#2A3A4E;--blue:#7DB3F0;--red:#F08A7E;--ok:#62CF90;--warn:#D9A441;--navy:#08101A;--primary:#2F6DB5;--field:#0F1A27;
+  --tint:#1C3350;--hit-bd:#2D4A70;--walk-bg:#3A2F12;--walk-bd:#5C4A1C;--walk-ink:#EBC970;--out-bg:#3A1A18;--out-bd:#5E2A26;--ok-bg:#173A27;--ok-bd:#24573A;--grey-bg:#243243;--backdrop:rgba(0,0,0,.65)}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 header{background:var(--navy);color:#FFF;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;position:sticky;top:0;z-index:5}
-header h1{font-size:1.05rem;margin:0;white-space:nowrap}
+header h1{font-size:1.02rem;line-height:1.2;margin:0;min-width:0;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hbtns{display:flex;gap:.4rem;flex:none}
+.batnow{text-align:center;font-size:.9rem;margin-top:.15rem;color:var(--blue);font-weight:700}
 header button{white-space:nowrap;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#FFF;border-radius:8px;padding:.35rem .7rem;font-size:.85rem}
 main{max-width:640px;margin:0 auto;padding:1rem}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:.8rem}
 .muted{color:var(--muted);font-size:.85rem}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:.65rem .8rem;font-weight:600;cursor:pointer;min-height:2.8rem}
 .btn:active{transform:scale(.97)}
-.btn.primary{background:var(--navy);border-color:var(--navy);color:#FFF}
-.btn.danger{background:#FCEBEA;border-color:#E9B8B3;color:var(--red)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#FFF}
+.btn.danger{background:var(--out-bg);border-color:var(--out-bd);color:var(--red)}
 .btn.full{width:100%}
 .btn:disabled{opacity:.45}
 .game-item{display:flex;justify-content:space-between;align-items:center;gap:.5rem;cursor:pointer}
 .game-item strong{font-size:1rem}
-.pill{font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;background:#E3F4EA;color:var(--ok);white-space:nowrap}
-.pill.final{background:#E9EDF2;color:var(--muted)}
+.pill{font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;background:var(--ok-bg);color:var(--ok);white-space:nowrap}
+.pill.final{background:var(--grey-bg);color:var(--muted)}
 .score-head{display:flex;justify-content:space-around;align-items:center;text-align:center;gap:.5rem}
 .score-head .t{flex:1;min-width:0}
 .score-head .name{font-weight:700;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -41,17 +48,17 @@ main{max-width:640px;margin:0 auto;padding:1rem}
 .line table{border-collapse:collapse;width:100%;font-size:.85rem}
 .line th,.line td{padding:.3rem .35rem;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
 .line td:first-child,.line th:first-child{text-align:left;max-width:8rem;overflow:hidden;text-overflow:ellipsis}
-.line .cur{background:#E6EEF8}
+.line .cur{background:var(--tint)}
 .line .tot{font-weight:800}
 .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:.45rem}
 .pad .btn{padding:.5rem .2rem;font-size:.85rem}
-.pad .hit{background:#E6EEF8;border-color:#BFD2EA;color:var(--blue)}
-.pad .walk{background:#FFF6E0;border-color:#EBD9A6;color:#8A6400}
-.pad .out{background:#FCEBEA;border-color:#E9B8B3;color:var(--red)}
-.pad .run{background:#E3F4EA;border-color:#B5DCC4;color:var(--ok);grid-column:span 2}
+.pad .hit{background:var(--tint);border-color:var(--hit-bd);color:var(--blue)}
+.pad .walk{background:var(--walk-bg);border-color:var(--walk-bd);color:var(--walk-ink)}
+.pad .out{background:var(--out-bg);border-color:var(--out-bd);color:var(--red)}
+.pad .run{background:var(--ok-bg);border-color:var(--ok-bd);color:var(--ok);grid-column:span 2}
 .pad .wide{grid-column:span 2}
 label{display:block;font-size:.85rem;font-weight:600;margin:.5rem 0 .25rem}
-select,input[type=text],input[type=password],textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:.55rem .6rem;background:#FFF}
+select,input[type=text],input[type=password],textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:.55rem .6rem;background:var(--field);color:var(--ink)}
 textarea{min-height:11rem;resize:vertical;line-height:1.4}
 .row{display:flex;gap:.5rem}
 .row>*{flex:1}
@@ -61,28 +68,28 @@ textarea{min-height:11rem;resize:vertical;line-height:1.4}
 .stats table{border-collapse:collapse;width:100%;font-size:.8rem}
 .stats th,.stats td{padding:.25rem .3rem;text-align:center;border-bottom:1px solid var(--line)}
 .stats td:nth-child(2),.stats th:nth-child(2){text-align:left}
-.stats tr.now td{background:#E6EEF8;font-weight:700}
+.stats tr.now td{background:var(--tint);font-weight:700}
 h2{font-size:1rem;margin:.1rem 0 .6rem}
-dialog{border:0;border-radius:14px;padding:0;width:min(92vw,440px);max-height:90vh;overflow:auto}
-dialog::backdrop{background:rgba(15,34,54,.55)}
+dialog{background:var(--surface);color:var(--ink);border:0;border-radius:14px;padding:0;width:min(92vw,440px);max-height:90vh;overflow:auto}
+dialog::backdrop{background:var(--backdrop)}
 .dlg{padding:1rem}
 .dlg h3{margin:0 0 .5rem}
 .actions{display:flex;gap:.5rem;margin-top:1rem}
 .actions .btn{flex:1}
 .picker{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.5rem}
 .picker .btn{font-size:.85rem;min-height:2.5rem}
-#toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--navy);color:#FFF;padding:.6rem 1rem;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
+#toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--primary);color:#FFF;padding:.6rem 1rem;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
 #toast.show{opacity:1}
 .hidden{display:none !important}
 .diamond{position:relative;width:11.5rem;height:9.2rem;margin:.4rem auto .2rem}
 .diamond .field{position:absolute;left:50%;top:50%;width:5.6rem;height:5.6rem;border:2px solid var(--line);transform:translate(-50%,-55%) rotate(45deg);border-radius:4px}
-.base{position:absolute;transform:translate(-50%,-50%);min-width:2.2rem;height:2.2rem;padding:0 .4rem;border-radius:8px;border:2px solid var(--line);background:#FFF;font-size:.72rem;font-weight:700;color:var(--muted);display:flex;align-items:center;justify-content:center;max-width:6.5rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.base{position:absolute;transform:translate(-50%,-50%);min-width:2.2rem;height:2.2rem;padding:0 .4rem;border-radius:8px;border:2px solid var(--line);background:var(--field);font-size:.72rem;font-weight:700;color:var(--muted);display:flex;align-items:center;justify-content:center;max-width:6.5rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .base.on{background:var(--warn);border-color:var(--warn);color:#FFF}
 button.base{cursor:pointer}
 .base.b1{left:88%;top:52%}.base.b2{left:50%;top:14%}.base.b3{left:12%;top:52%}.base.home{left:50%;top:90%;border-radius:50%;width:1.6rem;min-width:1.6rem;height:1.6rem}
 .rules{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin-top:.4rem}
 .rules label{font-size:.75rem;min-height:2.1em;display:flex;align-items:flex-end}
-.rules input{width:100%;border:1px solid var(--line);border-radius:8px;padding:.5rem;text-align:center;font-weight:700}
+.rules input{width:100%;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:.5rem;text-align:center;font-weight:700}
 .rulesline{text-align:center;font-size:.75rem;color:var(--muted);margin-top:.1rem}
 .teamsel{margin-bottom:.35rem}
 .team-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.45rem 0;border-bottom:1px solid var(--line);cursor:pointer}
@@ -92,13 +99,14 @@ button.base{cursor:pointer}
 .std th,.std td{padding:.35rem .3rem;text-align:center;border-bottom:1px solid var(--line)}
 .std td:nth-child(2),.std th:nth-child(2){text-align:left}
 .std td.pts{font-weight:800}
+select{color:var(--ink)}
 .back{background:none;border:0;color:var(--blue);font-weight:700;padding:.2rem 0;margin-bottom:.5rem;cursor:pointer}
 </style>
 </head>
 <body>
 <header>
-  <h1>⚾ Baseball en direct</h1>
-  <button type="button" id="btnLogin">Connexion</button>
+  <h1>⚾ <span id="appTitle">Baseball en direct</span></h1>
+  <div class="hbtns"><button type="button" id="btnTheme" aria-label="Mode sombre ou clair">🌙</button><button type="button" id="btnLogin">Connexion</button></div>
 </header>
 <main>
   <!-- Liste des parties -->
@@ -127,6 +135,7 @@ button.base{cursor:pointer}
         <div class="t"><div class="name" id="nameB"></div><div class="runs" id="runsB">0</div><div class="bat" id="batB"></div></div>
       </div>
       <div class="situation" id="situation"></div>
+      <div class="batnow" id="batNow"></div>
       <div class="rulesline" id="rulesLine"></div>
       <div class="diamond" id="diamond"></div>
       <div class="line" id="lineScore"></div>
@@ -165,7 +174,9 @@ button.base{cursor:pointer}
 
   <div class="card admin hidden" id="adminBox" style="margin-top:1rem;">
     <h2>Administration</h2>
+    <button type="button" class="btn full" id="btnTitle" style="margin-bottom:.5rem;">✏️ Titre de la page</button>
     <button type="button" class="btn full" id="btnPasswords">🔑 Mots de passe</button>
+    <p class="muted hidden" id="pwdWarn" style="margin:.5rem 0 0;color:var(--red);">⚠️ Les mots de passe par défaut sont encore utilisés. Changez-les avant le tournoi.</p>
   </div>
 </main>
 
@@ -222,6 +233,14 @@ button.base{cursor:pointer}
   <button type="button" class="btn danger full admin hidden" id="tmDelete" style="margin-top:.6rem;">Supprimer cette équipe</button>
 </div></dialog>
 
+<!-- Titre -->
+<dialog id="dlgTitle"><div class="dlg">
+  <h3>Titre de la page</h3>
+  <label for="titleInput">Titre affiché en haut (ex. : Tournoi amical de Chavigny 2026)</label>
+  <input type="text" id="titleInput" maxlength="50" autocomplete="off">
+  <div class="actions"><button type="button" class="btn" id="titleCancel">Annuler</button><button type="button" class="btn primary" id="titleSave">Enregistrer</button></div>
+</div></dialog>
+
 <!-- Mots de passe -->
 <dialog id="dlgPwd"><div class="dlg">
   <h3>Mots de passe</h3>
@@ -261,6 +280,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Mode sombre : suit l'appareil, ou le choix fait avec le bouton 🌙 / ☀️ (retenu sur cet appareil)
+  function applyTheme(t){
+    if(t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+    const dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    $("btnTheme").textContent = dark ? "☀️" : "🌙";
+    const mt = document.querySelector('meta[name="theme-color"]'); if(mt) mt.content = dark ? "#08101A" : "#0F2236";
+  }
+  let theme = ""; try { theme = localStorage.getItem("bb_theme") || ""; } catch(e){}
+  applyTheme(theme);
+  on("btnTheme", "click", () => {
+    const dark = document.documentElement.getAttribute("data-theme") ? document.documentElement.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    theme = dark ? "light" : "dark"; try { localStorage.setItem("bb_theme", theme); } catch(e){}
+    applyTheme(theme);
+  });
+
   if(typeof firebase === "undefined"){ $("gameList").innerHTML = '<div class="card"><strong>Connexion au direct impossible ici.</strong><p class="muted">Cette page doit être ouverte depuis son adresse en ligne (ex. yanduch.github.io/OHMTRO/baseball.html), avec Internet. Un aperçu de fichier ou une page enregistrée sur l\'appareil ne peut pas joindre le direct.</p></div>'; return; }
   firebase.initializeApp({
     apiKey: "AIzaSyD2aqnGK8aN2GM0Gh9HRTAbiVd_et84f6o",
@@ -277,12 +311,24 @@ document.addEventListener("DOMContentLoaded", () => {
   let defRules = { innings: 0, outs: 0, maxRuns: 0, pitches: 5 };
   const cleanRules = v => { v = v || {}; const n = (x, m) => Math.max(0, Math.min(m, parseInt(x, 10) || 0)); return { innings: n(v.innings, 30), outs: n(v.outs, 30), maxRuns: n(v.maxRuns, 99), pitches: v.pitches === undefined || v.pitches === null || v.pitches === "" ? 5 : n(v.pitches, 30) }; };
   ref("rules").on("value", s => { defRules = cleanRules(s.val()); });
-  ref("config").on("value", s => { const v = s.val() || {}; config = { adminPwd: v.adminPwd || "admin", markerPwd: v.markerPwd || "marqueur" }; });
+  ref("config").on("value", s => { const v = s.val() || {}; config = { adminPwd: v.adminPwd || "admin", markerPwd: v.markerPwd || "marqueur" }; pwdWarn(); });
+  const pwdWarn = () => $("pwdWarn").classList.toggle("hidden", !(config.adminPwd === "admin" || config.markerPwd === "marqueur"));
+  // Titre de la page, modifiable par l'administrateur
+  let title = "Baseball en direct";
+  ref("title").on("value", s => { const v = s.val(); title = typeof v === "string" && v.trim() ? v.trim() : "Baseball en direct"; $("appTitle").textContent = title; document.title = title; });
+  on("btnTitle", "click", () => { if(role !== "admin") return; $("titleInput").value = title; $("dlgTitle").showModal(); });
+  on("titleCancel", "click", () => $("dlgTitle").close());
+  on("titleSave", "click", () => {
+    if(role !== "admin") return;
+    const t = $("titleInput").value.trim().slice(0, 50);
+    ref("title").set(t || null); $("dlgTitle").close(); notify("Titre enregistré.");
+  });
   const canScore = () => role === "admin" || role === "marqueur";
   function applyRole(){
     document.querySelectorAll(".scorer").forEach(e => e.classList.toggle("hidden", !canScore()));
     document.querySelectorAll(".admin").forEach(e => e.classList.toggle("hidden", role !== "admin"));
-    $("btnLogin").textContent = role ? "Déconnexion (" + (role === "admin" ? "admin" : "marqueur") + ")" : "Connexion";
+    $("btnLogin").textContent = role ? "🔓 " + (role === "admin" ? "Admin" : "Marqueur") : "🔒 Connexion";
+    $("btnLogin").title = role ? "Se déconnecter" : "Se connecter";
     if(curId) render();
   }
   on("btnLogin", "click", () => {
@@ -503,6 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function showList(){
     if(curRef){ curRef.off(); curRef = null; }
+    keepAwake(false);
     curId = ""; cur = null;
     $("viewGame").classList.add("hidden"); $("viewList").classList.remove("hidden");
     try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
@@ -519,6 +566,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   on("btnBack", "click", showList);
 
+  let wake = null;
+  function keepAwake(onOff){
+    try {
+      if(onOff && !wake && navigator.wakeLock) navigator.wakeLock.request("screen").then(w => { wake = w; w.addEventListener("release", () => { wake = null; }); }).catch(() => {});
+      else if(!onOff && wake){ wake.release(); wake = null; }
+    } catch(e){}
+  }
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && cur && canScore() && cur.status !== "final") keepAwake(true); });
   function render(){
     if(!cur) return;
     const g = cur, st = compute(g), fin = g.status === "final", nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
@@ -534,13 +589,15 @@ document.addEventListener("DOMContentLoaded", () => {
     rl.push(R.pitches ? R.pitches + " balles par frappeur" : "balles illimitées");
     $("rulesLine").textContent = rl.join(" · ");
     $("tipRules").textContent = (R.outs || R.maxRuns ? "Changement automatique après " + [R.outs ? R.outs + " retraits" : "", R.maxRuns ? R.maxRuns + " points" : ""].filter(Boolean).join(" ou ") + ". " : "Retraits illimités. ") + "« Fin de la demi-manche » change en tout temps.";
-    const regDone0 = !!R.innings && st.half >= R.innings * 2 && st.total.a !== st.total.b;   // égalité : manches supplémentaires
     if(fin) sit.textContent = "Partie terminée";
     else if(regDone) sit.textContent = "Manches réglementaires terminées : touchez « Terminer la partie »";
     else {
       sit.appendChild(document.createTextNode((st.bat === "a" ? "▲ Début" : "▼ Fin") + " de la " + ord(st.inning) + " manche · " + st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
       const o = el("span", "outs"); for(let i = 0; i < Math.max(3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); sit.appendChild(o);
     }
+    keepAwake(canScore() && !fin);
+    const batter = st.lineup[st.bat][st.next[st.bat]];
+    $("batNow").textContent = !fin && !regDone && batter ? "Au bâton : " + batter + (st.bases.some(Boolean) ? " · coureurs : " + [1, 2, 3].filter(b => st.bases[b - 1]).map(b => BASE[b]).join(", ") : "") : "";
     const P = st.rules.pitches;
     $("btnPitch").textContent = "Balle lancée" + (P ? " (" + st.pitches + "/" + P + ")" : st.pitches ? " (" + st.pitches + ")" : "");
     if(!fin && !regDone && st.pitches) sit.appendChild(el("div", "muted", "Balles au frappeur : " + st.pitches + (P ? " / " + P : "")));
