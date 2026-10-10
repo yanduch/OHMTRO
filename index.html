@@ -784,6 +784,13 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   </div>
 </dialog>
 
+<dialog id="trainHidden">
+  <div class="sheet-in" style="text-align:center;">
+    <h2>🔑 Gestion des mots de passe</h2>
+    <p class="ctx">Cette fenêtre est cachée pendant la formation. Elle se fermera d'elle-même quand le formateur aura terminé.</p>
+  </div>
+</dialog>
+
 <dialog id="trainSheet">
   <div class="sheet-in">
     <h2>Formation à distance</h2>
@@ -4192,15 +4199,19 @@ document.addEventListener("DOMContentLoaded", function(){
   const masked = t => t.type === "password" ? "•".repeat(t.value.length) : t.value;
   document.addEventListener("input", e => {
     const t = e.target;
-    if(!trainRef || !e.isTrusted || inBar(t) || !t.matches || !t.matches("input, textarea") || /^(checkbox|radio|file)$/.test(t.type)) return;
+    if(!trainRef || !e.isTrusted || inBar(t) || !t.matches || !t.matches("input, textarea") || /^(checkbox|radio|file)$/.test(t.type) || t.closest("#passwordsSheet")) return;
     const p = domPath(t); clearTimeout(typing[p]);
     typing[p] = setTimeout(() => trainSend({ k: "type", p: p, v: masked(t) }), 250);
   }, true);
   document.addEventListener("change", e => {
     const t = e.target;
-    if(!trainRef || !e.isTrusted || inBar(t) || !t.matches || !t.matches("select, input, textarea") || /^(checkbox|radio|file)$/.test(t.type)) return;
+    if(!trainRef || !e.isTrusted || inBar(t) || !t.matches || !t.matches("select, input, textarea") || /^(checkbox|radio|file)$/.test(t.type) || t.closest("#passwordsSheet")) return;
     const p = domPath(t); clearTimeout(typing[p]);
     trainSend({ k: "val", p: p, v: masked(t) });
+  }, true);
+  document.addEventListener("close", e => {
+    const d = e.target;
+    if(trainRef && d && d.tagName === "DIALOG" && d.id && d.id !== "trainSheet") trainSend({ k: "close", id: d.id });
   }, true);
   let scrollT = null;
   document.addEventListener("scroll", e => {
@@ -4347,10 +4358,16 @@ document.addEventListener("DOMContentLoaded", function(){
       else window.scrollTo(0, (ev.y || 0) * Math.max(0, document.documentElement.scrollHeight - innerHeight));
       return true;
     }
+    if(ev.k === "close"){                                          // le formateur a fermé une fenêtre : on la ferme aussi
+      if(ev.id === "passwordsSheet") closeDlg("trainHidden");
+      else if($(ev.id)) closeDlg(ev.id);
+      return true;
+    }
     const n = qsel(ev.p); if(!n) return false;
+    if(n.closest("#passwordsSheet")) return true;                  // fenêtre des mots de passe : jamais montrée
     const d = n.closest("dialog"); if(d && !d.open) return false;    // fenêtre pas encore ouverte chez l'apprenti
     if(ev.k === "click"){
-      if(n.id === "btnOpenPasswords"){ notify("Le formateur ouvre la gestion des mots de passe (non montrée en formation)."); return true; }
+      if(n.id === "btnOpenPasswords"){ flash(n); closeDlg("settingsSheet"); openDlg("trainHidden"); return true; }
       if(n.classList.contains("pwd-eye") || n.id === "btnLogin" || n.id === "btnOpenTraining") return true;
       flash(n); n.click();
     } else {
