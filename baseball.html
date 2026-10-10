@@ -46,10 +46,23 @@ main{max-width:640px;margin:0 auto;padding:1rem}
 #voiceTag{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#C62828;color:#FFF;padding:.55rem 1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:76;box-shadow:0 6px 18px rgba(0,0,0,.3)}
 #annMsg{position:fixed;left:50%;top:9rem;transform:translateX(-50%);width:min(94vw,28rem);background:var(--primary);color:#FFF;border-radius:16px;padding:1.1rem 1.2rem;box-shadow:0 12px 34px rgba(0,0,0,.35);z-index:75;text-align:center;font-size:1.25rem;font-weight:800;line-height:1.3;animation:msgIn .4s ease-out;cursor:pointer;overflow-wrap:anywhere}
 #annMsg small{display:block;font-size:.7rem;font-weight:600;opacity:.8;margin-top:.5rem}
-.fieldrow{display:flex;gap:.5rem;align-items:stretch}
+.fieldrow{display:flex;gap:.5rem;align-items:stretch;position:relative;margin-top:.8rem}
+/* Messages cachés : le terrain reprend toute la place */
+.fieldrow.wide .diamond{flex:0 0 auto;width:min(100%,19rem);height:15.5rem;margin:.1rem auto .3rem}
+.fieldrow.wide .diamond .field{width:9.4rem;height:9.4rem}
+.fieldrow.wide .base{width:1.9rem;height:1.9rem}
+.fieldrow.wide .base.home{width:1.7rem;height:1.7rem}
+.fieldrow.wide .runner{max-width:7.2rem;padding:.3rem .6rem;font-size:.85rem}
+.fieldrow.wide .blab{font-size:.7rem}
+.fieldrow.wide .cheers{display:none}
+.cheers legend{display:flex;align-items:center}
+.cheers .lg{background:var(--primary);color:#FFF;border-radius:999px;padding:.12rem .45rem;font-size:.6rem;font-weight:800;letter-spacing:.05em}
+.ctog{border:0;border-radius:999px;background:var(--surface);color:var(--blue);font-size:.7rem;font-weight:800;padding:.15rem .5rem;box-shadow:0 0 0 2px var(--line);cursor:pointer}
+.ctog.float{position:absolute;right:.2rem;top:-.75rem;z-index:3}
+.ctog.inl{margin-left:.25rem;font-size:.6rem;padding:.12rem .4rem}
 .fieldrow.fin .cheers{height:auto;max-height:14rem}
-.cheers{flex:1;min-width:0;height:11.8rem;margin:0 0 .3rem;padding:.1rem .45rem .4rem;border:3px solid var(--line);border-radius:8px;display:flex;flex-direction:column}
-.cheers legend{padding:0 .35rem;font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.cheers{flex:1;min-width:0;height:11.8rem;margin:0 0 .3rem;padding:.1rem .4rem .4rem;border:3px solid var(--line);border-radius:8px;display:flex;flex-direction:column}
+.cheers legend{padding:0 .25rem;margin-left:-.1rem}
 #cheerList{flex:1;overflow-y:auto;font-size:.78rem;line-height:1.3;-webkit-overflow-scrolling:touch}
 #cheerList .c{padding:.3rem 0;border-bottom:1px dashed var(--line);overflow-wrap:anywhere;position:relative}
 #cheerList .c:last-child{border-bottom:0}
@@ -123,8 +136,8 @@ dialog::backdrop{background:var(--backdrop)}
 #toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--primary);color:#FFF;padding:.6rem 1rem;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
 #toast.show{opacity:1}
 .hidden{display:none !important}
-.diamond{position:relative;flex:0 0 12.6rem;width:12.6rem;height:11.8rem;margin:.1rem 0 .3rem}
-.diamond .field{position:absolute;left:50%;top:51%;width:6.2rem;height:6.2rem;border:3px solid var(--line);transform:translate(-50%,-50%) rotate(45deg);border-radius:6px;background:linear-gradient(135deg,rgba(31,122,68,.10),rgba(31,122,68,.03))}
+.diamond{position:relative;flex:0 0 11.8rem;width:11.8rem;height:11.8rem;margin:.1rem 0 .3rem}
+.diamond .field{position:absolute;left:50%;top:51%;width:5.9rem;height:5.9rem;border:3px solid var(--line);transform:translate(-50%,-50%) rotate(45deg);border-radius:6px;background:linear-gradient(135deg,rgba(31,122,68,.10),rgba(31,122,68,.03))}
 .base{position:absolute;transform:translate(-50%,-50%) rotate(45deg);width:1.45rem;height:1.45rem;border-radius:4px;border:2px solid var(--line);background:var(--field)}
 .base.home{transform:translate(-50%,-50%);border-radius:50%;width:1.35rem;height:1.35rem}
 .blab{position:absolute;transform:translate(-50%,-50%);font-size:.62rem;font-weight:700;color:var(--muted);pointer-events:none}
@@ -197,7 +210,8 @@ select{color:var(--ink)}
       <div class="situation" id="situation"></div>
       <div class="fieldrow" id="fieldRow">
         <div class="diamond" id="diamond"></div>
-        <fieldset class="cheers" id="cheersBox"><legend>Messages</legend><div id="cheerList"></div></fieldset>
+        <fieldset class="cheers" id="cheersBox"><legend><span class="lg">MESSAGES</span></legend><div id="cheerList"></div></fieldset>
+        <button type="button" class="ctog" id="btnCheerToggle">Cacher</button>
       </div>
       <button type="button" class="btn cheerbtn" id="btnCheer">💬 Envoyer un encouragement</button>
       <div class="line" id="lineScore"></div>
@@ -1163,6 +1177,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const BAD = ["merde", "crisse", "calisse", "caliss", "tabarnak", "tabarnac", "tabarnaque", "ostie", "hostie", "osti", "esti", "ciboire", "sacrament", "fuck", "fucking", "shit", "bitch", "asshole", "connard", "connasse", "salope", "pute", "putain", "encule", "enculer", "batard", "nique", "niaiseux", "cave", "mongol", "fif", "tapette", "negre", "nigger", "nigga", "retard"];
   const norm = t => String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   const rude = t => { const w = norm(t).replace(/[^a-z0-9]+/g, " ").split(" "); return w.some(x => BAD.indexOf(x) !== -1); };
+  // Afficher ou cacher la boîte des messages (choix retenu sur l'appareil)
+  let cheersHidden = false; try { cheersHidden = localStorage.getItem("bb_cheers_hidden") === "1"; } catch(e){}
+  function cheerToggleUI(){
+    $("fieldRow").classList.toggle("wide", cheersHidden);
+    const b = $("btnCheerToggle");
+    b.textContent = cheersHidden ? "💬 Messages · Afficher" : "Cacher";
+    // Affichés : « Cacher » juste à droite de MESSAGES ; cachés : « Afficher » en haut à droite du terrain
+    if(cheersHidden){ b.className = "ctog float"; $("fieldRow").appendChild(b); }
+    else { b.className = "ctog inl"; $("cheersBox").querySelector("legend").appendChild(b); }
+  }
+  on("btnCheerToggle", "click", () => {
+    cheersHidden = !cheersHidden; try { localStorage.setItem("bb_cheers_hidden", cheersHidden ? "1" : "0"); } catch(e){}
+    cheerToggleUI();
+  });
+  cheerToggleUI();
   function renderCheers(){
     cheerUI();
     const box = $("cheerList"), v = (cur && cur.cheers) || {}, ids = Object.keys(v).sort().reverse();
