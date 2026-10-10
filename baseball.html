@@ -93,6 +93,15 @@ button.runner{cursor:pointer}
 .runner.gone{opacity:0}
 .runner.pop{animation:pop .5s ease-out}
 @keyframes pop{0%{transform:translate(-50%,-50%) scale(.6)}70%{transform:translate(-50%,-50%) scale(1.12)}100%{transform:translate(-50%,-50%) scale(1)}}
+.sw{display:flex;flex-wrap:wrap;gap:.35rem;margin:.25rem 0 .3rem}
+.sw button{width:1.9rem;height:1.9rem;border-radius:50%;border:3px solid transparent;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw button[aria-pressed="true"]{border-color:var(--surface);box-shadow:0 0 0 3px var(--ink)}
+.dot{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.35rem;vertical-align:baseline;flex:none}
+.score-head .name{border-bottom:4px solid var(--tc,transparent);padding-bottom:.15rem}
+.mus-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--line);font-size:.85rem}
+.mus-row select{width:auto;flex:0 0 10.5rem}
+.mus-test{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin:.4rem 0 .6rem}
+.mus-test .btn{min-height:2.3rem;font-size:.78rem;padding:.3rem}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:80}
 .confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:fall linear forwards}
 @keyframes fall{to{transform:translate3d(var(--dx),110vh,0) rotate(var(--r));}}
@@ -183,6 +192,7 @@ select{color:var(--ink)}
   <div class="card admin hidden" id="adminBox" style="margin-top:1rem;">
     <h2>Administration</h2>
     <button type="button" class="btn full" id="btnTitle" style="margin-bottom:.5rem;">✏️ Titre de la page</button>
+    <button type="button" class="btn full" id="btnMusic" style="margin-bottom:.5rem;">🎵 Gestion des musiques</button>
     <button type="button" class="btn full" id="btnPasswords">🔑 Mots de passe</button>
     <p class="muted hidden" id="pwdWarn" style="margin:.5rem 0 0;color:var(--red);">⚠️ Les mots de passe par défaut sont encore utilisés. Changez-les avant le tournoi.</p>
   </div>
@@ -205,11 +215,13 @@ select{color:var(--ink)}
   <label for="luNameA">Équipe visiteuse</label>
   <select id="luTeamA" class="teamsel"></select>
   <input type="text" id="luNameA" maxlength="30" placeholder="Nom de l'équipe" list="teamNames" autocomplete="off">
+  <div class="sw" id="luColorA"></div>
   <label for="luPlayersA">Alignement visiteur — un joueur par ligne, dans l'ordre des frappeurs</label>
   <textarea id="luPlayersA" placeholder="12 Tremblay&#10;7 Gagnon&#10;…"></textarea>
   <label for="luNameB">Équipe locale</label>
   <select id="luTeamB" class="teamsel"></select>
   <input type="text" id="luNameB" maxlength="30" placeholder="Nom de l'équipe" list="teamNames" autocomplete="off">
+  <div class="sw" id="luColorB"></div>
   <datalist id="teamNames"></datalist>
   <label for="luPlayersB">Alignement local — un joueur par ligne, dans l'ordre des frappeurs</label>
   <textarea id="luPlayersB" placeholder="3 Roy&#10;21 Côté&#10;…"></textarea>
@@ -235,10 +247,25 @@ select{color:var(--ink)}
   <h3 id="tmTitle">Équipe</h3>
   <label for="tmName">Nom de l'équipe</label>
   <input type="text" id="tmName" maxlength="30" autocomplete="off">
+  <label>Couleur de l'équipe</label>
+  <div class="sw" id="tmColor"></div>
   <label for="tmPlayers">Alignement — un joueur par ligne, dans l'ordre des frappeurs</label>
   <textarea id="tmPlayers" placeholder="12 Tremblay&#10;7 Gagnon&#10;…"></textarea>
   <div class="actions"><button type="button" class="btn" id="tmCancel">Annuler</button><button type="button" class="btn primary" id="tmSave">Enregistrer</button></div>
   <button type="button" class="btn danger full admin hidden" id="tmDelete" style="margin-top:.6rem;">Supprimer cette équipe</button>
+</div></dialog>
+
+<!-- Musiques -->
+<dialog id="dlgMusic"><div class="dlg">
+  <h3>Gestion des musiques</h3>
+  <p class="muted" style="margin:0;">Choisissez l'air joué à la fin de chaque demi-manche. Il commence 20 secondes après le changement de demi-manche.</p>
+  <div class="mus-test">
+    <button type="button" class="btn" data-tune="charge">▶ Charge!</button>
+    <button type="button" class="btn" data-tune="ballgame">▶ Take Me Out</button>
+    <button type="button" class="btn" data-tune="rally">▶ Ralliement</button>
+  </div>
+  <div id="musicRows"></div>
+  <div class="actions"><button type="button" class="btn" id="musCancel">Annuler</button><button type="button" class="btn primary" id="musSave">Enregistrer</button></div>
 </div></dialog>
 
 <!-- Titre -->
@@ -463,6 +490,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return st;
   }
 
+  /* ---------- Couleurs d'équipe ---------- */
+  const COLORS = ["#C62828", "#1565C0", "#2E7D32", "#EF6C00", "#6A1B9A", "#F9A825", "#00838F", "#C2185B", "#0D2B5E", "#6D4C41", "#212121", "#78909C"];
+  const DEF_COL = { a: "#1565C0", b: "#C62828" };
+  const inkOn = c => { const n = parseInt(String(c).slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255; return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "#111" : "#FFF"; };
+  const colOf = (g, t) => (g && g[t] && /^#[0-9A-Fa-f]{6}$/.test(g[t].color || "")) ? g[t].color : DEF_COL[t];
+  function swatches(boxId, value){
+    const box = $(boxId); box.textContent = ""; box.dataset.v = value || "";
+    COLORS.forEach(c => {
+      const b = el("button"); b.type = "button"; b.style.background = c; b.setAttribute("aria-label", "Couleur " + c);
+      b.setAttribute("aria-pressed", String(c === value));
+      b.addEventListener("click", () => { box.dataset.v = c; box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); });
+      box.appendChild(b);
+    });
+  }
+
   /* ---------- Équipes du tournoi (nom + dernier alignement) ---------- */
   let teams = {};
   const teamKey = name => String(name).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "equipe";
@@ -475,7 +517,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!sortedTeams().length) box.appendChild(el("p", "muted", "Aucune équipe. Préparez-les à l'avance avec leur alignement.")).style.margin = "0";
     sortedTeams().forEach(k => {
       const r = el("div", "team-row"), n = (teams[k].players || []).length;
-      r.appendChild(el("strong", null, teams[k].name)); r.appendChild(el("span", "muted", n + " joueur" + (n > 1 ? "s" : "") + " ✏️"));
+      const nm = el("strong"); const d = el("span", "dot"); d.style.background = teams[k].color || "var(--line)"; nm.appendChild(d); nm.appendChild(document.createTextNode(teams[k].name));
+      r.appendChild(nm); r.appendChild(el("span", "muted", n + " joueur" + (n > 1 ? "s" : "") + " ✏️"));
       r.addEventListener("click", () => openTeam(k)); box.appendChild(r);
     });
   });
@@ -495,6 +538,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ["A", "B"].forEach(X => on("luTeam" + X, "change", () => {
     const t = teams[$("luTeam" + X).value]; if(!t) return;
     $("luName" + X).value = t.name; $("luPlayers" + X).value = (t.players || []).join("\n");
+    if(t.color) swatches("luColor" + X, t.color);
   }));
   let tmKey = "";
   function openTeam(k){
@@ -502,6 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tmKey = k || ""; const t = k ? teams[k] : null;
     $("tmTitle").textContent = t ? "Modifier l'équipe" : "Nouvelle équipe";
     $("tmName").value = t ? t.name : ""; $("tmPlayers").value = t && t.players ? t.players.join("\n") : "";
+    swatches("tmColor", t && t.color ? t.color : COLORS[Object.keys(teams).length % COLORS.length]);
     $("tmDelete").classList.toggle("hidden", !t || role !== "admin");
     $("dlgTeam").showModal();
   }
@@ -514,7 +559,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(k !== tmKey && teams[k]){ notify("L'équipe « " + teams[k].name + " » existe déjà."); return; }
     if(players.some((p, i) => players.indexOf(p) !== i)){ notify("Un joueur apparaît deux fois dans l'alignement."); return; }
     if(tmKey && tmKey !== k) ref("teams/" + tmKey).remove();
-    ref("teams/" + k).set({ name: name, players: players });
+    ref("teams/" + k).set({ name: name, players: players, color: $("tmColor").dataset.v || "" });
     $("dlgTeam").close(); notify("Équipe enregistrée.");
   });
   on("tmDelete", "click", () => {
@@ -599,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const STEP = 1340;                                              // durée d'un but à l'autre (ms)
   const SPOT = { 0: [50, 90], 1: [87, 51], 2: [50, 12], 3: [13, 51], 4: [50, 90] };
   const short = n => String(n).replace(/^\d+\s+/, "");
-  let dPrev = null, dTokens = {}, dSt = null, dTimers = [];
+  let dPrev = null, dTokens = {}, dSt = null, dTimers = [], batHold = null, batHoldT = null, BAT_DELAY = 15000;
   const place = (x, b) => { x.style.left = SPOT[b][0] + "%"; x.style.top = SPOT[b][1] + "%"; };
   function walk(x, path, done){                                   // d'un but à l'autre, en suivant les lignes
     let i = 0;
@@ -624,7 +669,8 @@ document.addEventListener("DOMContentLoaded", () => {
       [1, 2, 3, 0].forEach(b => { const x = el("div", "base" + (b ? "" : " home")); place(x, b); dm.appendChild(x); });
       [[1, "1er", 70, 61], [2, "2e", 50, 25], [3, "3e", 30, 61]].forEach(l => { const x = el("div", "blab", l[1]); x.style.left = l[2] + "%"; x.style.top = l[3] + "%"; dm.appendChild(x); });
     }
-    const evN = evList(g).length;
+    const evs = evList(g), evN = evs.length, lastEv = evs[evN - 1] || null;
+    const hitter = lastEv && ["1B", "2B", "3B", "HR", "HBP", "BB", "E"].indexOf(lastEv.t) !== -1 ? lastEv.n : "";
     // Animation seulement pour un nouveau jeu de la même partie (pas au chargement ni après une annulation)
     const anim = !!(dPrev && dPrev.id === curId && evN === dPrev.evN + 1);
     // Un jeu en remplace un autre en cours d'animation : on termine l'ancien tout de suite
@@ -633,6 +679,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const hr = anim && st.lastBat && st.lastBat.t === "HR" && st.recent.length;
     let fx = false;                                               // confettis lancés à l'arrivée d'un coureur
     const home = x => { x.classList.add("gone"); if(!fx){ fx = true; confetti(hr); } setTimeout(() => x.remove(), 400); };
+    // Après une frappe, le prochain frappeur arrive au marbre 15 secondes plus tard
+    if(anim && lastEv && ["1B", "2B", "3B", "HR"].indexOf(lastEv.t) !== -1) batHold = { id: curId, evN: evN, until: Date.now() + BAT_DELAY };
+    if(batHold && batHold.id === curId && batHold.evN === evN && Date.now() < batHold.until){
+      batter = "";
+      clearTimeout(batHoldT); batHoldT = setTimeout(() => { if(cur) render(); }, batHold.until - Date.now() + 60);
+    }
+    const col = colOf(g, st.bat), ink = inkOn(col);
     const want = {};                                              // nom -> but (1 à 3), 0 = frappeur au marbre
     [1, 2, 3].forEach(b => { if(st.bases[b - 1]) want[st.bases[b - 1]] = b; });
     if(batter && want[batter] === undefined) want[batter] = 0;
@@ -648,8 +701,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } else { x.classList.add("gone"); setTimeout(() => x.remove(), 350); }
     });
     // Circuit : le frappeur fait le tour complet
-    if(anim && dPrev.batter && st.recent.indexOf(dPrev.batter) !== -1 && want[dPrev.batter] === undefined && !dTokens[dPrev.batter]){
-      const x = el("div", "runner leaving", short(dPrev.batter)); place(x, 0); dm.appendChild(x);
+    if(anim && hitter && st.recent.indexOf(hitter) !== -1 && want[hitter] === undefined && !dTokens[hitter]){
+      const x = el("div", "runner leaving", short(hitter)); place(x, 0); x.style.background = col; x.style.color = ink; dm.appendChild(x);
       walk(x, [1, 2, 3, 4], () => { x.classList.remove("leaving"); home(x); });
     }
     Object.keys(want).forEach(n => {
@@ -659,13 +712,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if(x && (x.tagName === "BUTTON") !== scorer){ const y = el(scorer ? "button" : "div", x.className); y.style.cssText = x.style.cssText; y.textContent = x.textContent; x.replaceWith(y); x = y; }
       if(!x){
         x = el(scorer ? "button" : "div", "runner", short(n));
-        const from = sameHalf && dPrev.place[n] !== undefined ? dPrev.place[n] : (sameHalf && n === dPrev.batter ? 0 : to);
+        const from = sameHalf && dPrev.place[n] !== undefined && dPrev.place[n] > 0 ? dPrev.place[n] : (sameHalf && n === hitter ? 0 : to);
         place(x, from); dm.appendChild(x); if(to === from) x.classList.add("pop");
       }
       dTokens[n] = x;
       x.classList.toggle("batter", to === 0); x.title = n; x.dataset.b = to;
+      x.style.background = col; x.style.color = ink; x.style.outline = to === 0 ? "3px solid rgba(255,255,255,.65)" : "";
       if(scorer){ x.type = "button"; x.onclick = () => { const b = dSt.bases.indexOf(n) + 1; if(b) openRunner(b, n, dSt); }; } else x.onclick = null;
-      const from = sameHalf ? (dPrev.place[n] !== undefined ? dPrev.place[n] : (n === dPrev.batter ? 0 : to)) : to;
+      const from = sameHalf ? (dPrev.place[n] !== undefined && (dPrev.place[n] > 0 || n === hitter) ? dPrev.place[n] : (n === hitter ? 0 : to)) : to;
       if(anim && to === 0 && from > 0 && st.recent.indexOf(n) !== -1){   // a marqué et revient aussitôt au bâton (petit alignement)
         const path = []; for(let b = from + 1; b <= 4; b++) path.push(b); dTimers.push(setTimeout(() => walk(x, path, () => { if(!fx){ fx = true; confetti(hr); } }), 20));
       }
@@ -688,7 +742,7 @@ document.addEventListener("DOMContentLoaded", () => {
   soundBtn();
   const NOTE = n => { const m = /^([A-G])(#?)(\d)$/.exec(n); const i = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (i - 9) / 12 + (+m[3] - 4)); };
   function playTune(t){
-    if(!soundOn || !actx || actx.state !== "running") return;
+    if(!t || !soundOn || !actx || actx.state !== "running") return;
     const out = actx.createGain(); out.gain.value = .22; out.connect(actx.destination);
     let at = actx.currentTime + .05;
     t.notes.forEach(([n, beats]) => {
@@ -724,16 +778,42 @@ document.addEventListener("DOMContentLoaded", () => {
                                 ["D5", 1], ["F5", 1], ["A5", 1], ["D6", 2], ["-", 1], ["A5", 1], ["D6", 3], ["-", 1],
                                 ["E5", 1], ["G5", 1], ["B5", 1], ["E6", 2], ["D6", 1], ["C6", 1], ["B5", 1], ["C6", 6]] }
   };
+  // Air prévu à la fin de chaque demi-manche (« h<n> » : n demi-manches terminées), modifiable par l'administrateur
+  const defMusic = k => k === 10 ? "ballgame" : k === 14 ? "rally" : "charge";
+  let musicCfg = {}, musicT = null, MUSIC_DELAY = 20000;
+  ref("music").on("value", s => { const v = s.val(); musicCfg = v && typeof v === "object" ? v : {}; });
+  const tuneFor = k => { const v = musicCfg["h" + k]; return v === undefined ? defMusic(k) : v; };
   function music(half){
-    document.body.dataset.tune = half === 10 ? "ballgame" : half === 14 ? "rally" : "charge";
-    if(half === 10) playTune(TUNES.ballgame);                     // début de la 6e manche
-    else if(half === 14) playTune(TUNES.rally);                   // début de la 8e manche
-    else playTune(TUNES.charge);                                  // chaque demi-manche
+    const name = tuneFor(half), id = curId;
+    document.body.dataset.tune = name || "none";
+    clearTimeout(musicT);
+    if(name && TUNES[name]) musicT = setTimeout(() => { if(curId === id) playTune(TUNES[name]); }, MUSIC_DELAY);
   }
+  const halfLabel = k => { const h = k - 1, inn = Math.floor(h / 2) + 1; return "Fin de la " + ord(inn) + " " + (h % 2 === 0 ? "▲ (haut)" : "▼ (bas)"); };
+  on("btnMusic", "click", () => {
+    if(role !== "admin") return;
+    const box = $("musicRows"); box.textContent = "";
+    const n = Math.max(9, defRules.innings || 0) * 2;
+    for(let k = 1; k <= n; k++){
+      const row = el("div", "mus-row"), sel = el("select"); sel.dataset.k = k;
+      [["", "Aucune musique"], ["charge", "Charge!"], ["ballgame", "Take Me Out"], ["rally", "Ralliement"]].forEach(o => { const op = el("option", null, o[1]); op.value = o[0]; sel.appendChild(op); });
+      sel.value = tuneFor(k) || "";
+      row.appendChild(el("span", null, halfLabel(k))); row.appendChild(sel); box.appendChild(row);
+    }
+    $("dlgMusic").showModal();
+  });
+  document.querySelectorAll("[data-tune]").forEach(b => b.addEventListener("click", () => { unlock(); setTimeout(() => playTune(TUNES[b.dataset.tune]), 60); }));
+  on("musCancel", "click", () => $("dlgMusic").close());
+  on("musSave", "click", () => {
+    if(role !== "admin") return;
+    const cfg = {}; $("musicRows").querySelectorAll("select").forEach(sel => { cfg["h" + sel.dataset.k] = sel.value; });
+    ref("music").set(cfg); musicCfg = cfg; $("dlgMusic").close(); notify("Musiques enregistrées.");
+  });
   function render(){
     if(!cur) return;
     const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
     $("nameA").textContent = nA; $("nameB").textContent = nB;
+    $("nameA").style.setProperty("--tc", colOf(g, "a")); $("nameB").style.setProperty("--tc", colOf(g, "b"));
     $("runsA").textContent = st.total.a; $("runsB").textContent = st.total.b;
     const sit = $("situation"); sit.textContent = "";
     const R = st.rules, rl = [], regDone = !!R.innings && st.half >= R.innings * 2 && st.total.a !== st.total.b;
@@ -742,7 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if(regDone) sit.textContent = "Manches réglementaires terminées : touchez « Terminer la partie »";
     else {
       const ol = el("div", "outline"); ol.appendChild(document.createTextNode(st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
-      const o = el("span", "outs"); for(let i = 0; i < Math.max(3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); ol.appendChild(o);
+      const o = el("span", "outs"); for(let i = 0; i < Math.max(R.outs || 3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); ol.appendChild(o);
       sit.appendChild(ol);
     }
     keepAwake(canScore() && !fin);
@@ -754,7 +834,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hr.appendChild(el("th", null, "")); for(let i = 1; i <= nInn; i++) hr.appendChild(el("th", !fin && i === st.inning ? "cur" : "", i));
     hr.appendChild(el("th", "tot", "P")); hr.appendChild(el("th", "tot", "CS")); tb.appendChild(hr);
     [["a", nA], ["b", nB]].forEach(r => {
-      const tr = el("tr"); tr.appendChild(el("td", null, r[1]));
+      const tr = el("tr"), nc = el("td"), dot = el("span", "dot"); dot.style.background = colOf(g, r[0]);
+      nc.appendChild(dot); nc.appendChild(document.createTextNode(r[1])); tr.appendChild(nc);
       for(let i = 0; i < nInn; i++){
         const played = st.half >= i * 2 + (r[0] === "b" ? 1 : 0);
         tr.appendChild(el("td", !fin && i + 1 === st.inning && st.bat === r[0] ? "cur" : "", played ? String(st.runs[r[0]][i] || 0) : ""));
@@ -852,6 +933,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fillTeamSel("A", $("luNameA").value); fillTeamSel("B", $("luNameB").value);
     $("luPlayersA").value = g && g.a && g.a.players ? g.a.players.join("\n") : "";
     $("luPlayersB").value = g && g.b && g.b.players ? g.b.players.join("\n") : "";
+    swatches("luColorA", g ? colOf(g, "a") : DEF_COL.a); swatches("luColorB", g ? colOf(g, "b") : DEF_COL.b);
     const r = g ? cleanRules(g.rules) : defRules;
     $("ruInnings").value = r.innings; $("ruOuts").value = r.outs; $("ruRuns").value = r.maxRuns; $("ruPitches").value = r.pitches;
     $("dlgLineups").showModal();
@@ -861,15 +943,15 @@ document.addEventListener("DOMContentLoaded", () => {
   on("luCancel", "click", () => $("dlgLineups").close());
   on("luSave", "click", () => {
     if(!canScore()) return;
-    const a = { name: $("luNameA").value.trim().slice(0, 30) || "Visiteur", players: parsePlayers($("luPlayersA").value) };
-    const b = { name: $("luNameB").value.trim().slice(0, 30) || "Local", players: parsePlayers($("luPlayersB").value) };
+    const a = { name: $("luNameA").value.trim().slice(0, 30) || "Visiteur", players: parsePlayers($("luPlayersA").value), color: $("luColorA").dataset.v || DEF_COL.a };
+    const b = { name: $("luNameB").value.trim().slice(0, 30) || "Local", players: parsePlayers($("luPlayersB").value), color: $("luColorB").dataset.v || DEF_COL.b };
     if(teamKey(a.name) === teamKey(b.name)){ notify("Donnez un nom différent aux deux équipes."); return; }
     const dupe = [a, b].filter(t => t.players.some((p, i) => t.players.indexOf(p) !== i))[0];
     if(dupe){ notify("Un joueur apparaît deux fois dans l'alignement de " + dupe.name + "."); return; }
     const rules = cleanRules({ innings: $("ruInnings").value, outs: $("ruOuts").value, maxRuns: $("ruRuns").value, pitches: $("ruPitches").value });
     ref("rules").set(rules); defRules = rules;
     $("dlgLineups").close();
-    [a, b].forEach(t => { if(t.players.length) ref("teams/" + teamKey(t.name)).set({ name: t.name, players: t.players }); });
+    [a, b].forEach(t => { if(t.players.length) ref("teams/" + teamKey(t.name)).set({ name: t.name, players: t.players, color: t.color }); });
     if(luMode === "edit"){ ref("games/" + curId + "/a").set(a); ref("games/" + curId + "/b").set(b); ref("games/" + curId + "/rules").set(rules); notify("Partie mise à jour."); return; }
     const id = "g" + evKey();
     ref("games/" + id).set({ created: Date.now(), status: "live", a: a, b: b, rules: rules });
