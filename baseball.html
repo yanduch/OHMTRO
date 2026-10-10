@@ -37,6 +37,12 @@ main{max-width:640px;margin:0 auto;padding:1rem}
 .msg-row{display:flex;gap:.4rem;align-items:center;padding:.35rem 0;border-bottom:1px solid var(--line)}
 .msg-row span{flex:1;font-size:.88rem;overflow-wrap:anywhere}
 .msg-row .btn{min-height:2.2rem;padding:.3rem .55rem}
+.talk{min-height:4rem;margin-bottom:.6rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;font-size:1.05rem;background:var(--ok-bg);border-color:var(--ok-bd);color:var(--ok);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.talk small{font-size:.72rem;font-weight:600;opacity:.85}
+.talk.rec{background:#C62828;border-color:#C62828;color:#FFF;animation:recPulse 1s infinite}
+.talk.busy{opacity:.7}
+@keyframes recPulse{50%{box-shadow:0 0 0 .4rem rgba(198,40,40,.25)}}
+#voiceTag{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#C62828;color:#FFF;padding:.55rem 1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:76;box-shadow:0 6px 18px rgba(0,0,0,.3)}
 #annMsg{position:fixed;left:50%;top:9rem;transform:translateX(-50%);width:min(94vw,28rem);background:var(--primary);color:#FFF;border-radius:16px;padding:1.1rem 1.2rem;box-shadow:0 12px 34px rgba(0,0,0,.35);z-index:75;text-align:center;font-size:1.25rem;font-weight:800;line-height:1.3;animation:msgIn .4s ease-out;cursor:pointer;overflow-wrap:anywhere}
 #annMsg small{display:block;font-size:.7rem;font-weight:600;opacity:.8;margin-top:.5rem}
 #halfMsg{position:fixed;left:50%;top:13.5rem;transform:translateX(-50%);width:min(92vw,26rem);background:var(--surface);color:var(--ink);border:2px solid var(--tc,var(--line));border-radius:14px;padding:1rem 1.1rem;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:70;text-align:center;animation:msgIn .4s ease-out;cursor:pointer}
@@ -212,6 +218,7 @@ select{color:var(--ink)}
 
   <div class="card admin hidden console" id="consoleBox" style="margin-top:1rem;">
     <h2>🎛️ Console d'ambiance</h2>
+    <button type="button" class="btn full talk" id="btnTalk"><span id="talkLabel">🎙️ Maintenir pour annoncer</span><small id="talkHint">10 secondes maximum · relâchez pour envoyer</small></button>
     <div class="grid">
       <button type="button" class="btn" data-fx="charge"><b>📯</b>Charge!</button>
       <button type="button" class="btn" data-fx="applause"><b>👏</b>Applaudir</button>
@@ -344,6 +351,7 @@ select{color:var(--ink)}
   <div class="actions"><button type="button" class="btn" id="askNo">Annuler</button><button type="button" class="btn primary" id="askYes">OK</button></div>
 </div></dialog>
 
+<div id="voiceTag" class="hidden">🎙️ Annonce en cours…</div>
 <div id="annMsg" class="hidden" role="status" aria-live="assertive"></div>
 <div id="halfMsg" class="hidden" role="status" aria-live="polite"></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -925,6 +933,94 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!ready()) return;
     if(TUNES[t]) playTune(TUNES[t]); else if(SFX[t]) SFX[t]();
   }
+  /* ---------- Annonce vocale : l'administrateur parle (10 s max.), tous les appareils l'entendent ---------- */
+  // La voix est enregistrée en qualité « téléphone » (12 kHz, 16 bits) et jouée par le navigateur de chaque appareil :
+  // aucun format de fichier audio en jeu, donc lisible partout (iPhone, Android, ordinateur).
+  const VOICE_RATE = 12000, VOICE_MAX = 10;
+  let rec = null, myVoiceId = "", voiceSeen = null;
+  function talkUI(state, secs){
+    const b = $("btnTalk"); b.classList.toggle("rec", state === "rec"); b.classList.toggle("busy", state === "busy");
+    $("talkLabel").textContent = state === "rec" ? "🔴 Parlez… " + secs + " s" : state === "busy" ? "Envoi…" : "🎙️ Maintenir pour annoncer";
+    $("talkHint").textContent = state === "rec" ? "Relâchez pour envoyer" : "10 secondes maximum · relâchez pour envoyer";
+  }
+  function talkStart(ev){
+    if(ev) ev.preventDefault();
+    if(role !== "admin" || rec) return;
+    unlock();
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ notify("Le micro n'est pas disponible sur cet appareil."); return; }
+    rec = { chunks: [], len: 0, held: true, stream: null, t0: 0 };
+    const r = rec;
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(stream => {
+      if(rec !== r){ stream.getTracks().forEach(t => t.stop()); return; }
+      if(!r.held){                                                 // relâché pendant la demande d'autorisation
+        stream.getTracks().forEach(t => t.stop()); rec = null; talkUI();
+        notify("Micro autorisé. Maintenez le bouton enfoncé pendant que vous parlez."); return;
+      }
+      r.stream = stream;
+      const src = actx.createMediaStreamSource(stream), proc = actx.createScriptProcessor(4096, 1, 1), mute = actx.createGain();
+      mute.gain.value = 0;
+      proc.onaudioprocess = e => { const d = e.inputBuffer.getChannelData(0); r.chunks.push(new Float32Array(d)); r.len += d.length; };
+      src.connect(proc); proc.connect(mute); mute.connect(actx.destination);
+      r.nodes = [src, proc, mute]; r.t0 = Date.now();
+      const tick = () => {
+        if(rec !== r) return;
+        const left = VOICE_MAX - Math.floor((Date.now() - r.t0) / 1000);
+        if(left <= 0){ talkStop(); return; }
+        talkUI("rec", left); r.timer = setTimeout(tick, 200);
+      };
+      tick();
+    }).catch(() => { rec = null; talkUI(); notify("Le micro a été refusé. Autorisez-le dans les réglages du navigateur pour faire des annonces."); });
+  }
+  function talkStop(){
+    const r = rec; if(!r) return;
+    r.held = false;
+    if(!r.stream) return;                                          // autorisation encore en attente
+    rec = null; clearTimeout(r.timer);
+    r.nodes.forEach(n => { try { n.disconnect(); } catch(e){} }); r.stream.getTracks().forEach(t => t.stop());
+    const secs = (Date.now() - r.t0) / 1000;
+    if(secs < .6 || !r.len){ talkUI(); notify("Annonce trop courte : maintenez le bouton pendant que vous parlez."); return; }
+    talkUI("busy");
+    // Assemblage, réduction à 12 kHz (moyenne des échantillons) et mise à niveau du volume
+    const all = new Float32Array(r.len); let o = 0; r.chunks.forEach(c => { all.set(c, o); o += c.length; });
+    const ratio = actx.sampleRate / VOICE_RATE, n = Math.min(Math.floor(all.length / ratio), VOICE_RATE * VOICE_MAX), out = new Float32Array(n);
+    let peak = 0;
+    for(let i = 0; i < n; i++){ const a = Math.floor(i * ratio), b = Math.min(all.length, Math.floor((i + 1) * ratio)); let sum = 0; for(let j = a; j < b; j++) sum += all[j]; out[i] = sum / Math.max(1, b - a); peak = Math.max(peak, Math.abs(out[i])); }
+    const gain = peak > 0 ? Math.min(4, .9 / peak) : 1, pcm = new Int16Array(n);
+    for(let i = 0; i < n; i++) pcm[i] = Math.max(-32767, Math.min(32767, out[i] * gain * 32767));
+    const bytes = new Uint8Array(pcm.buffer); let bin = "";
+    for(let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    myVoiceId = evKey();
+    ref("voice").set({ id: myVoiceId, rate: VOICE_RATE, data: btoa(bin), at: Date.now() }).then(() => {
+      talkUI(); notify("Annonce envoyée.");
+      const id = myVoiceId;
+      setTimeout(() => ref("voice").once("value").then(s => { const v = s.val(); if(v && v.id === id) ref("voice").remove(); }), 90000);   // rien ne s'accumule
+    }, () => { talkUI(); notify("Envoi impossible. Vérifiez la connexion."); });
+  }
+  const tb = $("btnTalk");
+  tb.addEventListener("pointerdown", e => { try { tb.setPointerCapture(e.pointerId); } catch(x){} talkStart(e); });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => tb.addEventListener(t, () => talkStop()));
+  tb.addEventListener("contextmenu", e => e.preventDefault());
+  // Réception : chaque appareil joue l'annonce (sauf celui qui l'a enregistrée)
+  ref("voice").on("value", snap => {
+    const v = snap.val();
+    if(voiceSeen === null){ voiceSeen = v && v.id || ""; return; }
+    if(!v || !v.id || v.id === voiceSeen) return;
+    voiceSeen = v.id;
+    if(v.id === myVoiceId || Date.now() - (v.at || 0) > 30000 || !ready()) return;
+    try {
+      const bin = atob(v.data), pcm = new Int16Array(bin.length >> 1);
+      for(let i = 0; i < pcm.length; i++){ const lo = bin.charCodeAt(2 * i), hi = bin.charCodeAt(2 * i + 1); let x = lo | (hi << 8); if(x >= 32768) x -= 65536; pcm[i] = x; }
+      const buf = actx.createBuffer(1, pcm.length, v.rate || VOICE_RATE), ch = buf.getChannelData(0);
+      for(let i = 0; i < pcm.length; i++) ch[i] = pcm[i] / 32768;
+      clearTimeout(musicT);
+      const src = actx.createBufferSource(), g = actx.createGain(); g.gain.value = 1; src.buffer = buf;
+      src.connect(g); g.connect(newBus()); src.start();
+      $("voiceTag").classList.remove("hidden");
+      src.onended = () => $("voiceTag").classList.add("hidden");
+      setTimeout(() => $("voiceTag").classList.add("hidden"), buf.duration * 1000 + 800);
+    } catch(e){}
+  });
+
   // Diffusion : l'administrateur déclenche, tous les appareils ouverts jouent en même temps
   let fxSeen = null;
   ref("fx").on("value", snap => {
