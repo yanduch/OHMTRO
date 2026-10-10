@@ -224,6 +224,7 @@ select{color:var(--ink)}
       <button type="button" class="btn" data-fx="rally"><b>🎶</b>Ralliement</button>
       <button type="button" class="btn" data-fx="confetti"><b>🎉</b>Confettis</button>
     </div>
+    <button type="button" class="btn danger full" data-fx="stop" style="margin-top:.45rem;min-height:2.6rem;">⏹ Arrêter le son (pour tout le monde)</button>
     <label for="annText" style="margin-top:.8rem;">Message à afficher à tout le monde</label>
     <div class="row"><input type="text" id="annText" maxlength="120" placeholder="Ex. : Bravo aux bénévoles !" autocomplete="off"></div>
     <div class="row" style="margin-top:.4rem;"><button type="button" class="btn primary" id="annSend">📣 Afficher</button><button type="button" class="btn" id="annSave">💾 Enregistrer</button></div>
@@ -809,13 +810,25 @@ document.addEventListener("DOMContentLoaded", () => {
   try { soundOn = localStorage.getItem("bb_sound") !== "off"; } catch(e){}
   const unlock = () => { try { if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if(actx.state === "suspended") actx.resume(); } catch(e){} };
   ["pointerdown", "keydown"].forEach(t => document.addEventListener(t, unlock, { capture: true, passive: true }));
+  // Une seule musique ou un seul effet à la fois : chaque nouveau son coupe le précédent
+  let bus = null;
+  function stopAll(){
+    if(!bus || !actx) return;
+    const b = bus; bus = null;
+    try { b.gain.setValueAtTime(b.gain.value, actx.currentTime); b.gain.linearRampToValueAtTime(0, actx.currentTime + .12); } catch(e){}
+    setTimeout(() => { try { b.disconnect(); } catch(e){} }, 200);
+  }
+  function newBus(){ stopAll(); bus = actx.createGain(); bus.gain.value = 1; bus.connect(actx.destination); return bus; }
   function soundBtn(){ $("btnSound").textContent = soundOn ? "🔊" : "🔇"; $("btnSound").title = soundOn ? "Couper la musique" : "Activer la musique"; }
-  on("btnSound", "click", () => { soundOn = !soundOn; try { localStorage.setItem("bb_sound", soundOn ? "on" : "off"); } catch(e){} soundBtn(); if(soundOn){ unlock(); playTune(TUNES.charge); } });
+  on("btnSound", "click", () => {
+    soundOn = !soundOn; try { localStorage.setItem("bb_sound", soundOn ? "on" : "off"); } catch(e){} soundBtn();
+    if(soundOn){ unlock(); notify("Son activé."); } else { stopAll(); clearTimeout(musicT); notify("Son coupé sur cet appareil."); }
+  });
   soundBtn();
   const NOTE = n => { const m = /^([A-G])(#?)(\d)$/.exec(n); const i = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (i - 9) / 12 + (+m[3] - 4)); };
   function playTune(t){
     if(!t || !soundOn || !actx || actx.state !== "running") return;
-    const out = actx.createGain(); out.gain.value = .22; out.connect(actx.destination);
+    const out = actx.createGain(); out.gain.value = .22; out.connect(newBus());
     let at = actx.currentTime + .05;
     t.notes.forEach(([n, beats]) => {
       const d = beats * t.beat;
@@ -865,7 +878,7 @@ document.addEventListener("DOMContentLoaded", () => {
     g.gain.setValueAtTime(vol, at); g.gain.exponentialRampToValueAtTime(.001, at + dur);
     src.connect(f); f.connect(g); g.connect(out); src.start(at, Math.random()); src.stop(at + dur + .02);
   }
-  function master(v){ const g = actx.createGain(); g.gain.value = v; g.connect(actx.destination); return g; }
+  function master(v, extra){ const g = actx.createGain(); g.gain.value = v; g.connect(extra ? actx.destination : newBus()); return g; }
   const SFX = {
     applause(){
       const out = master(.5), t0 = actx.currentTime + .03;
@@ -897,8 +910,8 @@ document.addEventListener("DOMContentLoaded", () => {
       for(let i = 0; i < 44; i++) burst(t0 + i * .055, .06, 2200, .8, .15 + i / 44 * .6, out);
       burst(t0 + 2.5, 1.6, 5000, .4, 1, out); burst(t0 + 2.5, .4, 120, 1, 1, out);
     },
-    bell(){
-      const out = master(.3), t0 = actx.currentTime + .03;
+    bell(extra){
+      const out = master(extra ? .18 : .3, extra), t0 = actx.currentTime + .03;
       [0, .45, .9].forEach(d => [[880, .6], [2420, .25], [4750, .1]].forEach(([f, v]) => {
         const o = actx.createOscillator(), g = actx.createGain(); o.type = "sine"; o.frequency.value = f;
         g.gain.setValueAtTime(v, t0 + d); g.gain.exponentialRampToValueAtTime(.0005, t0 + d + 1.6);
@@ -907,6 +920,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
   function playFx(t){
+    if(t === "stop"){ stopAll(); clearTimeout(musicT); return; }
     if(t === "confetti"){ confetti(false); if(ready()) SFX.bell(); return; }
     if(!ready()) return;
     if(TUNES[t]) playTune(TUNES[t]); else if(SFX[t]) SFX[t]();
@@ -928,7 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const box = $("annMsg"); box.textContent = String(text || "").slice(0, 120);
     box.appendChild(el("small", null, "Touchez pour fermer"));
     box.classList.remove("hidden"); clearTimeout(annT); annT = setTimeout(() => box.classList.add("hidden"), 12000);
-    if(ready()) SFX.bell();
+    if(ready()) SFX.bell(true);
   }
   on("annMsg", "click", () => $("annMsg").classList.add("hidden"));
   on("annSend", "click", () => {
