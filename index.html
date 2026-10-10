@@ -328,7 +328,7 @@ body:not(.role-admin) .admin-only{display:none !important}
 #audioHint{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:#F9A825;color:#111;border:0;padding:.65rem 1.1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:74;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:pointer}
 #voiceTag{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#C62828;color:#FFF;padding:.55rem 1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:76;box-shadow:0 6px 18px rgba(0,0,0,.3)}
 #annMsg{position:fixed;left:50%;top:9rem;transform:translateX(-50%);width:min(94vw,28rem);background:var(--blue);color:#FFF;border-radius:16px;padding:1.1rem 1.2rem;box-shadow:0 12px 34px rgba(0,0,0,.35);z-index:75;text-align:center;font-size:1.25rem;font-weight:800;line-height:1.3;cursor:pointer;overflow-wrap:anywhere}
-#audioHint[hidden],#voiceTag[hidden],#annMsg[hidden]{display:none}
+#audioHint[hidden],#voiceTag[hidden],#annMsg[hidden],.amb[hidden]{display:none}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:80}
 .confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:fall linear forwards}
 @keyframes fall{to{transform:translate3d(var(--dx),110vh,0) rotate(var(--r));}}
@@ -1638,6 +1638,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const connText = onlineCount > 1 ? " (" + onlineCount + ")" : "";
     // « En direct » (voyant vert) seulement quand une partie est en cours sur ce tableau
     const live = isLive(state) && !editEntry && !archiveKey;
+    $("ambBox").hidden = !live;                                   // console d'ambiance : seulement pendant le match en cours
     const txt = (live ? "En direct" : "Aucune partie") + (currentRole !== "viewer" ? " - " + roleLabel() : "") + connText;
     if(st.textContent !== txt) st.textContent = txt;
     st.dataset.s = live ? "live" : "idle";
@@ -4333,7 +4334,8 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   // Envoi : sur ce tableau, et sur celui de l'autre équipe de l'organisation si les deux sont liés
   const ambTargets = () => [boardBase].concat(isLinked() && boardLink.team !== boardTeam ? [catBase() + "/boards/" + boardLink.team] : []);
-  function sendFx(t, text){ if(!isAdmin()) return; unlock(); const v = { id: uid(), t: t, text: text || "", at: Date.now() }; ambTargets().forEach(p => ref(p + "/fx").set(v)); }
+  const ambLive = () => isAdmin() && isLive(state) && !editEntry && !archiveKey;
+  function sendFx(t, text){ if(!ambLive()) return; unlock(); const v = { id: uid(), t: t, text: text || "", at: Date.now() }; ambTargets().forEach(p => ref(p + "/fx").set(v)); }
   document.querySelectorAll("[data-fx]").forEach(b => b.addEventListener("click", () => sendFx(b.dataset.fx)));
   on("annSend", "click", () => { const t = $("annText").value.trim(); if(!t){ notify("Écrivez le message à afficher.", "info"); return; } sendFx("msg", t); $("annText").value = ""; });
 
@@ -4371,7 +4373,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   function talkStart(ev){
     if(ev) ev.preventDefault();
-    if(!isAdmin() || rec) return;
+    if(!ambLive() || rec) return;
     unlock();
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ notify("Le micro n'est pas disponible sur cet appareil.", "info"); return; }
     rec = { chunks: [], len: 0, held: true, stream: null, t0: 0 };
