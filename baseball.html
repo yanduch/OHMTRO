@@ -160,8 +160,8 @@ select{color:var(--ink)}
       <button type="button" class="btn danger full" id="btnEnd" style="margin-top:.6rem;">Terminer la partie</button>
     </div>
     <div class="card scorer hidden" id="finalPad">
-      <p class="muted" style="margin-top:0;">Partie terminée.</p>
-      <div class="row"><button type="button" class="btn" id="btnReopen">Rouvrir la partie</button><button type="button" class="btn danger admin hidden" id="btnDelete">Supprimer</button></div>
+      <p class="muted" style="margin-top:0;" id="finalNote">Partie terminée.</p>
+      <div class="row"><button type="button" class="btn" id="btnReopen">Rouvrir la partie</button><button type="button" class="btn" id="btnUndoFinal">↶ Annuler le dernier jeu</button><button type="button" class="btn danger admin hidden" id="btnDelete">Supprimer</button></div>
     </div>
 
     <div class="card">
@@ -370,7 +370,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = { half: 0, outs: 0, pitches: 0, bases: [null, null, null], runs: { a: [], b: [] }, hits: { a: 0, b: 0 }, last: { a: -1, b: -1 }, stats: { a: {}, b: {} }, log: [], lastBat: null };
     const S = (t, n) => st.stats[t][n] = st.stats[t][n] || blank();
     const R = st.rules = cleanRules(g.rules);
+    // Nombre de manches atteint : la partie est terminée et les jeux suivants sont ignorés.
+    // Si le local mène après la demie de la dernière manche, il ne frappe pas.
+    const over = () => {
+      if(!R.innings) return false;
+      if(st.half >= R.innings * 2) return true;
+      const sum = t => st.runs[t].reduce((x, y) => x + (y || 0), 0);
+      return st.half === R.innings * 2 - 1 && sum("b") > sum("a");
+    };
     evList(g).forEach(e => {
+      if(over()) return;
       play(e);
       // Fin automatique de la demi-manche : limite de retraits ou de points atteinte (0 = illimité)
       const tt = st.half % 2 === 0 ? "a" : "b", inHalf = st.runs[tt][Math.floor(st.half / 2)] || 0, side = (st.half % 2 === 0 ? "▲ " : "▼ ") + ord(Math.floor(st.half / 2) + 1);
@@ -436,6 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if(e.t === "OUT"){ s.O++; st.outs++; say(n + " : " + lab); }
     }
+    st.over = over();
     st.bat = st.half % 2 === 0 ? "a" : "b";
     st.inning = Math.floor(st.half / 2) + 1;
     st.next = { a: lineup.a.length ? (st.last.a + 1) % lineup.a.length : -1, b: lineup.b.length ? (st.last.b + 1) % lineup.b.length : -1 };
@@ -505,8 +515,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   ref("games").on("value", s => { games = s.val() || {}; renderList(); if(curId && !games[curId]) showList(); });
+  const isFinal = (g, st) => g.status === "final" || (st || compute(g)).over;
   function gameCard(id){
-    const g = games[id], st = compute(g), fin = g.status === "final";
+    const g = games[id], st = compute(g), fin = isFinal(g, st);
     const c = el("div", "card game-item"), left = el("div");
     left.appendChild(el("strong", null, (g.a && g.a.name || "Visiteur") + " " + st.total.a + " – " + st.total.b + " " + (g.b && g.b.name || "Local")));
     const d = new Date(g.created || 0), when = d.toLocaleDateString("fr-CA", { weekday: "short", day: "numeric", month: "short" }) + " " + d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" });
@@ -517,8 +528,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function renderList(){
     const ids = Object.keys(games).filter(id => games[id] && typeof games[id] === "object");
-    const live = ids.filter(id => games[id].status !== "final").sort((x, y) => (games[y].created || 0) - (games[x].created || 0));
-    const done = ids.filter(id => games[id].status === "final").sort((x, y) => (games[y].created || 0) - (games[x].created || 0));
+    const live = ids.filter(id => !isFinal(games[id])).sort((x, y) => (games[y].created || 0) - (games[x].created || 0));
+    const done = ids.filter(id => isFinal(games[id])).sort((x, y) => (games[y].created || 0) - (games[x].created || 0));
     const box = $("gameList"); box.textContent = "";
     if(!live.length) box.appendChild(el("p", "muted", "Aucune partie en cours."));
     live.forEach(id => box.appendChild(gameCard(id)));
@@ -573,10 +584,10 @@ document.addEventListener("DOMContentLoaded", () => {
       else if(!onOff && wake){ wake.release(); wake = null; }
     } catch(e){}
   }
-  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && cur && canScore() && cur.status !== "final") keepAwake(true); });
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && cur && canScore() && !isFinal(cur)) keepAwake(true); });
   function render(){
     if(!cur) return;
-    const g = cur, st = compute(g), fin = g.status === "final", nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
+    const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
     $("nameA").textContent = nA; $("nameB").textContent = nB;
     $("runsA").textContent = st.total.a; $("runsB").textContent = st.total.b;
     $("batA").textContent = !fin && st.bat === "a" ? "● AU BÂTON" : ""; $("batB").textContent = !fin && st.bat === "b" ? "● AU BÂTON" : "";
@@ -589,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rl.push(R.pitches ? R.pitches + " balles par frappeur" : "balles illimitées");
     $("rulesLine").textContent = rl.join(" · ");
     $("tipRules").textContent = (R.outs || R.maxRuns ? "Changement automatique après " + [R.outs ? R.outs + " retraits" : "", R.maxRuns ? R.maxRuns + " points" : ""].filter(Boolean).join(" ou ") + ". " : "Retraits illimités. ") + "« Fin de la demi-manche » change en tout temps.";
-    if(fin) sit.textContent = "Partie terminée";
+    if(fin) sit.textContent = "Partie terminée" + (st.over && g.status !== "final" ? " — " + R.innings + " manche" + (R.innings > 1 ? "s" : "") + " jouée" + (R.innings > 1 ? "s" : "") : "") + (st.total.a === st.total.b ? " · match nul" : "");
     else if(regDone) sit.textContent = "Manches réglementaires terminées : touchez « Terminer la partie »";
     else {
       sit.appendChild(document.createTextNode((st.bat === "a" ? "▲ Début" : "▼ Fin") + " de la " + ord(st.inning) + " manche · " + st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
@@ -626,6 +637,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Marqueur
     $("scorePad").classList.toggle("hidden", !canScore() || fin);
     $("finalPad").classList.toggle("hidden", !canScore() || !fin);
+    const byInn = st.over && g.status !== "final";
+    $("btnReopen").classList.toggle("hidden", byInn); $("btnUndoFinal").classList.toggle("hidden", !byInn);
+    $("finalNote").textContent = byInn ? "Partie terminée automatiquement après " + R.innings + " manche" + (R.innings > 1 ? "s" : "") + ". Une erreur au dernier jeu ? Annulez-le." : "Partie terminée.";
     if(canScore() && !fin){
       const sel = $("batterSel"), lu = st.lineup[st.bat], prev = sel.dataset.sig === curId + st.half + ":" + st.last[st.bat] ? sel.value : null;
       sel.textContent = "";
@@ -692,6 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ref("games/" + curId + "/events/" + ev[ev.length - 1].k).remove(); notify("Dernier jeu annulé.");
   });
   on("btnEnd", "click", () => ask("Terminer cette partie ?", { title: "Fin de partie", ok: "Terminer", danger: true }).then(ok => { if(ok) ref("games/" + curId + "/status").set("final"); }));
+  on("btnUndoFinal", "click", () => $("btnUndo").click());
   on("btnReopen", "click", () => { if(canScore()) ref("games/" + curId + "/status").set("live"); });
   on("btnDelete", "click", () => ask("Supprimer définitivement cette partie ?", { title: "Supprimer", ok: "Supprimer", danger: true })
     .then(ok => { if(ok && role === "admin"){ const id = curId; showList(); ref("games/" + id).remove(); } }));
