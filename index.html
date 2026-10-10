@@ -338,7 +338,12 @@ body:not(.role-admin) .admin-only{display:none !important}
 .amb h2{font-size:1rem;margin:0 0 .6rem}
 .amb label{display:block;font-size:.85rem;font-weight:600;margin:.8rem 0 .3rem}
 .amb input{width:100%;padding:.55rem .6rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
-.amb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.35rem}
+.amb-main{display:flex;gap:.45rem;align-items:stretch}
+.amb-main .talk{flex:0 0 40%;width:auto;margin:0;min-height:0;padding:.4rem;text-align:center}
+.amb-grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+.amb-grid button{min-height:4.6rem !important;font-size:.75rem !important}
+.amb-grid button b{font-size:1.6rem !important}
+body.role-viewer .staff-only{display:none !important}
 .amb-grid button{min-height:3.4rem;padding:.25rem .1rem;font-size:.68rem;line-height:1.15;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-weight:600;cursor:pointer}
 .amb-grid button b{font-size:1.25rem;font-weight:400}
 .amb-stop{width:100%;margin-top:.45rem;min-height:2.6rem;border-radius:10px;border:1px solid #E9B8B3;background:#FCEBEA;color:#C0392B;font-weight:700;cursor:pointer}
@@ -727,27 +732,24 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <button type="button" class="export-btn" id="btnExportCSV">📊 Exporter CSV</button>
   </div>
 
-  <section class="amb admin-only" id="ambBox">
+  <section class="amb staff-only" id="ambBox">
     <h2>🎛️ Console d'ambiance</h2>
-    <button type="button" class="talk" id="btnTalk"><span id="talkLabel">🎙️ Maintenir pour annoncer</span><small id="talkHint">10 secondes maximum · relâchez pour envoyer</small></button>
-    <div class="amb-grid">
-      <button type="button" data-fx="charge"><b>📯</b>Charge!</button>
-      <button type="button" data-fx="applause"><b>👏</b>Applaudir</button>
-      <button type="button" data-fx="ooh"><b>😮</b>Hooo!</button>
-      <button type="button" data-fx="letsgo"><b>🙌</b>Let's go!</button>
-      <button type="button" data-fx="goalhorn"><b>🚨</b>Sirène de but</button>
-      <button type="button" data-fx="drum"><b>🥁</b>Tambour</button>
-      <button type="button" data-fx="bell"><b>🔔</b>Cloche</button>
-      <button type="button" data-fx="organ"><b>🎹</b>Orgue</button>
-      <button type="button" data-fx="rally"><b>🎶</b>Ralliement</button>
-      <button type="button" data-fx="confetti"><b>🎉</b>Confettis</button>
+    <div class="amb-main">
+      <button type="button" class="talk admin-only" id="btnTalk"><span id="talkLabel">🎙️ Maintenir pour annoncer</span><small id="talkHint">10 secondes maximum · relâchez pour envoyer</small></button>
+      <div class="amb-grid">
+        <button type="button" data-fx="charge"><b>📯</b>Charge!</button>
+        <button type="button" data-fx="goalhorn"><b>🚨</b>Sirène de but</button>
+        <button type="button" data-fx="confetti"><b>🎉</b>Confettis</button>
+      </div>
     </div>
     <button type="button" class="amb-stop" data-fx="stop">⏹ Arrêter le son (pour tout le monde)</button>
+    <div class="admin-only">
     <label for="annText">Message à afficher à tout le monde</label>
     <input type="text" id="annText" maxlength="120" placeholder="Ex. : Bravo aux bénévoles !" autocomplete="off">
     <div class="amb-row"><button type="button" class="act-1" id="annSend">📣 Afficher</button><button type="button" class="act-2" id="annSave">💾 Enregistrer</button></div>
     <div class="amb-msgs" id="annList"></div>
     <button type="button" class="act-2" id="annManage" style="width:100%;margin-top:.5rem;">✏️ Gérer les messages enregistrés</button>
+    </div>
   </section>
 
   <button type="button" class="btn-reset-board marqueur-only" id="btnTeamMessages">📢 Messages de l'équipe</button>
@@ -3610,7 +3612,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if($("nameB").value !== n.b) $("nameB").value = n.b;      // (« Local » et « Visiteur » par défaut)
     $("btnTimerToggle").disabled = !game;                     // pas de chronomètre tant qu'aucune partie n'est lancée
     document.documentElement.classList.toggle("no-teams", !game);
-    applyInv(); updateStatusDisplay();
+    applyInv(); updateStatusDisplay(); goalHornCheck();
     if(game !== lastGameMode){                                // changement de mode : « Ce match » pendant une partie, « Tout (Saison) » sinon
       lastGameMode = game; rosterScope = game ? "match" : "all"; openCardId = null;
       $("btnScopeMatch").classList.toggle("active", game); $("btnScopeAll").classList.toggle("active", !game);
@@ -4385,8 +4387,21 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   // Envoi : sur ce tableau, et sur celui de l'autre équipe de l'organisation si les deux sont liés
   const ambTargets = () => [boardBase].concat(isLinked() && boardLink.team !== boardTeam ? [catBase() + "/boards/" + boardLink.team] : []);
-  const ambLive = () => isAdmin() && isLive(state) && !editEntry && !archiveKey;
-  function sendFx(t, text){ if(!ambLive()) return; unlock(); const v = { id: uid(), t: t, text: text || "", at: Date.now() }; ambTargets().forEach(p => ref(p + "/fx").set(v)); }
+  // Sirène automatique pour tous : quand l'équipe choisie en haut marque un but
+  var hornTrack = { key: "", n: 0 };
+  function goalHornCheck(){
+    try{
+      const top = boardTeam || ($("teamSelectTop") ? $("teamSelectTop").value : "") || "";   // équipe choisie en haut
+      if(archiveKey || editEntry || !top || !state.id){ hornTrack = { key: "", n: 0 }; return; }
+      const side = state.teamKeys.a === top ? "a" : state.teamKeys.b === top ? "b" : "";
+      if(!side){ hornTrack = { key: "", n: 0 }; return; }
+      const key = boardBase + "|" + state.id + "|" + side, n = goalsOf(side);
+      if(hornTrack.key === key && n > hornTrack.n && isLive(state) && ready()) SFX.goalhorn();
+      hornTrack = { key: key, n: n };
+    }catch(e){}
+  }
+  const ambLive = () => currentRole !== "viewer" && isLive(state) && !editEntry && !archiveKey;
+  function sendFx(t, text){ if(!ambLive() || (t === "msg" && !isAdmin())) return; unlock(); const v = { id: uid(), t: t, text: text || "", at: Date.now() }; ambTargets().forEach(p => ref(p + "/fx").set(v)); }
   document.querySelectorAll("[data-fx]").forEach(b => b.addEventListener("click", () => sendFx(b.dataset.fx)));
   on("annSend", "click", () => { const t = $("annText").value.trim(); if(!t){ notify("Écrivez le message à afficher.", "info"); return; } sendFx("msg", t); $("annText").value = ""; });
 
@@ -4424,7 +4439,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   function talkStart(ev){
     if(ev) ev.preventDefault();
-    if(!ambLive() || rec) return;
+    if(!ambLive() || !isAdmin() || rec) return;
     unlock();
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ notify("Le micro n'est pas disponible sur cet appareil.", "info"); return; }
     rec = { chunks: [], len: 0, held: true, stream: null, t0: 0 };
