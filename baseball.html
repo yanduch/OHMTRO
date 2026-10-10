@@ -41,7 +41,8 @@ main{max-width:640px;margin:0 auto;padding:1rem}
 .score-head .runs{font-size:2.6rem;font-weight:800;line-height:1.1}
 .score-head .bat{font-size:.72rem;color:var(--blue);font-weight:700;min-height:1em}
 .situation{text-align:center;font-weight:700;margin:.4rem 0 .1rem}
-.outs{display:inline-flex;gap:.25rem;vertical-align:middle;margin-left:.3rem}
+.outs{display:inline-flex;flex-wrap:wrap;gap:.25rem;vertical-align:middle;margin-left:.4rem}
+.outline{font-size:.9rem;font-weight:600;margin-top:.1rem}
 .outs i{width:.7rem;height:.7rem;border-radius:50%;border:2px solid var(--red);display:inline-block}
 .outs i.on{background:var(--red)}
 .line{overflow-x:auto}
@@ -603,8 +604,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if(fin) sit.textContent = "Partie terminée" + (st.over && g.status !== "final" ? " — " + R.innings + " manche" + (R.innings > 1 ? "s" : "") + " jouée" + (R.innings > 1 ? "s" : "") : "") + (st.total.a === st.total.b ? " · match nul" : "");
     else if(regDone) sit.textContent = "Manches réglementaires terminées : touchez « Terminer la partie »";
     else {
-      sit.appendChild(document.createTextNode((st.bat === "a" ? "▲ Début" : "▼ Fin") + " de la " + ord(st.inning) + " manche · " + st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
-      const o = el("span", "outs"); for(let i = 0; i < Math.max(3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); sit.appendChild(o);
+      // Manche sur une ligne, retraits sur la suivante : l'affichage ne saute plus quand les retraits s'ajoutent
+      sit.appendChild(el("div", null, (st.bat === "a" ? "▲ Début" : "▼ Fin") + " de la " + ord(st.inning) + " manche"));
+      const ol = el("div", "outline"); ol.appendChild(document.createTextNode(st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
+      const o = el("span", "outs"); for(let i = 0; i < Math.max(3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); ol.appendChild(o);
+      sit.appendChild(ol);
     }
     keepAwake(canScore() && !fin);
     const batter = st.lineup[st.bat][st.next[st.bat]];
