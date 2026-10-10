@@ -85,6 +85,33 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 .timer-display{font-family:var(--display);font-weight:700;font-size:1.5rem;background:var(--ice);padding:.2rem .4rem;border-radius:8px;font-variant-numeric:tabular-nums;cursor:pointer;border:1px solid var(--line);text-align:center;}
 .timer-ctrls{display:flex;flex-direction:column;align-items:center;gap:.3rem;width:100%}
 .btn-timer-toggle{width:100%;font-size:1.5rem;padding:.4rem 0;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:bold;line-height:1}
+.btn-play-mode{width:100%;font-size:.8rem;font-weight:800;padding:.35rem 0;border-radius:6px;border:0;background:#1F7A4D;color:#FFF;text-transform:uppercase;letter-spacing:.03em;line-height:1.1;cursor:pointer}
+/* Mode « En jeu » : grands boutons pour le marqueur */
+#playMode{position:fixed;inset:0;z-index:70;background:#0B1724;color:#FFF;display:flex;flex-direction:column;gap:1rem;padding:calc(1rem + env(safe-area-inset-top,0px)) 1rem calc(1rem + env(safe-area-inset-bottom,0px));font-family:var(--display);overflow:hidden}
+#playMode[hidden]{display:none}
+#playMode .pm-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+#playMode button{font-family:var(--display);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#playMode .pm-shot{min-height:7.5rem;border-radius:16px;border:3px solid transparent;color:#FFF;font-size:clamp(1.3rem,6.6vw,2.2rem);font-weight:800;letter-spacing:.02em;white-space:nowrap}
+#playMode .pm-shot:active,#playMode .pm-goal:active{transform:scale(.97);filter:brightness(1.12)}
+#playMode .pm-shot.v{background:#C62828}
+#playMode .pm-shot.l{background:#152B42;border-color:#6FA2EE}
+#playMode .pm-count{text-align:center;font-size:clamp(1.3rem,6.4vw,2.1rem);white-space:nowrap;font-weight:800;margin-top:-.2rem}
+#playMode .pm-mid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.6rem;margin-top:auto}
+#playMode .pm-team{text-align:center;min-width:0}
+#playMode .pm-team small{display:block;font-size:1.05rem;font-weight:700;color:#93A6B7;letter-spacing:.04em}
+#playMode .pm-team b{display:block;font-size:clamp(1.15rem,5.6vw,1.9rem);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#playMode .pm-team.v b{color:#E0474C}
+#playMode .pm-team.l b{color:#6FA2EE}
+#playMode .pm-pause{width:7.2rem;height:7.2rem;border-radius:50%;border:4px solid #6FA2EE;background:#162D45;color:#FFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;font-size:1.25rem;font-weight:800}
+#playMode .pm-pause .ic{font-size:2.6rem;line-height:1}
+#playMode .pm-clock{text-align:center;margin-bottom:auto}
+#playMode .pm-clock small{display:block;font-size:1.2rem;font-weight:700;color:#93A6B7;letter-spacing:.04em}
+#playMode .pm-time{display:inline-flex;align-items:center;gap:.8rem;font-size:3.6rem;font-weight:800;line-height:1}
+#playMode .pm-x{width:2.6rem;height:2.6rem;border-radius:50%;border:2px solid #93A6B7;background:transparent;color:#FFF;font-size:1.3rem;font-weight:800;line-height:1;font-family:var(--body)}
+#playMode .pm-goal{min-height:12rem;border-radius:16px;border:0;color:#FFF;font-size:clamp(1.8rem,9vw,3rem);font-weight:800;white-space:nowrap}
+#playMode .pm-goal.v{background:#C62828}
+#playMode .pm-goal.l{background:#6CA4E8}
+@media (max-height:700px){#playMode .pm-shot{min-height:5.5rem;font-size:1.8rem}#playMode .pm-goal{min-height:8rem;font-size:2.4rem}#playMode .pm-pause{width:5.8rem;height:5.8rem}#playMode .pm-time{font-size:2.8rem}}
 .btn-timer-reset{width:75%;font-size:1.1rem;padding:.25rem 0;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1}
 
 .circle{position:relative;width:2.5rem;height:2.5rem;border-radius:50%;border:3px solid var(--blue);background:var(--surface);
@@ -543,7 +570,8 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <div class="timer-display" id="timerDisplay" title="Cliquer pour ajuster le temps">20:00</div>
       <div class="timer-ctrls">
         <button type="button" class="btn-timer-toggle" id="btnTimerToggle">▶</button>
-        <button type="button" class="btn-timer-reset" id="btnTimerReset">🔄</button>
+        <button type="button" class="btn-timer-reset" id="btnTimerReset" hidden>🔄</button>
+        <button type="button" class="btn-play-mode" id="btnPlayMode">En jeu</button>
       </div>
     </div>
 
@@ -738,6 +766,26 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <div class="actions" style="margin-top:1rem;"><button type="button" class="act-2" id="msgClose">Fermer</button></div>
   </div>
 </dialog>
+
+<div id="playMode" hidden>
+  <div class="pm-row">
+    <div><button type="button" class="pm-shot v" data-pm="shot" data-team="b" style="width:100%">+1 LANCER</button><div class="pm-count" id="pmShotsB">0 Lancer</div></div>
+    <div><button type="button" class="pm-shot l" data-pm="shot" data-team="a" style="width:100%">+1 LANCER</button><div class="pm-count" id="pmShotsA">0 Lancer</div></div>
+  </div>
+  <div class="pm-mid">
+    <div class="pm-team v"><small>VISITEUR</small><b id="pmNameB">Visiteur</b></div>
+    <button type="button" class="pm-pause" id="pmToggle"><span class="ic" id="pmIcon">❚❚</span><span id="pmLabel">Pause</span></button>
+    <div class="pm-team l"><small>LOCAL</small><b id="pmNameA">Local</b></div>
+  </div>
+  <div class="pm-clock">
+    <small id="pmPeriod">PÉRIODE 1</small>
+    <div class="pm-time"><span id="pmTime">20:00</span><button type="button" class="pm-x" id="pmClose" aria-label="Revenir au mode normal" title="Revenir au mode normal">✕</button></div>
+  </div>
+  <div class="pm-row">
+    <button type="button" class="pm-goal v" data-pm="goal" data-team="b" id="pmGoalB">BUT - 0</button>
+    <button type="button" class="pm-goal l" data-pm="goal" data-team="a" id="pmGoalA">BUT - 0</button>
+  </div>
+</div>
 
 <!-- Modale d'invitation à la Prolongation -->
 <dialog id="overtimeSheet">
@@ -4422,6 +4470,37 @@ document.addEventListener("DOMContentLoaded", function(){
     ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => tb.addEventListener(t, () => talkStop()));
     tb.addEventListener("contextmenu", e => e.preventDefault());
   })();
+
+  /* ============ Mode « En jeu » : grands boutons plein écran pour marquer ============ */
+  // Chaque bouton déclenche le bouton correspondant de la feuille : tout le reste (choix du joueur, direct) reste identique.
+  let pmTimer = null;
+  const txt = id => ($(id).value !== undefined && $(id).tagName === "INPUT") ? $(id).value : $(id).textContent;
+  function pmSync(){
+    const sA = $("shotsA").textContent, sB = $("shotsB").textContent;
+    $("pmShotsA").textContent = sA + (sA === "0" || sA === "1" ? " Lancer" : " Lancers");
+    $("pmShotsB").textContent = sB + (sB === "0" || sB === "1" ? " Lancer" : " Lancers");
+    $("pmNameA").textContent = txt("nameA") || "Local"; $("pmNameB").textContent = txt("nameB") || "Visiteur";
+    $("pmGoalA").textContent = "BUT - " + $("scoreA").textContent; $("pmGoalB").textContent = "BUT - " + $("scoreB").textContent;
+    $("pmTime").textContent = $("timerDisplay").textContent;
+    const p = $("periodMark").textContent.trim();
+    $("pmPeriod").textContent = /^P\d/.test(p) ? "PÉRIODE " + p.slice(1) : (/prol|OT/i.test(p) ? "PROLONGATION" : p.toUpperCase());
+    const running = !!(state.timer && state.timer.running);
+    $("pmIcon").textContent = running ? "❚❚" : "▶"; $("pmLabel").textContent = running ? "Pause" : "Jouer";
+  }
+  function pmOpen(){
+    if(currentRole === "viewer") return;
+    $("playMode").hidden = false; document.body.style.overflow = "hidden";
+    pmSync(); clearInterval(pmTimer); pmTimer = setInterval(pmSync, 250);
+  }
+  function pmClose(){ $("playMode").hidden = true; document.body.style.overflow = ""; clearInterval(pmTimer); pmTimer = null; }
+  on("btnPlayMode", "click", pmOpen);
+  on("pmClose", "click", pmClose);
+  on("pmToggle", "click", () => { $("btnTimerToggle").click(); pmSync(); });
+  document.querySelectorAll("[data-pm]").forEach(b => b.addEventListener("click", () => {
+    const real = document.querySelector('#pad [data-act="' + b.dataset.pm + '"][data-team="' + b.dataset.team + '"]');
+    if(real) real.click();
+    setTimeout(pmSync, 50);
+  }));
 
   /* ============ Démarrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
