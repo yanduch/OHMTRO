@@ -23,6 +23,17 @@ header h1{font-size:1.02rem;line-height:1.2;margin:0;min-width:0;flex:1;overflow
 .batnow{text-align:center;font-size:.9rem;margin-top:.15rem;color:var(--blue);font-weight:700}
 header button{white-space:nowrap;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#FFF;border-radius:8px;padding:.35rem .7rem;font-size:.85rem}
 main{max-width:640px;margin:0 auto;padding:1rem}
+#viewGame{margin-top:-.6rem}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.35rem}
+.toprow .back{margin:0}
+.live{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.04em}
+.live::before{content:"";width:.6rem;height:.6rem;border-radius:50%;background:#E53935;box-shadow:0 0 0 0 rgba(229,57,53,.6);animation:blink 1.4s infinite}
+@keyframes blink{0%{box-shadow:0 0 0 0 rgba(229,57,53,.6)}70%{box-shadow:0 0 0 .5rem rgba(229,57,53,0)}100%{box-shadow:0 0 0 0 rgba(229,57,53,0)}}
+#halfMsg{position:fixed;left:50%;top:13.5rem;transform:translateX(-50%);width:min(92vw,26rem);background:var(--surface);color:var(--ink);border:2px solid var(--tc,var(--line));border-radius:14px;padding:1rem 1.1rem;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:70;text-align:center;animation:msgIn .4s ease-out;cursor:pointer}
+#halfMsg strong{display:block;font-size:1.05rem;margin-bottom:.35rem}
+#halfMsg p{margin:.2rem 0;font-size:.95rem}
+#halfMsg .sc{font-size:1.5rem;font-weight:800;margin:.35rem 0}
+@keyframes msgIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:.8rem}
 .muted{color:var(--muted);font-size:.85rem}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:.65rem .8rem;font-weight:600;cursor:pointer;min-height:2.8rem}
@@ -146,7 +157,7 @@ select{color:var(--ink)}
 
   <!-- Une partie -->
   <section id="viewGame" class="hidden">
-    <button type="button" class="back" id="btnBack">← Toutes les parties</button>
+    <div class="toprow"><button type="button" class="back" id="btnBack">← Toutes les parties</button><span class="live hidden" id="liveBadge">En direct</span></div>
     <div class="card">
       <div class="score-head">
         <div class="t"><div class="name" id="nameA"></div><div class="runs" id="runsA">0</div></div>
@@ -293,6 +304,7 @@ select{color:var(--ink)}
   <div class="actions"><button type="button" class="btn" id="askNo">Annuler</button><button type="button" class="btn primary" id="askYes">OK</button></div>
 </div></dialog>
 
+<div id="halfMsg" class="hidden" role="status" aria-live="polite"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -614,14 +626,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function showList(){
     if(curRef){ curRef.off(); curRef = null; }
-    keepAwake(false);
+    keepAwake(false); $("halfMsg").classList.add("hidden");
     curId = ""; cur = null;
     $("viewGame").classList.add("hidden"); $("viewList").classList.remove("hidden");
     try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
   }
   function openGame(id){
     if(curRef) curRef.off();
-    curId = id; cur = games[id] || null;
+    curId = id; cur = games[id] || null; $("halfMsg").classList.add("hidden");
     dPrev = null; dTokens = {}; $("diamond").textContent = "";
     $("viewList").classList.add("hidden"); $("viewGame").classList.remove("hidden");
     try { history.replaceState(null, "", "#g=" + id); } catch(e){}
@@ -662,6 +674,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.body.appendChild(box); setTimeout(() => box.remove(), 4200);
   }
+  function showHalfMsg(g, st){
+    const box = $("halfMsg"), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local", next = st.half % 2 === 0 ? "a" : "b";
+    box.textContent = ""; box.style.setProperty("--tc", colOf(g, next));
+    if(st.half % 2 === 0){
+      const n = st.half / 2;
+      box.appendChild(el("strong", null, "Après " + (n === 1 ? "une manche complète jouée" : n + " manches complètes jouées") + ", c'est :"));
+      box.appendChild(el("div", "sc", nA + " " + st.total.a + " – " + st.total.b + " " + nB));
+    } else box.appendChild(el("strong", null, "Fin de la demi-manche"));
+    box.appendChild(el("p", null, "L'équipe « " + (next === "a" ? nA : nB) + " » se prépare pour venir frapper."));
+    box.classList.remove("hidden");
+  }
+  on("halfMsg", "click", () => $("halfMsg").classList.add("hidden"));
   function drawDiamond(g, st, fin, batter){
     const dm = $("diamond"); dm.classList.toggle("hidden", fin); dSt = st;
     if(!dm.querySelector(".field")){
@@ -679,9 +703,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const hr = anim && st.lastBat && st.lastBat.t === "HR" && st.recent.length;
     let fx = false;                                               // confettis lancés à l'arrivée d'un coureur
     const home = x => { x.classList.add("gone"); if(!fx){ fx = true; confetti(hr); } setTimeout(() => x.remove(), 400); };
+    // Fin d'une demi-manche : message à l'écran ; le premier frappeur arrive 5 s après la fin de la musique
+    if(anim && st.half > dPrev.half && !fin){
+      const name = tuneFor(st.half), t = name && TUNES[name], len = t ? t.notes.reduce((x, n) => x + n[1], 0) * t.beat * 1000 : 0;
+      batHold = { id: curId, evN: evN, until: Date.now() + (len ? MUSIC_DELAY + len + 5000 : 5000), msg: true };
+      showHalfMsg(g, st);
+    }
     // Après une frappe, le prochain frappeur arrive au marbre 15 secondes plus tard
     if(anim && lastEv && ["1B", "2B", "3B", "HR"].indexOf(lastEv.t) !== -1) batHold = { id: curId, evN: evN, until: Date.now() + BAT_DELAY };
-    if(batHold && batHold.id === curId && batHold.evN === evN && Date.now() < batHold.until){
+    const holding = batHold && batHold.id === curId && batHold.evN === evN && Date.now() < batHold.until;
+    if(!(holding && batHold.msg)) $("halfMsg").classList.add("hidden");
+    if(holding){
       batter = "";
       clearTimeout(batHoldT); batHoldT = setTimeout(() => { if(cur) render(); }, batHold.until - Date.now() + 60);
     }
@@ -812,6 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function render(){
     if(!cur) return;
     const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
+    $("liveBadge").classList.toggle("hidden", fin);
     $("nameA").textContent = nA; $("nameB").textContent = nB;
     $("nameA").style.setProperty("--tc", colOf(g, "a")); $("nameB").style.setProperty("--tc", colOf(g, "b"));
     $("runsA").textContent = st.total.a; $("runsB").textContent = st.total.b;
