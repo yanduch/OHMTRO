@@ -82,12 +82,21 @@ dialog::backdrop{background:var(--backdrop)}
 #toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--primary);color:#FFF;padding:.6rem 1rem;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
 #toast.show{opacity:1}
 .hidden{display:none !important}
-.diamond{position:relative;width:11.5rem;height:9.2rem;margin:.4rem auto .2rem}
-.diamond .field{position:absolute;left:50%;top:50%;width:5.6rem;height:5.6rem;border:2px solid var(--line);transform:translate(-50%,-55%) rotate(45deg);border-radius:4px}
-.base{position:absolute;transform:translate(-50%,-50%);min-width:2.2rem;height:2.2rem;padding:0 .4rem;border-radius:8px;border:2px solid var(--line);background:var(--field);font-size:.72rem;font-weight:700;color:var(--muted);display:flex;align-items:center;justify-content:center;max-width:6.5rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.base.on{background:var(--warn);border-color:var(--warn);color:#FFF}
-button.base{cursor:pointer}
-.base.b1{left:88%;top:52%}.base.b2{left:50%;top:14%}.base.b3{left:12%;top:52%}.base.home{left:50%;top:90%;border-radius:50%;width:1.6rem;min-width:1.6rem;height:1.6rem}
+.diamond{position:relative;width:min(100%,19rem);height:15.5rem;margin:.2rem auto .3rem}
+.diamond .field{position:absolute;left:50%;top:51%;width:9.4rem;height:9.4rem;border:3px solid var(--line);transform:translate(-50%,-50%) rotate(45deg);border-radius:6px;background:linear-gradient(135deg,rgba(31,122,68,.10),rgba(31,122,68,.03))}
+.base{position:absolute;transform:translate(-50%,-50%) rotate(45deg);width:1.9rem;height:1.9rem;border-radius:4px;border:2px solid var(--line);background:var(--field)}
+.base.home{transform:translate(-50%,-50%);border-radius:50%;width:1.7rem;height:1.7rem}
+.blab{position:absolute;transform:translate(-50%,-50%);font-size:.7rem;font-weight:700;color:var(--muted);pointer-events:none}
+.runner{position:absolute;transform:translate(-50%,-50%);max-width:7.2rem;padding:.3rem .6rem;border-radius:999px;background:var(--warn);color:#FFF;font-size:.85rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .32s ease-in-out,top .32s ease-in-out,opacity .3s;z-index:2}
+button.runner{cursor:pointer}
+.runner.batter{background:var(--primary);font-size:.8rem}
+.runner.gone{opacity:0}
+.runner.pop{animation:pop .5s ease-out}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.6)}70%{transform:translate(-50%,-50%) scale(1.12)}100%{transform:translate(-50%,-50%) scale(1)}}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:80}
+.confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translate3d(var(--dx),110vh,0) rotate(var(--r));}}
+@media (prefers-reduced-motion: reduce){.runner{transition:none}.confetti{display:none}}
 .rules{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin-top:.4rem}
 .rules label{font-size:.75rem;min-height:2.1em;display:flex;align-items:flex-end}
 .rules input{width:100%;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:.5rem;text-align:center;font-weight:700}
@@ -101,7 +110,7 @@ button.base{cursor:pointer}
 .std td:nth-child(2),.std th:nth-child(2){text-align:left}
 .std td.pts{font-weight:800}
 select{color:var(--ink)}
-.back{background:none;border:0;color:var(--blue);font-weight:700;padding:.2rem 0;margin-bottom:.5rem;cursor:pointer}
+.back{background:none;border:0;color:var(--blue);font-weight:700;font-size:.7rem;padding:.15rem 0;margin-bottom:.35rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -131,13 +140,11 @@ select{color:var(--ink)}
     <button type="button" class="back" id="btnBack">← Toutes les parties</button>
     <div class="card">
       <div class="score-head">
-        <div class="t"><div class="name" id="nameA"></div><div class="runs" id="runsA">0</div><div class="bat" id="batA"></div></div>
+        <div class="t"><div class="name" id="nameA"></div><div class="runs" id="runsA">0</div></div>
         <div class="muted" style="font-weight:700;">–</div>
-        <div class="t"><div class="name" id="nameB"></div><div class="runs" id="runsB">0</div><div class="bat" id="batB"></div></div>
+        <div class="t"><div class="name" id="nameB"></div><div class="runs" id="runsB">0</div></div>
       </div>
       <div class="situation" id="situation"></div>
-      <div class="batnow" id="batNow"></div>
-      <div class="rulesline" id="rulesLine"></div>
       <div class="diamond" id="diamond"></div>
       <div class="line" id="lineScore"></div>
     </div>
@@ -368,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const blank = () => ({ AB: 0, H: 0, D: 0, T: 0, HR: 0, BB: 0, HBP: 0, R: 0, RBI: 0, O: 0 });
   function compute(g){
     const lineup = { a: (g.a && g.a.players) || [], b: (g.b && g.b.players) || [] };
-    const st = { half: 0, outs: 0, pitches: 0, bases: [null, null, null], runs: { a: [], b: [] }, hits: { a: 0, b: 0 }, last: { a: -1, b: -1 }, stats: { a: {}, b: {} }, log: [], lastBat: null };
+    const st = { recent: [], half: 0, outs: 0, pitches: 0, bases: [null, null, null], runs: { a: [], b: [] }, hits: { a: 0, b: 0 }, last: { a: -1, b: -1 }, stats: { a: {}, b: {} }, log: [], lastBat: null };
     const S = (t, n) => st.stats[t][n] = st.stats[t][n] || blank();
     const R = st.rules = cleanRules(g.rules);
     // Nombre de manches atteint : la partie est terminée et les jeux suivants sont ignorés.
@@ -390,12 +397,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if(why){ st.log.push({ side: side, txt: why.charAt(0).toUpperCase() + why.slice(1) + " — fin de la demi-manche" }); st.half++; st.outs = 0; st.pitches = 0; st.bases = [null, null, null]; st.lastBat = null; }
     });
     function play(e){
+      st.recent = [];                                             // coureurs qui ont touché le marbre à ce jeu
       const t = st.half % 2 === 0 ? "a" : "b", inn = Math.floor(st.half / 2) + 1, side = (st.half % 2 === 0 ? "▲ " : "▼ ") + ord(inn), scored = [];
       // Point marqué : le coureur est crédité du point, le frappeur (rbi) d'un point produit
       let rbi = null, nRbi = 0;
       const score = n => { const i = Math.floor(st.half / 2);
         if(R.maxRuns && (st.runs[t][i] || 0) >= R.maxRuns){ return; }        // au-delà du maximum : le point ne compte pas
-        st.runs[t][i] = (st.runs[t][i] || 0) + 1; if(n) S(t, n).R++; scored.push(n || "un coureur"); if(rbi){ S(t, rbi).RBI++; nRbi++; } };
+        st.runs[t][i] = (st.runs[t][i] || 0) + 1; if(n) S(t, n).R++; scored.push(n || "un coureur"); st.recent.push(n); if(rbi){ S(t, rbi).RBI++; nRbi++; } };
       const endHalf = () => { st.half++; st.outs = 0; st.pitches = 0; st.bases = [null, null, null]; st.lastBat = null; };
       const say = txt => st.log.push({ side: side, txt: txt + (scored.length ? " — " + scored.join(", ") + (scored.length > 1 ? " marquent" : " marque") : "") + (nRbi ? " (" + nRbi + " point" + (nRbi > 1 ? "s produits" : " produit") + " par " + rbi + ")" : "") });
       if(e.t === "HALF"){ st.log.push({ side: side, txt: "Fin de la demi-manche" }); endHalf(); return; }
@@ -569,6 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function openGame(id){
     if(curRef) curRef.off();
     curId = id; cur = games[id] || null;
+    dPrev = null; dTokens = {}; $("diamond").textContent = "";
     $("viewList").classList.add("hidden"); $("viewGame").classList.remove("hidden");
     try { history.replaceState(null, "", "#g=" + id); } catch(e){}
     curRef = ref("games/" + id);
@@ -586,45 +595,99 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch(e){}
   }
   document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && cur && canScore() && !isFinal(cur)) keepAwake(true); });
+  /* ---------- Losange : coureurs animés, frappeur au marbre, confettis quand un coureur croise le marbre ---------- */
+  const SPOT = { 0: [50, 90], 1: [87, 51], 2: [50, 12], 3: [13, 51], 4: [50, 90] };
+  const short = n => String(n).replace(/^\d+\s+/, "");
+  let dPrev = null, dTokens = {}, dSt = null, dTimers = [];
+  const place = (x, b) => { x.style.left = SPOT[b][0] + "%"; x.style.top = SPOT[b][1] + "%"; };
+  function walk(x, path, done){                                   // d'un but à l'autre, en suivant les lignes
+    let i = 0;
+    const step = () => { if(i >= path.length){ if(done) done(); return; } place(x, path[i++]); dTimers.push(setTimeout(step, 340)); };
+    step();
+  }
+  function confetti(){
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const box = el("div", "confetti"), cols = ["#F2C14E", "#E4572E", "#29B6F6", "#66BB6A", "#AB47BC", "#FFFFFF"];
+    for(let i = 0; i < 90; i++){
+      const c = el("i"); c.style.left = (Math.random() * 100) + "vw"; c.style.background = cols[i % cols.length];
+      c.style.setProperty("--dx", (Math.random() * 120 - 60) + "px"); c.style.setProperty("--r", (Math.random() * 720 - 360) + "deg");
+      c.style.animationDuration = (1.8 + Math.random() * 1.6) + "s"; c.style.animationDelay = (Math.random() * .5) + "s";
+      box.appendChild(c);
+    }
+    document.body.appendChild(box); setTimeout(() => box.remove(), 4200);
+  }
+  function drawDiamond(g, st, fin, batter){
+    const dm = $("diamond"); dm.classList.toggle("hidden", fin); dSt = st;
+    if(!dm.querySelector(".field")){
+      dm.appendChild(el("div", "field"));
+      [1, 2, 3, 0].forEach(b => { const x = el("div", "base" + (b ? "" : " home")); place(x, b); dm.appendChild(x); });
+      [[1, "1er", 70, 61], [2, "2e", 50, 25], [3, "3e", 30, 61]].forEach(l => { const x = el("div", "blab", l[1]); x.style.left = l[2] + "%"; x.style.top = l[3] + "%"; dm.appendChild(x); });
+    }
+    const evN = evList(g).length;
+    // Animation seulement pour un nouveau jeu de la même partie (pas au chargement ni après une annulation)
+    const anim = !!(dPrev && dPrev.id === curId && evN === dPrev.evN + 1);
+    if(anim && st.recent.length) confetti();
+    dTimers.forEach(clearTimeout); dTimers = [];
+    const want = {};                                              // nom -> but (1 à 3), 0 = frappeur au marbre
+    [1, 2, 3].forEach(b => { if(st.bases[b - 1]) want[st.bases[b - 1]] = b; });
+    if(batter && want[batter] === undefined) want[batter] = 0;
+    const sameHalf = anim && dPrev.half === st.half;
+    // Ceux qui quittent le losange : vers le marbre s'ils ont marqué, sinon ils s'effacent
+    Object.keys(dTokens).forEach(n => {
+      if(want[n] !== undefined) return;
+      const x = dTokens[n]; delete dTokens[n]; x.dataset.b = ""; x.onclick = null;
+      const from = dPrev && dPrev.place[n] !== undefined ? dPrev.place[n] : 0;
+      if(anim && st.recent.indexOf(n) !== -1 && from > 0){
+        const path = []; for(let b = from + 1; b <= 4; b++) path.push(b);
+        x.classList.remove("batter"); walk(x, path, () => { x.classList.add("gone"); setTimeout(() => x.remove(), 350); });
+      } else { x.classList.add("gone"); setTimeout(() => x.remove(), 350); }
+    });
+    // Circuit : le frappeur fait le tour complet
+    if(anim && dPrev.batter && st.recent.indexOf(dPrev.batter) !== -1 && want[dPrev.batter] === undefined && !dTokens[dPrev.batter]){
+      const x = el("div", "runner", short(dPrev.batter)); place(x, 0); dm.appendChild(x);
+      walk(x, [1, 2, 3, 4], () => { x.classList.add("gone"); setTimeout(() => x.remove(), 350); });
+    }
+    Object.keys(want).forEach(n => {
+      const to = want[n];
+      let x = dTokens[n];
+      const scorer = canScore() && to > 0;
+      if(x && (x.tagName === "BUTTON") !== scorer){ const y = el(scorer ? "button" : "div", x.className); y.style.cssText = x.style.cssText; y.textContent = x.textContent; x.replaceWith(y); x = y; }
+      if(!x){
+        x = el(scorer ? "button" : "div", "runner", short(n));
+        const from = sameHalf && dPrev.place[n] !== undefined ? dPrev.place[n] : (sameHalf && n === dPrev.batter ? 0 : to);
+        place(x, from); dm.appendChild(x); if(to === from) x.classList.add("pop");
+      }
+      dTokens[n] = x;
+      x.classList.toggle("batter", to === 0); x.title = n; x.dataset.b = to;
+      if(scorer){ x.type = "button"; x.onclick = () => { const b = dSt.bases.indexOf(n) + 1; if(b) openRunner(b, n, dSt); }; } else x.onclick = null;
+      const from = sameHalf ? (dPrev.place[n] !== undefined ? dPrev.place[n] : (n === dPrev.batter ? 0 : to)) : to;
+      if(anim && to === 0 && from > 0 && st.recent.indexOf(n) !== -1){   // a marqué et revient aussitôt au bâton (petit alignement)
+        const path = []; for(let b = from + 1; b <= 4; b++) path.push(b); dTimers.push(setTimeout(() => walk(x, path), 20));
+      }
+      else if(anim && from < to){ const path = []; for(let b = Math.max(from, 0) + 1; b <= to; b++) path.push(b); dTimers.push(setTimeout(() => walk(x, path), 20)); }
+      else place(x, to);
+    });
+    dPrev = { id: curId, evN: evN, half: st.half, place: want, batter: batter };
+  }
   function render(){
     if(!cur) return;
     const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
     $("nameA").textContent = nA; $("nameB").textContent = nB;
     $("runsA").textContent = st.total.a; $("runsB").textContent = st.total.b;
-    $("batA").textContent = !fin && st.bat === "a" ? "● AU BÂTON" : ""; $("batB").textContent = !fin && st.bat === "b" ? "● AU BÂTON" : "";
     const sit = $("situation"); sit.textContent = "";
     const R = st.rules, rl = [], regDone = !!R.innings && st.half >= R.innings * 2 && st.total.a !== st.total.b;
-    if(regDone){ $("batA").textContent = ""; $("batB").textContent = ""; }
-    rl.push(R.innings ? R.innings + " manches" : "Manches illimitées");
-    rl.push(R.outs ? R.outs + " retraits" : "retraits illimités");
-    rl.push(R.maxRuns ? "max. " + R.maxRuns + " pts par manche" : "points illimités");
-    rl.push(R.pitches ? R.pitches + " balles par frappeur" : "balles illimitées");
-    $("rulesLine").textContent = rl.join(" · ");
     $("tipRules").textContent = (R.outs || R.maxRuns ? "Changement automatique après " + [R.outs ? R.outs + " retraits" : "", R.maxRuns ? R.maxRuns + " points" : ""].filter(Boolean).join(" ou ") + ". " : "Retraits illimités. ") + "« Fin de la demi-manche » change en tout temps.";
     if(fin) sit.textContent = "Partie terminée" + (st.over && g.status !== "final" ? " — " + R.innings + " manche" + (R.innings > 1 ? "s" : "") + " jouée" + (R.innings > 1 ? "s" : "") : "") + (st.total.a === st.total.b ? " · match nul" : "");
     else if(regDone) sit.textContent = "Manches réglementaires terminées : touchez « Terminer la partie »";
     else {
-      // Manche sur une ligne, retraits sur la suivante : l'affichage ne saute plus quand les retraits s'ajoutent
-      sit.appendChild(el("div", null, (st.bat === "a" ? "▲ Début" : "▼ Fin") + " de la " + ord(st.inning) + " manche"));
       const ol = el("div", "outline"); ol.appendChild(document.createTextNode(st.outs + " retrait" + (st.outs > 1 ? "s" : "")));
       const o = el("span", "outs"); for(let i = 0; i < Math.max(3, st.outs); i++) o.appendChild(el("i", i < st.outs ? "on" : "")); ol.appendChild(o);
       sit.appendChild(ol);
     }
     keepAwake(canScore() && !fin);
-    const batter = st.lineup[st.bat][st.next[st.bat]];
-    $("batNow").textContent = !fin && !regDone && batter ? "Au bâton : " + batter + (st.bases.some(Boolean) ? " · coureurs : " + [1, 2, 3].filter(b => st.bases[b - 1]).map(b => BASE[b]).join(", ") : "") : "";
     const P = st.rules.pitches;
     $("btnPitch").textContent = "Balle lancée" + (P ? " (" + st.pitches + "/" + P + ")" : st.pitches ? " (" + st.pitches + ")" : "");
     if(!fin && !regDone && st.pitches) sit.appendChild(el("div", "muted", "Balles au frappeur : " + st.pitches + (P ? " / " + P : "")));
-    // Losange : coureurs sur les buts (le marqueur touche un coureur pour le déplacer)
-    const dm = $("diamond"); dm.textContent = ""; dm.classList.toggle("hidden", fin);
-    dm.appendChild(el("div", "field"));
-    [1, 2, 3].forEach(b => {
-      const n = st.bases[b - 1], scorer = canScore() && n, x = el(scorer ? "button" : "div", "base b" + b + (n ? " on" : ""), n ? n.replace(/^\d+\s+/, "") : BASE[b]);
-      if(scorer){ x.type = "button"; x.title = n; x.addEventListener("click", () => openRunner(b, n, st)); }
-      dm.appendChild(x);
-    });
-    dm.appendChild(el("div", "base home", ""));
     // Pointage par manche
     const nInn = Math.max(R.innings || 6, regDone ? 0 : st.inning, st.runs.a.length, st.runs.b.length), tb = el("table"), hr = el("tr");
     hr.appendChild(el("th", null, "")); for(let i = 1; i <= nInn; i++) hr.appendChild(el("th", !fin && i === st.inning ? "cur" : "", i));
@@ -652,6 +715,9 @@ document.addEventListener("DOMContentLoaded", () => {
       sel.value = prev && lu.indexOf(prev) !== -1 ? prev : (lu[st.next[st.bat]] || "");
       sel.dataset.sig = curId + st.half + ":" + st.last[st.bat];
     }
+    // Frappeur au marbre : celui choisi par le marqueur, sinon le suivant dans l'alignement
+    const lu = st.lineup[st.bat], selV = canScore() ? $("batterSel").value : "";
+    drawDiamond(g, st, fin, fin || regDone ? "" : (selV && lu.indexOf(selV) !== -1 ? selV : lu[st.next[st.bat]] || ""));
     // Jeu par jeu (le plus récent en haut)
     const log = $("log"); log.textContent = "";
     if(!st.log.length) log.appendChild(el("li", "muted", "Aucun jeu pour le moment."));
@@ -675,6 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function push(e){ if(!canScore() || !curId) return; ref("games/" + curId + "/events/" + evKey()).set(e); }
+  on("batterSel", "change", () => { if(cur) render(); });
   document.querySelectorAll("[data-ev]").forEach(b => b.addEventListener("click", () => {
     const n = $("batterSel").value;
     if(!n){ notify("Ajoutez d'abord l'alignement (✏️ Alignements)."); return; }
