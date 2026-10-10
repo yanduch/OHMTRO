@@ -42,9 +42,23 @@ main{max-width:640px;margin:0 auto;padding:1rem}
 .talk.rec{background:#C62828;border-color:#C62828;color:#FFF;animation:recPulse 1s infinite}
 .talk.busy{opacity:.7}
 @keyframes recPulse{50%{box-shadow:0 0 0 .4rem rgba(198,40,40,.25)}}
+#audioHint{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:#F9A825;color:#111;border:0;padding:.65rem 1.1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:74;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:pointer}
 #voiceTag{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#C62828;color:#FFF;padding:.55rem 1rem;border-radius:999px;font-weight:800;font-size:.9rem;z-index:76;box-shadow:0 6px 18px rgba(0,0,0,.3)}
 #annMsg{position:fixed;left:50%;top:9rem;transform:translateX(-50%);width:min(94vw,28rem);background:var(--primary);color:#FFF;border-radius:16px;padding:1.1rem 1.2rem;box-shadow:0 12px 34px rgba(0,0,0,.35);z-index:75;text-align:center;font-size:1.25rem;font-weight:800;line-height:1.3;animation:msgIn .4s ease-out;cursor:pointer;overflow-wrap:anywhere}
 #annMsg small{display:block;font-size:.7rem;font-weight:600;opacity:.8;margin-top:.5rem}
+.fieldrow{display:flex;gap:.5rem;align-items:stretch}
+.fieldrow.fin .cheers{height:auto;max-height:14rem}
+.cheers{flex:1;min-width:0;height:11.8rem;margin:0 0 .3rem;padding:.1rem .45rem .4rem;border:3px solid var(--line);border-radius:8px;display:flex;flex-direction:column}
+.cheers legend{padding:0 .35rem;font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+#cheerList{flex:1;overflow-y:auto;font-size:.78rem;line-height:1.3;-webkit-overflow-scrolling:touch}
+#cheerList .c{padding:.3rem 0;border-bottom:1px dashed var(--line);overflow-wrap:anywhere;position:relative}
+#cheerList .c:last-child{border-bottom:0}
+#cheerList .c b{color:var(--blue)}
+#cheerList .c.new{animation:cheerIn 1.2s ease-out}
+#cheerList .c .del{float:right;border:0;background:none;color:var(--red);font-weight:800;cursor:pointer;padding:0 .2rem}
+#cheerList .empty{color:var(--muted);font-style:italic;padding-top:.3rem}
+@keyframes cheerIn{0%{background:rgba(249,168,37,.45)}100%{background:transparent}}
+.cheerbtn{width:100%;min-height:2.4rem;font-size:.85rem;margin-top:.1rem}
 #halfMsg{position:fixed;left:50%;top:13.5rem;transform:translateX(-50%);width:min(92vw,26rem);background:var(--surface);color:var(--ink);border:2px solid var(--tc,var(--line));border-radius:14px;padding:1rem 1.1rem;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:70;text-align:center;animation:msgIn .4s ease-out;cursor:pointer}
 #halfMsg strong{display:block;font-size:1.05rem;margin-bottom:.35rem}
 #halfMsg p{margin:.2rem 0;font-size:.95rem}
@@ -109,12 +123,12 @@ dialog::backdrop{background:var(--backdrop)}
 #toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--primary);color:#FFF;padding:.6rem 1rem;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:50}
 #toast.show{opacity:1}
 .hidden{display:none !important}
-.diamond{position:relative;width:min(100%,19rem);height:15.5rem;margin:.2rem auto .3rem}
-.diamond .field{position:absolute;left:50%;top:51%;width:9.4rem;height:9.4rem;border:3px solid var(--line);transform:translate(-50%,-50%) rotate(45deg);border-radius:6px;background:linear-gradient(135deg,rgba(31,122,68,.10),rgba(31,122,68,.03))}
-.base{position:absolute;transform:translate(-50%,-50%) rotate(45deg);width:1.9rem;height:1.9rem;border-radius:4px;border:2px solid var(--line);background:var(--field)}
-.base.home{transform:translate(-50%,-50%);border-radius:50%;width:1.7rem;height:1.7rem}
-.blab{position:absolute;transform:translate(-50%,-50%);font-size:.7rem;font-weight:700;color:var(--muted);pointer-events:none}
-.runner{position:absolute;transform:translate(-50%,-50%);max-width:7.2rem;padding:.3rem .6rem;border-radius:999px;background:var(--warn);color:#FFF;font-size:.85rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left 1.28s ease-in-out,top 1.28s ease-in-out,opacity .4s;z-index:2}
+.diamond{position:relative;flex:0 0 12.6rem;width:12.6rem;height:11.8rem;margin:.1rem 0 .3rem}
+.diamond .field{position:absolute;left:50%;top:51%;width:6.2rem;height:6.2rem;border:3px solid var(--line);transform:translate(-50%,-50%) rotate(45deg);border-radius:6px;background:linear-gradient(135deg,rgba(31,122,68,.10),rgba(31,122,68,.03))}
+.base{position:absolute;transform:translate(-50%,-50%) rotate(45deg);width:1.45rem;height:1.45rem;border-radius:4px;border:2px solid var(--line);background:var(--field)}
+.base.home{transform:translate(-50%,-50%);border-radius:50%;width:1.35rem;height:1.35rem}
+.blab{position:absolute;transform:translate(-50%,-50%);font-size:.62rem;font-weight:700;color:var(--muted);pointer-events:none}
+.runner{position:absolute;transform:translate(-50%,-50%);max-width:5.8rem;padding:.25rem .5rem;border-radius:999px;background:var(--warn);color:#FFF;font-size:.76rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:0;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left 1.28s ease-in-out,top 1.28s ease-in-out,opacity .4s;z-index:2}
 button.runner{cursor:pointer}
 .runner.batter{background:var(--primary);font-size:.8rem}
 .runner.gone{opacity:0}
@@ -181,7 +195,11 @@ select{color:var(--ink)}
         <div class="t"><div class="name" id="nameB"></div><div class="runs" id="runsB">0</div></div>
       </div>
       <div class="situation" id="situation"></div>
-      <div class="diamond" id="diamond"></div>
+      <div class="fieldrow" id="fieldRow">
+        <div class="diamond" id="diamond"></div>
+        <fieldset class="cheers" id="cheersBox"><legend>Messages</legend><div id="cheerList"></div></fieldset>
+      </div>
+      <button type="button" class="btn cheerbtn" id="btnCheer">💬 Envoyer un encouragement</button>
       <div class="line" id="lineScore"></div>
     </div>
 
@@ -232,6 +250,7 @@ select{color:var(--ink)}
       <button type="button" class="btn" data-fx="confetti"><b>🎉</b>Confettis</button>
     </div>
     <button type="button" class="btn danger full" data-fx="stop" style="margin-top:.45rem;min-height:2.6rem;">⏹ Arrêter le son (pour tout le monde)</button>
+    <button type="button" class="btn full" id="btnCheersOnOff" style="margin-top:.6rem;"></button>
     <label for="annText" style="margin-top:.8rem;">Message à afficher à tout le monde</label>
     <div class="row"><input type="text" id="annText" maxlength="120" placeholder="Ex. : Bravo aux bénévoles !" autocomplete="off"></div>
     <div class="row" style="margin-top:.4rem;"><button type="button" class="btn primary" id="annSend">📣 Afficher</button><button type="button" class="btn" id="annSave">💾 Enregistrer</button></div>
@@ -304,6 +323,17 @@ select{color:var(--ink)}
   <button type="button" class="btn danger full admin hidden" id="tmDelete" style="margin-top:.6rem;">Supprimer cette équipe</button>
 </div></dialog>
 
+<!-- Encouragement d'un spectateur -->
+<dialog id="dlgCheer"><div class="dlg">
+  <h3>💬 Envoyer un encouragement</h3>
+  <label for="cheerName">Votre nom</label>
+  <input type="text" id="cheerName" maxlength="20" autocomplete="name" placeholder="Ex. : Julie">
+  <label for="cheerText">Écrivez votre message d'encouragement</label>
+  <textarea id="cheerText" maxlength="100" style="min-height:5rem;" placeholder="Ex. : Go Expos go !"></textarea>
+  <p class="muted" style="margin:.3rem 0 0;">Visible par tout le monde et gardé avec la partie. Restez respectueux 🙂</p>
+  <div class="actions"><button type="button" class="btn" id="cheerCancel">Annuler</button><button type="button" class="btn primary" id="cheerSend">Envoyer</button></div>
+</div></dialog>
+
 <!-- Messages enregistrés -->
 <dialog id="dlgMsgs"><div class="dlg">
   <h3>Messages enregistrés</h3>
@@ -351,6 +381,7 @@ select{color:var(--ink)}
   <div class="actions"><button type="button" class="btn" id="askNo">Annuler</button><button type="button" class="btn primary" id="askYes">OK</button></div>
 </div></dialog>
 
+<button type="button" id="audioHint" class="hidden">🔊 Touchez ici pour activer le son</button>
 <div id="voiceTag" class="hidden">🎙️ Annonce en cours…</div>
 <div id="annMsg" class="hidden" role="status" aria-live="assertive"></div>
 <div id="halfMsg" class="hidden" role="status" aria-live="polite"></div>
@@ -687,7 +718,12 @@ document.addEventListener("DOMContentLoaded", () => {
     $("viewList").classList.add("hidden"); $("viewGame").classList.remove("hidden");
     try { history.replaceState(null, "", "#g=" + id); } catch(e){}
     curRef = ref("games/" + id);
-    curRef.on("value", s => { cur = s.val(); if(cur) render(); });
+    let sig = "";
+    curRef.on("value", s => {
+      cur = s.val(); if(!cur) return;
+      const n = JSON.stringify([cur.events, cur.a, cur.b, cur.rules, cur.status]);
+      if(n === sig) renderCheers(); else { sig = n; render(); }      // un nouveau message seul ne redessine pas le terrain
+    });
     if(cur) render();
     window.scrollTo(0, 0);
   }
@@ -736,7 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   on("halfMsg", "click", () => $("halfMsg").classList.add("hidden"));
   function drawDiamond(g, st, fin, batter){
-    const dm = $("diamond"); dm.classList.toggle("hidden", fin); dSt = st;
+    const dm = $("diamond"); dm.classList.toggle("hidden", fin); $("fieldRow").classList.toggle("fin", fin); dSt = st;
     if(!dm.querySelector(".field")){
       dm.appendChild(el("div", "field"));
       [1, 2, 3, 0].forEach(b => { const x = el("div", "base" + (b ? "" : " home")); place(x, b); dm.appendChild(x); });
@@ -816,8 +852,24 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------- Orgue du stade (sons créés dans le navigateur) ---------- */
   let actx = null, soundOn = true;
   try { soundOn = localStorage.getItem("bb_sound") !== "off"; } catch(e){}
-  const unlock = () => { try { if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if(actx.state === "suspended") actx.resume(); } catch(e){} };
-  ["pointerdown", "keydown"].forEach(t => document.addEventListener(t, unlock, { capture: true, passive: true }));
+  // Les téléphones n'autorisent le son qu'après un vrai toucher (fin du toucher ou clic, pas le simple appui) :
+  // on « réveille » le son à ce moment-là, avec un son muet très court (nécessaire sur iPhone).
+  function unlock(){
+    try {
+      if(navigator.audioSession) navigator.audioSession.type = "playback";      // iPhone : jouer même en mode silencieux
+      if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state !== "running") actx.resume().then(audioHint, audioHint);
+      const b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0);
+    } catch(e){}
+    audioHint();
+  }
+  ["touchend", "click", "pointerup", "keydown"].forEach(t => document.addEventListener(t, unlock, { capture: true, passive: true }));
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && actx && actx.state !== "running") audioHint(); });
+  // Bandeau « Touchez pour activer le son » tant que le son n'est pas autorisé sur cet appareil
+  function audioHint(){
+    const on = soundOn && !(actx && actx.state === "running");
+    $("audioHint").classList.toggle("hidden", !on);
+  }
   // Une seule musique ou un seul effet à la fois : chaque nouveau son coupe le précédent
   let bus = null;
   function stopAll(){
@@ -827,7 +879,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { try { b.disconnect(); } catch(e){} }, 200);
   }
   function newBus(){ stopAll(); bus = actx.createGain(); bus.gain.value = 1; bus.connect(actx.destination); return bus; }
-  function soundBtn(){ $("btnSound").textContent = soundOn ? "🔊" : "🔇"; $("btnSound").title = soundOn ? "Couper la musique" : "Activer la musique"; }
+  function soundBtn(){ audioHint(); $("btnSound").textContent = soundOn ? "🔊" : "🔇"; $("btnSound").title = soundOn ? "Couper la musique" : "Activer la musique"; }
   on("btnSound", "click", () => {
     soundOn = !soundOn; try { localStorage.setItem("bb_sound", soundOn ? "on" : "off"); } catch(e){} soundBtn();
     if(soundOn){ unlock(); notify("Son activé."); } else { stopAll(); clearTimeout(musicT); notify("Son coupé sur cet appareil."); }
@@ -879,7 +931,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = noiseBuf.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     return noiseBuf;
   }
-  const ready = () => soundOn && actx && actx.state === "running";
+  const ready = () => { if(soundOn && actx && actx.state === "suspended") actx.resume().catch(() => {}); return soundOn && actx && actx.state === "running"; };
   function burst(at, dur, freq, q, vol, out){                     // petit bruit filtré (claquement de mains, caisse claire)
     const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
     src.buffer = noise(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
@@ -1036,8 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let annT = null;
   function showAnn(text){
     const box = $("annMsg"); box.textContent = String(text || "").slice(0, 120);
-    box.appendChild(el("small", null, "Touchez pour fermer"));
-    box.classList.remove("hidden"); clearTimeout(annT); annT = setTimeout(() => box.classList.add("hidden"), 12000);
+    box.classList.remove("hidden"); clearTimeout(annT); annT = setTimeout(() => box.classList.add("hidden"), 5000);
     if(ready()) SFX.bell(true);
   }
   on("annMsg", "click", () => $("annMsg").classList.add("hidden"));
@@ -1100,6 +1151,54 @@ document.addEventListener("DOMContentLoaded", () => {
     const cfg = {}; $("musicRows").querySelectorAll("select").forEach(sel => { cfg["h" + sel.dataset.k] = sel.value; });
     ref("music").set(cfg); musicCfg = cfg; $("dlgMusic").close(); notify("Musiques enregistrées.");
   });
+  /* ---------- Messages d'encouragement des spectateurs (gardés avec la partie) ---------- */
+  let cheersOn = true, cheerSeen = {};
+  ref("cheersOn").on("value", s => { cheersOn = s.val() !== false; cheerUI(); });
+  function cheerUI(){
+    const fin = cur ? isFinal(cur) : true;
+    $("btnCheer").classList.toggle("hidden", !cheersOn || fin);
+    $("btnCheersOnOff").textContent = cheersOn ? "💬 Messages des spectateurs : activés (toucher pour désactiver)" : "💬 Messages des spectateurs : désactivés (toucher pour activer)";
+  }
+  on("btnCheersOnOff", "click", () => { if(role === "admin") ref("cheersOn").set(!cheersOn); });
+  const BAD = ["merde", "crisse", "calisse", "caliss", "tabarnak", "tabarnac", "tabarnaque", "ostie", "hostie", "osti", "esti", "ciboire", "sacrament", "fuck", "fucking", "shit", "bitch", "asshole", "connard", "connasse", "salope", "pute", "putain", "encule", "enculer", "batard", "nique", "niaiseux", "cave", "mongol", "fif", "tapette", "negre", "nigger", "nigga", "retard"];
+  const norm = t => String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const rude = t => { const w = norm(t).replace(/[^a-z0-9]+/g, " ").split(" "); return w.some(x => BAD.indexOf(x) !== -1); };
+  function renderCheers(){
+    cheerUI();
+    const box = $("cheerList"), v = (cur && cur.cheers) || {}, ids = Object.keys(v).sort().reverse();
+    const atTop = box.scrollTop < 8;
+    box.textContent = "";
+    if(!ids.length) box.appendChild(el("div", "empty", "Aucun message pour l'instant."));
+    ids.forEach(k => {
+      const m = v[k]; if(!m || !m.text) return;
+      const d = el("div", "c" + (cheerSeen[curId] && !cheerSeen[curId][k] ? " new" : ""));
+      if(role === "admin"){ const x = el("button", "del", "✕"); x.type = "button"; x.title = "Supprimer ce message"; x.addEventListener("click", () => ask("Supprimer ce message ?\n« " + m.text + " »", { title: "Supprimer", ok: "Supprimer", danger: true }).then(ok => { if(ok) ref("games/" + curId + "/cheers/" + k).remove(); })); d.appendChild(x); }
+      d.appendChild(el("b", null, (m.name || "Spectateur") + " : ")); d.appendChild(document.createTextNode(m.text));
+      box.appendChild(d);
+    });
+    cheerSeen[curId] = {}; ids.forEach(k => { cheerSeen[curId][k] = true; });
+    if(atTop) box.scrollTop = 0;                                   // le plus récent en haut, sauf si on relit plus bas
+  }
+  on("btnCheer", "click", () => {
+    if(!cheersOn || !curId) return;
+    let nm = ""; try { nm = localStorage.getItem("bb_name") || ""; } catch(e){}
+    $("cheerName").value = nm; $("cheerText").value = "";
+    $("dlgCheer").showModal(); (nm ? $("cheerText") : $("cheerName")).focus();
+  });
+  on("cheerCancel", "click", () => $("dlgCheer").close());
+  on("cheerSend", "click", () => {
+    const name = $("cheerName").value.trim().slice(0, 20), text = $("cheerText").value.trim().replace(/\s+/g, " ").slice(0, 100);
+    if(!name){ notify("Écrivez votre nom."); return; }
+    if(!text){ notify("Écrivez votre message."); return; }
+    if(rude(name) || rude(text)){ notify("Ce message contient un mot qui n'est pas permis. Restez respectueux 🙂"); return; }
+    let last = 0; try { last = +localStorage.getItem("bb_cheer_at") || 0; } catch(e){}
+    const wait = 30 - Math.floor((Date.now() - last) / 1000);
+    if(wait > 0 && role !== "admin"){ notify("Attendez encore " + wait + " s avant d'envoyer un autre message."); return; }
+    try { localStorage.setItem("bb_name", name); localStorage.setItem("bb_cheer_at", String(Date.now())); } catch(e){}
+    ref("games/" + curId + "/cheers/" + evKey()).set({ name: name, text: text, at: Date.now() });
+    $("dlgCheer").close(); notify("Message envoyé. Merci !");
+  });
+
   function render(){
     if(!cur) return;
     const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
@@ -1120,7 +1219,8 @@ document.addEventListener("DOMContentLoaded", () => {
     keepAwake(canScore() && !fin);
     const P = st.rules.pitches;
     $("btnPitch").textContent = "Balle lancée" + (P ? " (" + st.pitches + "/" + P + ")" : st.pitches ? " (" + st.pitches + ")" : "");
-    if(!fin && !regDone && st.pitches) sit.appendChild(el("div", "muted", "Balles au frappeur : " + st.pitches + (P ? " / " + P : "")));
+    // Ligne des balles toujours présente (même à 0) : la mise en page ne bouge plus
+    if(!fin && !regDone) sit.appendChild(el("div", "muted", "Balles au frappeur : " + st.pitches + (P ? " / " + P : "")));
     // Pointage par manche
     const nInn = Math.max(R.innings || 6, regDone ? 0 : st.inning, st.runs.a.length, st.runs.b.length), tb = el("table"), hr = el("tr");
     hr.appendChild(el("th", null, "")); for(let i = 1; i <= nInn; i++) hr.appendChild(el("th", !fin && i === st.inning ? "cur" : "", i));
@@ -1152,6 +1252,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Frappeur au marbre : celui choisi par le marqueur, sinon le suivant dans l'alignement
     const lu = st.lineup[st.bat], selV = canScore() ? $("batterSel").value : "";
     drawDiamond(g, st, fin, fin || regDone ? "" : (selV && lu.indexOf(selV) !== -1 ? selV : lu[st.next[st.bat]] || ""));
+    renderCheers();
     // Jeu par jeu (le plus récent en haut)
     const log = $("log"); log.textContent = "";
     if(!st.log.length) log.appendChild(el("li", "muted", "Aucun jeu pour le moment."));
