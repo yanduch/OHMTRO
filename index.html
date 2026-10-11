@@ -57,6 +57,11 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
 .ticker-wrap.active{display:flex;}
 .tk-cd{font-variant-numeric:tabular-nums}
+.g-fix{margin-top:.5rem;width:100%;font-size:.78rem;font-weight:700;padding:.4rem .3rem;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
+body.role-viewer .g-fix{display:none !important}
+.stop-goal{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
+.stop-goal label{flex:1;display:flex;align-items:center;gap:.35rem;padding:.45rem .5rem;border:1px solid var(--line);border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.stop-goal input{width:1.1rem;height:1.1rem;margin:0}
 /* --- Mode pointage (visiteurs) : bandeau + tableau seulement, plein écran --- */
 .btn-score-mode{width:100%;margin-top:.3rem;font-size:.72rem;font-weight:800;padding:.35rem 0;border-radius:6px;border:1px solid var(--line);background:var(--ice);color:var(--ink);text-transform:uppercase;letter-spacing:.02em;line-height:1.1;cursor:pointer}
 body:not(.role-viewer) .btn-score-mode{display:none}
@@ -119,7 +124,8 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 #playMode .pm-shot:active,#playMode .pm-goal:active{transform:scale(.97);filter:brightness(1.12)}
 #playMode .pm-shot.v{background:var(--pb);color:var(--pbi)}
 #playMode .pm-shot.l{background:var(--pa);color:var(--pai)}
-#playMode .pm-count{text-align:center;font-size:clamp(1.3rem,6.4vw,2.1rem);white-space:nowrap;font-weight:800;margin-top:-.2rem}
+#playMode .pm-shot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem}
+#playMode .pm-count{display:block;font-size:clamp(1.2rem,5.8vw,1.9rem);white-space:nowrap;font-weight:800;color:#0B1724;background:rgba(255,255,255,.55);border-radius:10px;padding:.1rem .7rem}
 #playMode .pm-mid{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:.5rem .9rem}
 #playMode .pm-mid .pm-pause{grid-column:1/-1}
 #playMode.swap .pm-row>:first-child,#playMode.swap .pm-mid .pm-team.v{order:2}
@@ -130,17 +136,19 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 #playMode .pm-team b{display:block;font-size:clamp(1.15rem,5.6vw,1.9rem);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #playMode .pm-team.v b{color:var(--pb)}
 #playMode .pm-team.l b{color:var(--pa)}
-#playMode .pm-pause{width:100%;min-height:5rem;border-radius:16px;border:3px solid #6FA2EE;background:#162D45;color:#FFF;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.8rem;font-size:1.6rem;font-weight:800}
+#playMode .pm-pause{width:100%;min-height:5rem;border-radius:16px;border:3px solid #6FA2EE;background:#162D45;color:#FFF;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:.8rem;padding:0 1.3rem;font-size:1.6rem;font-weight:800}
+#playMode .pm-play{display:flex;align-items:center;gap:.7rem}
+#playMode .pm-per{font-size:1.3rem;color:#93A6B7;letter-spacing:.04em;white-space:nowrap}
 #playMode .pm-pause .ic{font-size:2.2rem;line-height:1}
 #playMode .pm-pause:active{transform:scale(.98);filter:brightness(1.15)}
 #playMode .pm-clock{text-align:center;margin-bottom:.4rem}
 #playMode .pm-clock small{display:block;font-size:1.2rem;font-weight:700;color:#93A6B7;letter-spacing:.04em}
 #playMode .pm-time{display:inline-flex;align-items:center;gap:.8rem;font-size:3.6rem;font-weight:800;line-height:1}
 #playMode .pm-x{width:2.6rem;height:2.6rem;border-radius:50%;border:2px solid #93A6B7;background:transparent;color:#FFF;font-size:1.3rem;font-weight:800;line-height:1;font-family:var(--body)}
-#playMode .pm-goal{min-height:11rem;border-radius:16px;border:0;color:#FFF;font-size:clamp(1.8rem,9vw,3rem);font-weight:800;white-space:nowrap}
+#playMode .pm-goal{min-height:13rem;border-radius:16px;border:0;color:#FFF;font-size:clamp(1.8rem,9vw,3rem);font-weight:800;white-space:nowrap}
 #playMode .pm-goal.v{background:var(--pb);color:var(--pbi)}
 #playMode .pm-goal.l{background:var(--pa);color:var(--pai)}
-@media (max-height:700px){#playMode .pm-shot{font-size:1.8rem}#playMode .pm-goal{min-height:8rem;font-size:2.4rem}#playMode .pm-pause{min-height:4rem}#playMode .pm-time{font-size:2.8rem}}
+@media (max-height:700px){#playMode .pm-shot{font-size:1.8rem}#playMode .pm-goal{min-height:9.5rem;font-size:2.4rem}#playMode .pm-pause{min-height:4rem}#playMode .pm-time{font-size:2.8rem}}
 .btn-timer-reset{width:75%;font-size:1.1rem;padding:.25rem 0;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1}
 
 .circle{position:relative;width:2.5rem;height:2.5rem;border-radius:50%;border:3px solid var(--blue);background:var(--surface);
@@ -747,8 +755,8 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <h2 class="toggle-title collapsed" id="toggleGoaliesBtn">Arrêts des gardiens</h2>
   <div class="toggle-block hidden" id="goaliesBlock">
     <section class="goalies">
-      <div class="g a"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, équipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p></div>
-      <div class="g b"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, équipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p></div>
+      <div class="g a"><h3 id="gNameA"></h3><select id="gSelA" class="g-select" aria-label="Gardien devant le filet, équipe locale"></select><p class="sub g-who" id="gWhoA"></p><p class="pct" id="svA">–</p><p class="sub" id="svSubA"></p><p class="sub g-season" id="svSeasonA"></p><button type="button" class="g-fix" data-side="a">✏️ Corriger le gardien</button></div>
+      <div class="g b"><h3 id="gNameB"></h3><select id="gSelB" class="g-select" aria-label="Gardien devant le filet, équipe visiteuse"></select><p class="sub g-who" id="gWhoB"></p><p class="pct" id="svB">–</p><p class="sub" id="svSubB"></p><p class="sub g-season" id="svSeasonB"></p><button type="button" class="g-fix" data-side="b">✏️ Corriger le gardien</button></div>
     </section>
   </div>
 
@@ -806,6 +814,19 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <div id="voiceTag" hidden>🎙️ Annonce en cours…</div>
 <div id="annMsg" hidden role="status" aria-live="assertive"></div>
 
+<dialog id="gFixSheet">
+  <div class="sheet-in">
+    <h2>Corriger le gardien</h2>
+    <p class="ctx" id="gFixCtx"></p>
+    <label for="gFixFrom" style="display:block;font-size:.85rem;font-weight:600;margin:.4rem 0 .3rem;">Gardien inscrit par erreur</label>
+    <select id="gFixFrom" class="full-input"></select>
+    <label for="gFixTo" style="display:block;font-size:.85rem;font-weight:600;margin:.8rem 0 .3rem;">Le bon gardien</label>
+    <select id="gFixTo" class="full-input"></select>
+    <p style="font-size:.8rem;color:var(--muted);margin:.6rem 0 0;">Tous ses lancers reçus, buts accordés et changements de gardien de cette partie passent au bon gardien. Rien d'autre n'est modifié.</p>
+    <div class="actions" style="margin-top:1rem;"><button type="button" class="act-2" id="gFixCancel">Annuler</button><button type="button" class="act-1" id="gFixSave">Appliquer</button></div>
+  </div>
+</dialog>
+
 <dialog id="msgsSheet">
   <div class="sheet-in">
     <h2>Messages enregistrés</h2>
@@ -818,16 +839,15 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
 <div id="playMode" hidden>
   <div class="pm-row top">
-    <div><button type="button" class="pm-shot v" data-pm="shot" data-team="b" style="width:100%">+1 LANCER</button><div class="pm-count" id="pmShotsB">0 Lancer</div></div>
-    <div><button type="button" class="pm-shot l" data-pm="shot" data-team="a" style="width:100%">+1 LANCER</button><div class="pm-count" id="pmShotsA">0 Lancer</div></div>
+    <div><button type="button" class="pm-shot v" data-pm="shot" data-team="b" style="width:100%"><span>+1 LANCER</span><span class="pm-count" id="pmShotsB">0 Lancer</span></button></div>
+    <div><button type="button" class="pm-shot l" data-pm="shot" data-team="a" style="width:100%"><span>+1 LANCER</span><span class="pm-count" id="pmShotsA">0 Lancer</span></button></div>
   </div>
   <div class="pm-mid">
     <div class="pm-team v"><small>VISITEUR</small><b id="pmNameB">Visiteur</b></div>
     <div class="pm-team l"><small>LOCAL</small><b id="pmNameA">Local</b></div>
-    <button type="button" class="pm-pause" id="pmToggle"><span class="ic" id="pmIcon">❚❚</span><span id="pmLabel">Pause</span></button>
+    <button type="button" class="pm-pause" id="pmToggle"><span class="pm-play"><span class="ic" id="pmIcon">❚❚</span><span id="pmLabel">Pause</span></span><span class="pm-per" id="pmPeriod">PÉRIODE 1</span></button>
   </div>
   <div class="pm-clock">
-    <small id="pmPeriod">PÉRIODE 1</small>
     <div class="pm-time"><span id="pmTime" title="Toucher pour ajuster le temps">20:00</span><button type="button" class="pm-x" id="pmClose" aria-label="Revenir au mode normal" title="Revenir au mode normal">✕</button><button type="button" class="pm-x" id="pmSwap" aria-label="Changer les équipes de côté" title="Changer les équipes de côté">⇄</button></div>
   </div>
   <div class="pm-row">
@@ -1243,6 +1263,16 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <label for="wizPeriodMin">3. Durée d'une période (minutes) :</label>
       <input type="number" id="wizPeriodMin" min="1" max="99" inputmode="numeric" class="full-input" style="background:#FFF;color:#0F2236;">
       <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Pour cette partie seulement. Le temps reste modifiable en touchant le chronomètre.</small>
+    </div>
+
+    <div class="preset-box">
+      <label>4. Arrêt du temps sur but :</label>
+      <div class="stop-goal">
+        <label><input type="checkbox" id="wizStop0"><span>1re période</span></label>
+        <label><input type="checkbox" id="wizStop1"><span>2e période</span></label>
+        <label><input type="checkbox" id="wizStop2"><span>3e période</span></label>
+      </div>
+      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Dans une période cochée, le chronomètre s'arrête dès qu'on touche « But ».</small>
     </div>
 
     <div class="actions">
@@ -1702,6 +1732,7 @@ document.addEventListener("DOMContentLoaded", function(){
       histKey: "",
       id: "",
       periodSec: 0,                      // durée d'une période pour cette partie (0 = durée par défaut de l'organisation)
+      stopOnGoal: [false, false, false], // arrêt du chronomètre sur but, par période
       playedAt: 0,
       calId: "",                         // partie du calendrier jouée sur ce tableau                       // date de la partie dans l'historique (ne change pas quand on la corrige)
       updatedAt: 0
@@ -1733,6 +1764,7 @@ document.addEventListener("DOMContentLoaded", function(){
     s.playedAt = Number(d.playedAt) || 0;
     s.calId = typeof d.calId === "string" ? d.calId : "";
     s.periodSec = int(d.periodSec, 0, 5940);
+    s.stopOnGoal = [0, 1, 2].map(i => !!(Array.isArray(d.stopOnGoal) ? d.stopOnGoal[i] : (d.stopOnGoal && d.stopOnGoal[i])));
     const last = s.events[s.events.length - 1];
     // Anciennes parties (sans le champ « finished ») : terminées si le dernier événement est la fin du match
     s.finished = (typeof d.finished === "boolean") ? d.finished
@@ -3873,6 +3905,46 @@ document.addEventListener("DOMContentLoaded", function(){
     absentGoalies(side).forEach((p, i) => items.push({ value: "abs:" + i, label: lab(p) + " (absent de l'alignement)" }));
     return items;
   }
+  // Correction : un mauvais gardien a été inscrit ; on le remplace partout dans la partie, sans rien perdre
+  let gFixSide = "a";
+  function openGoalieFix(side){
+    if(!canEdit()) return;
+    gFixSide = side;
+    const r = state.rosters[side], lab = pid => playerLabel(r, pid) || "Gardien", used = [];
+    const add = pid => { if(pid && used.indexOf(pid) === -1) used.push(pid); };
+    add(goalieOf(state, side)); Object.keys(goalieLines(state, side)).forEach(add);
+    state.events.forEach(e => { if(e.type === "goalie" && e.team === side){ add(e.player); add(e.prev); } });
+    if(!used.length){ notify("Aucun gardien n'est inscrit pour cette équipe.", "info"); return; }
+    $("gFixCtx").textContent = state.names[side];
+    fillSelect($("gFixFrom"), used.map(pid => ({ value: pid, label: lab(pid) })), goalieOf(state, side) || used[0]);
+    const to = goalieChoices(side);
+    r.forEach((p, i) => { const v = pidOf(p, i); if(p.pos !== "G" && !to.some(x => x.value === v)) to.push({ value: v, label: (p.no ? "#" + p.no + " " : "") + (p.name || "Joueur") + " (joueur)" }); });
+    fillSelect($("gFixTo"), to, null, "Choisir…");
+    openDlg("gFixSheet");
+  }
+  document.querySelectorAll(".g-fix").forEach(b => b.addEventListener("click", () => openGoalieFix(b.dataset.side)));
+  on("gFixCancel", "click", () => closeDlg("gFixSheet"));
+  on("gFixSave", "click", () => {
+    if(!canEdit()) return;
+    const side = gFixSide, from = $("gFixFrom").value; let to = $("gFixTo").value;
+    if(!from || !to){ notify("Choisissez le bon gardien.", "info"); return; }
+    if(to.indexOf("abs:") === 0){                               // gardien absent de l'alignement : on l'y ajoute
+      const p = absentGoalies(side)[Number(to.slice(4))]; if(!p) return;
+      state.rosters[side].push(p); to = pidOf(p, state.rosters[side].length - 1);
+    }
+    if(to === from){ closeDlg("gFixSheet"); return; }
+    const opp = side === "a" ? "b" : "a", def = goalieOf(state, side);
+    state.events.forEach(e => {
+      if(e.team === opp && (e.type === "shot" || e.type === "goal")){ if(!e.g) e.g = def; if(e.g === from) e.g = to; }
+      if(e.type === "goalie" && e.team === side){ if(e.player === from) e.player = to; if(e.prev === from) e.prev = to; }
+    });
+    if(state.goalies[side] === from || def === from) state.goalies[side] = to;
+    commit();
+    // Partie déjà enregistrée dans l'historique (et toujours à l'écran) : la copie de l'historique suit
+    if(!editEntry && state.histKey && state.closed && dbHistory) dbHistory.child(state.histKey).set(state);
+    closeDlg("gFixSheet"); notify("Gardien corrigé pour toute la partie.", "ok");
+  });
+
   // Changement de gardien, possible en tout temps pour le marqueur et l'administrateur
   function setGoalie(side, val){
     if(!canEdit() || !val) return false;
@@ -4133,6 +4205,8 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     renderPresenceList("a", $("wizTeamA").value); renderPresenceList("b", $("wizTeamB").value);
     $("wizPeriodMin").value = Math.round(defaultPeriodSec / 60);
+    const sg = String(store.get(localStorage, "ohmtro_stopgoal") || "");     // dernier choix retenu sur cet appareil
+    [0, 1, 2].forEach(i => { $("wizStop" + i).checked = sg.charAt(i) === "1"; });
     wizFillCalendar();
     openDlg("newGameWizard");
   });
@@ -4173,6 +4247,8 @@ document.addEventListener("DOMContentLoaded", function(){
     state.periodSec = int($("wizPeriodMin").value || Math.round(defaultPeriodSec / 60), 1, 99) * 60;   // durée choisie pour cette partie
     state.calId = $("wizCalSelect").value || "";
     state.timer.sec = state.periodSec;
+    state.stopOnGoal = [0, 1, 2].map(i => $("wizStop" + i).checked);
+    store.set(localStorage, "ohmtro_stopgoal", state.stopOnGoal.map(x => x ? "1" : "0").join(""));
     ["a","b"].forEach(t => {
       const p = presets[keys[t]]; if(!p) return;
       const full = toArr(p.roster).map(normPlayer), present = [];
@@ -4247,6 +4323,10 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   // Annuler : un nouveau but est retiré (avec son lancer) ; un but existant reste tel quel
   function cancelGoal(){
+    // But annulé : si le chrono avait été arrêté par ce but, il repart comme s'il ne s'était jamais arrêté
+    if(curGoal && curGoal.stopped && canEdit() && !state.timer.running && state.timer.sec === curGoal.stopped.sec){
+      state.timer.running = true; state.timer.lastUpdate = curGoal.stopped.at; commit();
+    }
     if(curGoal && curGoal.isNew && !curGoal.pend && canEdit()){
       const g = findEvent(curGoal.id);
       if(g){
@@ -4372,7 +4452,14 @@ document.addEventListener("DOMContentLoaded", function(){
       // Le temps est pris au moment où l'on touche « But » ; le but n'est inscrit qu'à l'enregistrement
       const g = { id: uid(), type: "goal", team: t, period: p, time: curTime, scorer: "", a1: "", a2: "", t: now() };
       if(net) g.g = net;
+      // Arrêt du temps sur but (périodes cochées au lancement) : le chrono s'arrête au moment où l'on touche « But »
+      let stopped = null;
+      if(state.timer.running && state.stopOnGoal && state.stopOnGoal[p]){
+        stopped = { sec: remaining(), at: now() };
+        state.timer.sec = stopped.sec; state.timer.running = false; commit();
+      }
       openGoal(g.id, true, g);
+      if(curGoal) curGoal.stopped = stopped;
     } else if(act === "ungoal"){
       const i = lastEventIndex(x => x.type === "goal" && x.team === t);
       if(i === -1){ notify("Aucun but à retirer.", "info"); return; }
