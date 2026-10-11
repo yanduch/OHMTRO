@@ -56,6 +56,27 @@ button:disabled{cursor:not-allowed;opacity:.4}
 
 .ticker-wrap{width:100%;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;margin-bottom:.8rem;display:none;align-items:center;}
 .ticker-wrap.active{display:flex;}
+.tk-cd{font-variant-numeric:tabular-nums}
+/* --- Mode pointage (visiteurs) : bandeau + tableau seulement, plein écran --- */
+.btn-score-mode{width:100%;margin-top:.3rem;font-size:.72rem;font-weight:800;padding:.35rem 0;border-radius:6px;border:1px solid var(--line);background:var(--ice);color:var(--ink);text-transform:uppercase;letter-spacing:.02em;line-height:1.1;cursor:pointer}
+body:not(.role-viewer) .btn-score-mode{display:none}
+#scoreExit{display:none}
+html.score-mode{font-size:min(2.4vw,3.9vh)}
+html.score-mode body{overflow:hidden}
+html.score-mode .wrap{max-width:none;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:.6rem 1rem calc(.6rem + env(safe-area-inset-bottom,0px))}
+html.score-mode .wrap>*:not(.ticker-wrap):not(.board){display:none !important}
+html.score-mode .ticker-wrap{display:flex;margin-bottom:.6rem;flex:none;margin-right:3rem;width:auto}
+html.score-mode .ticker-text{font-size:1.3rem}
+html.score-mode .board{flex:1;min-height:0;grid-template-columns:1fr 13rem 1fr;align-items:center;padding:1rem}
+html.score-mode .score{font-size:min(34vh,19vw)}
+html.score-mode .name{font-size:min(9vh,5vw) !important}
+html.score-mode .team-logo{width:min(10vh,6vw);height:min(10vh,6vw)}
+html.score-mode .side-tag{font-size:1rem}
+html.score-mode .shots{font-size:1.6rem}
+html.score-mode .timer-display{font-size:min(11vh,6vw);padding:.3rem .8rem;cursor:default}
+html.score-mode .circle{width:4rem;height:4rem;font-size:1.3rem}
+html.score-mode .btn-score-mode{display:none}
+html.score-mode #scoreExit{display:flex;position:fixed;top:calc(.5rem + env(safe-area-inset-top,0px));right:.5rem;z-index:80;width:2.6rem;height:2.6rem;border-radius:50%;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.2rem;font-weight:800;opacity:.75;cursor:pointer}
 .ticker-icon{font-size:.9rem;margin-right:.5rem;flex-shrink:0;}
 .ticker-content{overflow:hidden;white-space:nowrap;width:100%;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 1.4rem,#000 calc(100% - 1.4rem),transparent);mask-image:linear-gradient(90deg,transparent,#000 1.4rem,#000 calc(100% - 1.4rem),transparent);}
 .ticker-text{display:inline-flex;white-space:nowrap;font-size:.85rem;font-weight:600;color:var(--ink);will-change:transform;}
@@ -99,14 +120,19 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 #playMode .pm-shot.v{background:var(--pb);color:var(--pbi)}
 #playMode .pm-shot.l{background:var(--pa);color:var(--pai)}
 #playMode .pm-count{text-align:center;font-size:clamp(1.3rem,6.4vw,2.1rem);white-space:nowrap;font-weight:800;margin-top:-.2rem}
-#playMode .pm-mid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.6rem}
+#playMode .pm-mid{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:.5rem .9rem}
+#playMode .pm-mid .pm-pause{grid-column:1/-1}
+#playMode.swap .pm-row>:first-child,#playMode.swap .pm-mid .pm-team.v{order:2}
+#playMode.swap .pm-mid .pm-pause{order:3}
+#pmTime{cursor:pointer}
 #playMode .pm-team{text-align:center;min-width:0}
 #playMode .pm-team small{display:block;font-size:1.05rem;font-weight:700;color:#93A6B7;letter-spacing:.04em}
 #playMode .pm-team b{display:block;font-size:clamp(1.15rem,5.6vw,1.9rem);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #playMode .pm-team.v b{color:var(--pb)}
 #playMode .pm-team.l b{color:var(--pa)}
-#playMode .pm-pause{width:7.2rem;height:7.2rem;border-radius:50%;border:4px solid #6FA2EE;background:#162D45;color:#FFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;font-size:1.25rem;font-weight:800}
-#playMode .pm-pause .ic{font-size:2.6rem;line-height:1}
+#playMode .pm-pause{width:100%;min-height:5rem;border-radius:16px;border:3px solid #6FA2EE;background:#162D45;color:#FFF;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.8rem;font-size:1.6rem;font-weight:800}
+#playMode .pm-pause .ic{font-size:2.2rem;line-height:1}
+#playMode .pm-pause:active{transform:scale(.98);filter:brightness(1.15)}
 #playMode .pm-clock{text-align:center;margin-bottom:.4rem}
 #playMode .pm-clock small{display:block;font-size:1.2rem;font-weight:700;color:#93A6B7;letter-spacing:.04em}
 #playMode .pm-time{display:inline-flex;align-items:center;gap:.8rem;font-size:3.6rem;font-weight:800;line-height:1}
@@ -114,7 +140,7 @@ body:not(.role-admin) .name{pointer-events:none;border-bottom-color:transparent}
 #playMode .pm-goal{min-height:11rem;border-radius:16px;border:0;color:#FFF;font-size:clamp(1.8rem,9vw,3rem);font-weight:800;white-space:nowrap}
 #playMode .pm-goal.v{background:var(--pb);color:var(--pbi)}
 #playMode .pm-goal.l{background:var(--pa);color:var(--pai)}
-@media (max-height:700px){#playMode .pm-shot{font-size:1.8rem}#playMode .pm-goal{min-height:8rem;font-size:2.4rem}#playMode .pm-pause{width:5.8rem;height:5.8rem}#playMode .pm-time{font-size:2.8rem}}
+@media (max-height:700px){#playMode .pm-shot{font-size:1.8rem}#playMode .pm-goal{min-height:8rem;font-size:2.4rem}#playMode .pm-pause{min-height:4rem}#playMode .pm-time{font-size:2.8rem}}
 .btn-timer-reset{width:75%;font-size:1.1rem;padding:.25rem 0;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);line-height:1}
 
 .circle{position:relative;width:2.5rem;height:2.5rem;border-radius:50%;border:3px solid var(--blue);background:var(--surface);
@@ -591,6 +617,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <button type="button" class="btn-timer-reset" id="btnTimerReset" hidden>🔄</button>
         <button type="button" class="btn-play-mode" id="btnPlayMode">En jeu</button>
       </div>
+      <button type="button" class="btn-score-mode" id="btnScoreMode">Mode pointage</button>
     </div>
 
     <div class="side b">
@@ -774,6 +801,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 </div>
 
 <button type="button" id="btnSound" aria-label="Son">🔊</button>
+<button type="button" id="scoreExit" aria-label="Quitter le mode pointage" title="Quitter le mode pointage">✕</button>
 <button type="button" id="audioHint" hidden>🔊 Touchez ici pour activer le son</button>
 <div id="voiceTag" hidden>🎙️ Annonce en cours…</div>
 <div id="annMsg" hidden role="status" aria-live="assertive"></div>
@@ -795,12 +823,12 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   </div>
   <div class="pm-mid">
     <div class="pm-team v"><small>VISITEUR</small><b id="pmNameB">Visiteur</b></div>
-    <button type="button" class="pm-pause" id="pmToggle"><span class="ic" id="pmIcon">❚❚</span><span id="pmLabel">Pause</span></button>
     <div class="pm-team l"><small>LOCAL</small><b id="pmNameA">Local</b></div>
+    <button type="button" class="pm-pause" id="pmToggle"><span class="ic" id="pmIcon">❚❚</span><span id="pmLabel">Pause</span></button>
   </div>
   <div class="pm-clock">
     <small id="pmPeriod">PÉRIODE 1</small>
-    <div class="pm-time"><span id="pmTime">20:00</span><button type="button" class="pm-x" id="pmClose" aria-label="Revenir au mode normal" title="Revenir au mode normal">✕</button></div>
+    <div class="pm-time"><span id="pmTime" title="Toucher pour ajuster le temps">20:00</span><button type="button" class="pm-x" id="pmClose" aria-label="Revenir au mode normal" title="Revenir au mode normal">✕</button><button type="button" class="pm-x" id="pmSwap" aria-label="Changer les équipes de côté" title="Changer les équipes de côté">⇄</button></div>
   </div>
   <div class="pm-row">
     <button type="button" class="pm-goal v" data-pm="goal" data-team="b" id="pmGoalB">BUT - 0</button>
@@ -1373,14 +1401,15 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   document.head.appendChild(css);
 
   const canPop = typeof HTMLElement !== "undefined" && HTMLElement.prototype.hasOwnProperty("popover");
-  let menu = null, cur = null, touch = null;
+  let menu = null, cur = null, touch = null, lastTouch = false;
 
   function close(){
     if(!menu) return;
     try{ if(canPop && menu.matches(":popover-open")) menu.hidePopover(); }catch(e){}
     menu.remove(); menu = null;
     const s = cur; cur = null;
-    if(s) try{ s.focus({ preventScroll: true }); }catch(e){}
+    // Au toucher, on ne redonne pas le focus à la liste : sur iPad, une liste active rouvre la fenêtre du système
+    if(s){ try{ if(lastTouch) s.blur(); else s.focus({ preventScroll: true }); }catch(e){} }
   }
 
   function place(sel){
@@ -1431,15 +1460,19 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     if(menu && !menu.contains(e.target) && !target(e)) close();
     const s = target(e); if(!s || e.button !== 0) return;
     e.preventDefault();
+    if(e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;   // souris simulée après un toucher
+    lastTouch = false;
     if(cur === s) close(); else open(s);
   }, true);
   // Toucher : on ouvre au relâchement si le doigt n'a pas glissé (le défilement reste possible)
   document.addEventListener("touchstart", e => {
     const t = e.touches[0];
     touch = { s: target(e), x: t.clientX, y: t.clientY };
+    if(touch.s) e.preventDefault();               // iPad/iPhone : empêche la liste du système, même une 2e fois
     if(menu && !menu.contains(e.target) && !touch.s) close();
-  }, { capture: true, passive: true });
+  }, { capture: true, passive: false });
   document.addEventListener("touchend", e => {
+    lastTouch = true;
     const s = target(e); if(!s || !touch || touch.s !== s) return;
     const t = e.changedTouches[0];
     e.preventDefault();                                            // empêche la fenêtre native et le clic simulé
@@ -1462,6 +1495,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     const s = target(e);
     if(s && (e.key === "Enter" || e.key === " " || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4")){ e.preventDefault(); open(s); }
   }, true);
+  document.addEventListener("focusin", e => { const s = target(e); if(s && lastTouch && cur !== s) try{ s.blur(); }catch(x){} }, true);
   window.addEventListener("resize", close);
   window.addEventListener("scroll", e => { if(menu && !menu.contains(e.target)) close(); }, true);
   document.addEventListener("close", close, true);                // une fenêtre qui se ferme ferme aussi le menu
@@ -2163,7 +2197,11 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!tickerMsg.length){ wrap.classList.remove("active"); return; }
     wrap.classList.add("active");
     const unit = el("span", "ticker-unit");                   // chaque message est suivi d'un grand espace
-    tickerMsg.forEach(m => unit.appendChild(el("span", "ticker-msg", m)));
+    tickerMsg.forEach(m => {
+      const s = el("span", "ticker-msg"), parts = String(m).split(/\u0002(\d+)\u0002/);
+      parts.forEach((x, i) => { if(i % 2){ const c = el("span", "tk-cd", fmtLeft(Number(x) - now())); c.dataset.at = x; s.appendChild(c); } else if(x) s.appendChild(document.createTextNode(x)); });
+      unit.appendChild(s);
+    });
     track.appendChild(unit);
     const cw = track.parentNode.clientWidth, uw = unit.offsetWidth;
     if(!cw || !uw) return;
@@ -3450,11 +3488,15 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!canEdit()) return;
     state.timer.running = false; state.timer.sec = perSec(state); commit();
   });
+  // Le chrono continue pendant qu'on ajuste : les cases suivent le temps jusqu'à ce qu'on y touche, puis « Appliquer » applique
+  let tsLive = null, tsEdited = false;
+  function tsFill(){ const cur = remaining() || perSec(state); $("timerMin").value = Math.floor(cur / 60); $("timerSec").value = (cur % 60 < 10 ? "0" : "") + (cur % 60); }
   function openTimerSheet(){
-    const cur = remaining() || perSec(state);
-    $("timerMin").value = Math.floor(cur / 60); $("timerSec").value = cur % 60;
+    tsEdited = false; tsFill(); clearInterval(tsLive);
+    tsLive = setInterval(() => { if(!$("timerSheet").open){ clearInterval(tsLive); return; } if(!tsEdited && state.timer.running) tsFill(); }, 250);
     openDlg("timerSheet");
   }
+  ["timerMin", "timerSec"].forEach(id => ["input", "pointerdown", "keydown"].forEach(t => $(id).addEventListener(t, () => { tsEdited = true; })));
   on("timerDisplay", "click", () => { if(canEdit()) openTimerSheet(); });
   on("timerCancel", "click", () => closeDlg("timerSheet"));
   on("timerSave", "click", () => {
@@ -4156,9 +4198,9 @@ document.addEventListener("DOMContentLoaded", function(){
   /* ============ Buts ============ */
   let curGoal = null, goalPickStep = "scorer";
 
-  function openGoal(id, isNew){
-    const g = findEvent(id); if(!g) return;
-    curGoal = { id: id, isNew: isNew, team: g.team, scorer: g.scorer || "", a1: g.a1 || "", a2: g.a2 || "" };
+  function openGoal(id, isNew, pend){
+    const g = pend || findEvent(id); if(!g) return;
+    curGoal = { id: id, isNew: isNew, pend: pend || null, team: g.team, scorer: g.scorer || "", a1: g.a1 || "", a2: g.a2 || "" };
     goalPickStep = nextGoalStep();
     $("gsTitle").textContent = (isNew ? "But de " : "But, ") + state.names[g.team];
     $("gsCtx").textContent = PLONG[g.period] + " (" + g.time + ")";
@@ -4205,7 +4247,7 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   // Annuler : un nouveau but est retiré (avec son lancer) ; un but existant reste tel quel
   function cancelGoal(){
-    if(curGoal && curGoal.isNew && canEdit()){
+    if(curGoal && curGoal.isNew && !curGoal.pend && canEdit()){
       const g = findEvent(curGoal.id);
       if(g){
         state.events = state.events.filter(x => x.id !== g.id);
@@ -4227,8 +4269,18 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   on("gsSave", "click", () => {
     if(curGoal && canEdit()){
-      const g = findEvent(curGoal.id);
-      if(g){ g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2; commit(); }
+      const pg = curGoal.pend;
+      if(pg){
+        // Nouveau but : inscrit maintenant, avec le temps noté quand on a touché « But »
+        pg.scorer = curGoal.scorer; pg.a1 = curGoal.a1; pg.a2 = curGoal.a2;
+        let i = state.events.length; while(i > 0 && (state.events[i - 1].t || 0) > pg.t) i--;
+        state.events.splice(i, 0, pg);
+        state.shots[pg.team][pg.period] = Math.min(999, (state.shots[pg.team][pg.period] || 0) + 1);
+        commit();
+      } else {
+        const g = findEvent(curGoal.id);
+        if(g){ g.scorer = curGoal.scorer; g.a1 = curGoal.a1; g.a2 = curGoal.a2; commit(); }
+      }
     }
     curGoal = null; closeDlg("goalSheet");
   });
@@ -4317,9 +4369,10 @@ document.addEventListener("DOMContentLoaded", function(){
         commit();
       }
     } else if(act === "goal"){
+      // Le temps est pris au moment où l'on touche « But » ; le but n'est inscrit qu'à l'enregistrement
       const g = { id: uid(), type: "goal", team: t, period: p, time: curTime, scorer: "", a1: "", a2: "", t: now() };
       if(net) g.g = net;
-      state.events.push(g); state.shots[t][p] = Math.min(999, state.shots[t][p] + 1); commit(); openGoal(g.id, true);
+      openGoal(g.id, true, g);
     } else if(act === "ungoal"){
       const i = lastEventIndex(x => x.type === "goal" && x.team === t);
       if(i === -1){ notify("Aucun but à retirer.", "info"); return; }
@@ -4500,7 +4553,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!v || !v.id || v.id === fxSeen) return;
       fxSeen = v.id;
       if(Date.now() - (v.at || 0) > 20000) return;
-      if(v.t === "msg") showAnn(fillAnn(v.text)); else playFx(v.t);
+      if(v.t === "msg") showAnn(cdPlain(fillAnn(v.text))); else playFx(v.t);
     });
     banner = null; renderAnnWait();
     bsub(ref(boardBase + "/banner"), snap => { const v = snap.val(); banner = v && typeof v === "object" && v.text ? { text: String(v.text).slice(0, 160), at: Number(v.at) || 0 } : null; renderAnnWait(); updateTickerDisplay(); renderAnns(); });
@@ -4549,11 +4602,14 @@ document.addEventListener("DOMContentLoaded", function(){
     return state.names && state.names.a || "";
   }
   function fmtLeft(ms){
-    const m = Math.ceil(ms / 60000);
-    if(m < 60) return m + " min";
-    const h = Math.floor(m / 60), r = m % 60;
-    return h + " h" + (r ? " " + (r < 10 ? "0" : "") + r : "");
+    const t = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60, z = n => (n < 10 ? "0" : "") + n;
+    if(h) return h + " h " + z(m) + " min " + z(s) + " s";
+    if(m) return m + " min " + z(s) + " s";
+    return s + " s";
   }
+  // Compte à rebours vivant : le bandeau garde un repère \u0002<heure>\u0002 que chaque seconde remplace par le temps restant
+  const CD_RE = /\u0002(\d+)\u0002/g;
+  const cdPlain = t => String(t || "").replace(CD_RE, (x, at) => fmtLeft(Number(at) - now()));
   // Remplace {temps} et {équipe} au moment de l'affichage, sur chaque appareil
   function fillAnn(t){
     t = String(t || "");
@@ -4566,7 +4622,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const left = g && g.at ? g.at - now() : null;
       if(left == null) t = t.replace(/La partie commence dans \{temps\}/, "La partie commence bientôt").replace(/\{temps\}/g, "quelques minutes");
       else if(left <= 60000) t = t.replace(/La partie commence dans \{temps\}/, "La partie va commencer d'une minute à l'autre").replace(/\{temps\}/g, "un instant");
-      else t = t.replace(/\{temps\}/g, fmtLeft(left));
+      else t = t.replace(/\{temps\}/g, "\u0002" + g.at + "\u0002");
     }
     return t.replace(/\{équipe\}/g, team);
   }
@@ -4611,10 +4667,11 @@ document.addEventListener("DOMContentLoaded", function(){
     const w = $("annWait"); w.textContent = "";
     w.hidden = !bannerText();
     if(w.hidden) return;
-    w.appendChild(document.createTextNode("📰 Dans le bandeau : « " + bannerText() + " »"));
+    w.appendChild(document.createTextNode("📰 Dans le bandeau : « " + cdPlain(bannerText()) + " »"));
     w.appendChild(btn("", "✕ Retirer", () => ambTargets().forEach(p => ref(p + "/banner").remove())));
   }
-  setInterval(() => { if(banner && banner.text){ updateTickerDisplay(); renderAnnWait(); } }, 20000);   // compte à rebours
+  setInterval(() => { if(banner && banner.text){ updateTickerDisplay(); renderAnnWait(); } }, 20000);   // changement d'étape (moins d'une minute, début)
+  setInterval(() => { document.querySelectorAll(".tk-cd").forEach(c => { const t = fmtLeft(Number(c.dataset.at) - now()); if(c.textContent !== t) c.textContent = t; }); }, 1000);
   on("annSend", "click", () => { const t = $("annText").value.trim(); if(!t){ notify("Écrivez le message à afficher.", "info"); return; } annPush(t); $("annText").value = ""; });
 
   // Messages enregistrés (par organisation)
@@ -4720,6 +4777,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("pmPeriod").textContent = /^P\d/.test(p) ? "PÉRIODE " + p.slice(1) : (/prol|OT/i.test(p) ? "PROLONGATION" : p.toUpperCase());
     const running = !!(state.timer && state.timer.running);
     $("pmIcon").textContent = running ? "❚❚" : "▶"; $("pmLabel").textContent = running ? "Pause" : "Jouer";
+    $("playMode").classList.toggle("swap", invOn());
   }
   function pmOpen(){
     if(currentRole === "viewer") return;
@@ -4728,8 +4786,30 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   function pmClose(){ $("playMode").hidden = true; document.body.style.overflow = ""; clearInterval(pmTimer); pmTimer = null; }
   on("btnPlayMode", "click", pmOpen);
+  // Mode pointage (visiteurs) : seulement le bandeau et le tableau, en grand, idéalement à l'horizontale
+  let smFull = false;
+  function scoreMode(onOff){
+    document.documentElement.classList.toggle("score-mode", onOff);
+    if(onOff){
+      const de = document.documentElement, rq = de.requestFullscreen || de.webkitRequestFullscreen;
+      try{ const pr = rq && rq.call(de); smFull = !!rq; if(pr && pr.then) pr.then(() => { try{ screen.orientation.lock("landscape").catch(() => {}); }catch(e){} }, () => { smFull = false; }); }catch(e){ smFull = false; }
+    } else {
+      try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){}
+      const fe = document.fullscreenElement || document.webkitFullscreenElement;
+      if(fe){ try{ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }catch(e){} }
+      smFull = false;
+    }
+    setTimeout(() => { tickerSig = null; updateTickerDisplay(); }, 350);
+  }
+  on("btnScoreMode", "click", () => scoreMode(true));
+  on("scoreExit", "click", () => scoreMode(false));
+  ["fullscreenchange", "webkitfullscreenchange"].forEach(t => document.addEventListener(t, () => {
+    if(smFull && !(document.fullscreenElement || document.webkitFullscreenElement) && document.documentElement.classList.contains("score-mode")){ smFull = false; scoreMode(false); }
+  }));
   on("pmClose", "click", pmClose);
   on("pmToggle", "click", () => { $("btnTimerToggle").click(); pmSync(); });
+  on("pmSwap", "click", () => { $("btnSwapSides").click(); pmSync(); });
+  on("pmTime", "click", () => { if(canEdit()) openTimerSheet(); });
   document.querySelectorAll("[data-pm]").forEach(b => b.addEventListener("click", () => {
     const real = document.querySelector('#pad [data-act="' + b.dataset.pm + '"][data-team="' + b.dataset.team + '"]');
     if(real) real.click();
