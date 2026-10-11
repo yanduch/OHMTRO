@@ -366,6 +366,13 @@ body.role-viewer .staff-only{display:none !important}
 #audioHint[hidden],#voiceTag[hidden],#annMsg[hidden],.amb[hidden]{display:none}
 .amb-wait{margin-top:.5rem;padding:.45rem .6rem;border:1px dashed var(--line);border-radius:8px;font-size:.82rem;color:var(--muted)}
 .amb-wait[hidden]{display:none}
+.ann-mode{display:flex;gap:.4rem;margin-top:.5rem}
+.ann-mode label{flex:1;cursor:pointer;position:relative}
+.ann-mode input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;pointer-events:none}
+.ann-mode span{display:block;text-align:center;padding:.5rem .3rem;border:1px solid var(--line);border-radius:8px;font-weight:700;font-size:.88rem}
+.ann-mode input:checked+span{background:var(--blue);border-color:var(--blue);color:var(--on-team)}
+.ann-mode input:focus-visible+span{outline:2px solid var(--blue);outline-offset:2px}
+.amb-msgs button.tpl{border-style:dashed;font-weight:700}
 .amb-wait button{margin-left:.4rem;border:0;background:none;color:var(--red);font-weight:700;cursor:pointer}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:80}
 .confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:fall linear forwards}
@@ -751,7 +758,10 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
   <section class="amb admin-only" id="annBox">
     <h2>📣 Message à tout le monde</h2>
     <input type="text" id="annText" maxlength="120" placeholder="Ex. : Bravo aux bénévoles !" autocomplete="off">
-    <label class="check-row" style="margin:.5rem 0 0;"><input type="checkbox" id="annNow" checked><span>Afficher immédiatement<small>Décochez pour garder le message en attente : il s'affichera au début de la partie.</small></span></label>
+    <div class="ann-mode" role="radiogroup" aria-label="Affichage">
+      <label><input type="radio" name="annMode" value="pop" checked><span>💬 Fenêtre 5 s</span></label>
+      <label><input type="radio" name="annMode" value="band"><span>📰 Bandeau</span></label>
+    </div>
     <div id="annWait" class="amb-wait" hidden></div>
     <div class="amb-row"><button type="button" class="act-1" id="annSend">📣 Afficher</button><button type="button" class="act-2" id="annSave">💾 Enregistrer</button></div>
     <div class="amb-msgs" id="annList"></div>
@@ -1812,7 +1822,6 @@ document.addEventListener("DOMContentLoaded", function(){
     const live = isLive(state) && !editEntry && !archiveKey;
     $("ambBox").hidden = !live;                                   // console d'ambiance : seulement pendant le match en cours
     $("annBox").hidden = !!(editEntry || archiveKey);             // messages : aussi avant la partie
-    if(live) flushPendingAnn();
     const txt = (live ? "En direct" : "Aucune partie") + (currentRole !== "viewer" ? " - " + roleLabel() : "") + connText;
     if(st.textContent !== txt) st.textContent = txt;
     st.dataset.s = live ? "live" : "idle";
@@ -2112,6 +2121,9 @@ document.addEventListener("DOMContentLoaded", function(){
   function updateTickerDisplay(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
+    let bt = "", gl = ""; try{ bt = bannerText(); gl = gameLine(); }catch(e){}
+    if(gl) messages.push(gl);                // pendant le match : « Bon match ! » puis le dernier but
+    if(bt) messages.push("📣 " + bt);
     // D'abord l'annonce des autres parties en cours dans l'organisation, puis les messages habituels
     const mine = myLiveKey();
     Object.keys(liveGames).forEach(k => {
@@ -3409,6 +3421,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   }
   function finishGame(){
+    if(!editEntry) ambTargets().forEach(p => ref(p + "/banner").remove());   // le bandeau ne vaut que pour cette partie
     state.timer.running = false; state.timer.sec = 0; state.finished = true; state.closed = !!editEntry;
     const last = state.events[state.events.length - 1];
     if(!(last && last.type === "sys" && last.text === END_TEXT)){
@@ -3733,7 +3746,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if($("nameB").value !== n.b) $("nameB").value = n.b;      // (« Local » et « Visiteur » par défaut)
     $("btnTimerToggle").disabled = !game;                     // pas de chronomètre tant qu'aucune partie n'est lancée
     document.documentElement.classList.toggle("no-teams", !game);
-    applyInv(); updateStatusDisplay(); goalHornCheck();
+    applyInv(); updateStatusDisplay(); goalHornCheck(); try{ bannerAtStart(); }catch(e){}
     if(game !== lastGameMode){                                // changement de mode : « Ce match » pendant une partie, « Tout (Saison) » sinon
       lastGameMode = game; rosterScope = game ? "match" : "all"; openCardId = null;
       $("btnScopeMatch").classList.toggle("active", game); $("btnScopeAll").classList.toggle("active", !game);
@@ -4487,10 +4500,10 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!v || !v.id || v.id === fxSeen) return;
       fxSeen = v.id;
       if(Date.now() - (v.at || 0) > 20000) return;
-      if(v.t === "msg") showAnn(v.text); else playFx(v.t);
+      if(v.t === "msg") showAnn(fillAnn(v.text)); else playFx(v.t);
     });
-    annPending = null; renderAnnWait();
-    bsub(ref(boardBase + "/annPending"), snap => { annPending = snap.val(); renderAnnWait(); if(isLive(state) && !editEntry && !archiveKey) flushPendingAnn(); });
+    banner = null; renderAnnWait();
+    bsub(ref(boardBase + "/banner"), snap => { const v = snap.val(); banner = v && typeof v === "object" && v.text ? { text: String(v.text).slice(0, 160), at: Number(v.at) || 0 } : null; renderAnnWait(); updateTickerDisplay(); renderAnns(); });
     bsub(ref(boardBase + "/voice"), snap => {
       const v = snap.val();
       if(voiceSeen === null){ voiceSeen = v && v.id || ""; return; }
@@ -4526,27 +4539,82 @@ document.addEventListener("DOMContentLoaded", function(){
   const ambLive = () => currentRole !== "viewer" && isLive(state) && !editEntry && !archiveKey;
   function sendFx(t, text){ if(t === "msg" ? !(isAdmin() && !editEntry && !archiveKey) : !ambLive()) return; unlock(); const v = { id: uid(), t: t, text: text || "", at: Date.now() }; ambTargets().forEach(p => ref(p + "/fx").set(v)); }
   document.querySelectorAll("[data-fx]").forEach(b => b.addEventListener("click", () => sendFx(b.dataset.fx)));
-  // Message : tout de suite (crochet) ou en attente jusqu'au début de la partie
-  let annPending = null;
+  // Message : fenêtre de 5 s ou bandeau (seulement pour la partie en cours ou à venir de ce tableau)
+  var banner = null;
+  var TPL_START = "La partie commence dans {temps}, Go {équipe} Go !";
+  const annMode = () => { const r = document.querySelector('input[name="annMode"]:checked'); return r ? r.value : "pop"; };
+  function myTeamName(){
+    const k = boardTeam || boardTeams(currentCat)[0];
+    if(k && presets[k] && presets[k].name) return presets[k].name;
+    return state.names && state.names.a || "";
+  }
+  function fmtLeft(ms){
+    const m = Math.ceil(ms / 60000);
+    if(m < 60) return m + " min";
+    const h = Math.floor(m / 60), r = m % 60;
+    return h + " h" + (r ? " " + (r < 10 ? "0" : "") + r : "");
+  }
+  // Remplace {temps} et {équipe} au moment de l'affichage, sur chaque appareil
+  function fillAnn(t){
+    t = String(t || "");
+    if(t.indexOf("{") === -1) return t;
+    const team = myTeamName();
+    if(/\{temps\}/.test(t)){
+      if(isLive(state) && isStarted(state)) return "C'est parti ! Go " + team + " Go !";
+      const k = boardTeam || boardTeams(currentCat)[0], g = nextGameOf(k ? presets[k] : null) ||
+                (state.calId ? calendarList.filter(c => c.id === state.calId)[0] : null);
+      const left = g && g.at ? g.at - now() : null;
+      if(left == null) t = t.replace(/La partie commence dans \{temps\}/, "La partie commence bientôt").replace(/\{temps\}/g, "quelques minutes");
+      else if(left <= 60000) t = t.replace(/La partie commence dans \{temps\}/, "La partie va commencer d'une minute à l'autre").replace(/\{temps\}/g, "un instant");
+      else t = t.replace(/\{temps\}/g, fmtLeft(left));
+    }
+    return t.replace(/\{équipe\}/g, team);
+  }
   function annPush(t){
     if(!isAdmin() || editEntry || archiveKey) return;
-    if($("annNow").checked || isLive(state)){ sendFx("msg", t); notify("Message affiché.", "ok"); return; }
-    ambTargets().forEach(p => ref(p + "/annPending").set({ text: t, at: Date.now() }));
-    notify("Message en attente : il s'affichera au début de la partie.", "ok");
+    if(annMode() === "band"){
+      ambTargets().forEach(p => ref(p + "/banner").set({ text: t, at: Date.now() }));
+      notify("Message ajouté au bandeau de cette partie.", "ok"); return;
+    }
+    sendFx("msg", t); notify("Message affiché.", "ok");
   }
-  function flushPendingAnn(){
-    if(!annPending || !annPending.text || !canEdit()) return;
-    const v = { id: uid(), t: "msg", text: annPending.text, at: Date.now() };
-    annPending = null;
-    ambTargets().forEach(p => { ref(p + "/annPending").remove(); ref(p + "/fx").set(v); });
+  // Le chronomètre est parti au moins une fois
+  const chronoStarted = s => s.timer.running || s.timer.sec < perSec(s) || s.period > 0;
+  function goalText(g){
+    const team = state.names[g.team] || "", who = id => id ? getPlayerName(g.team, id) : "";
+    const sc = who(g.scorer), a1 = who(g.a1), a2 = who(g.a2);
+    const per = g.period === 3 ? "en prolongation" : "de la " + (PLONG[g.period] || "");
+    let t = "🚨 But des " + team;
+    if(sc){
+      t += " marqué par " + sc;
+      if(a1 && a2) t += ", avec les passes de " + a1 + " et de " + a2;
+      else if(a1 || a2) t += ", avec la passe de " + (a1 || a2);
+      t += ",";
+    } else t += " marqué";
+    return t + " à " + g.time + " " + per;
   }
+  function gameLine(){
+    if(editEntry || archiveKey || !isLive(state) || !chronoStarted(state)) return "";
+    for(let i = state.events.length - 1; i >= 0; i--) if(state.events[i].type === "goal") return goalText(state.events[i]);
+    return "🏒 Bon match !";
+  }
+  // Dès que le chronomètre part, le message du bandeau d'avant-match est retiré
+  var chronoWas = null, chronoAt = 0;
+  function bannerAtStart(){
+    const c = isLive(state) && chronoStarted(state) && !editEntry && !archiveKey;
+    if(chronoWas === false && c && banner && canEdit()) ambTargets().forEach(p => ref(p + "/banner").remove());
+    if(c && !chronoWas) chronoAt = chronoWas === null ? 0 : Date.now();
+    chronoWas = c;
+  }
+  function bannerText(){ return (banner && banner.text && !state.finished && !(isLive(state) && chronoStarted(state) && banner.at < chronoAt) && !editEntry && !archiveKey && Date.now() - (banner.at || 0) < 12 * 3600000) ? fillAnn(banner.text) : ""; }
   function renderAnnWait(){
     const w = $("annWait"); w.textContent = "";
-    w.hidden = !annPending || !annPending.text;
+    w.hidden = !bannerText();
     if(w.hidden) return;
-    w.appendChild(document.createTextNode("⏳ En attente : « " + annPending.text + " »"));
-    w.appendChild(btn("", "✕ Annuler", () => ambTargets().forEach(p => ref(p + "/annPending").remove())));
+    w.appendChild(document.createTextNode("📰 Dans le bandeau : « " + bannerText() + " »"));
+    w.appendChild(btn("", "✕ Retirer", () => ambTargets().forEach(p => ref(p + "/banner").remove())));
   }
+  setInterval(() => { if(banner && banner.text){ updateTickerDisplay(); renderAnnWait(); } }, 20000);   // compte à rebours
   on("annSend", "click", () => { const t = $("annText").value.trim(); if(!t){ notify("Écrivez le message à afficher.", "info"); return; } annPush(t); $("annText").value = ""; });
 
   // Messages enregistrés (par organisation)
@@ -4556,6 +4624,7 @@ document.addEventListener("DOMContentLoaded", function(){
   const annIds = () => Object.keys(anns).filter(k => anns[k] && anns[k].text).sort((x, y) => (anns[x].order || 0) - (anns[y].order || 0));
   function renderAnns(){
     const list = $("annList"); list.textContent = "";
+    const tb = btn("tpl", "⏱️ La partie commence dans … Go " + (myTeamName() || "…") + " Go !", () => annPush(TPL_START)); list.appendChild(tb);
     annIds().forEach(k => list.appendChild(btn("", "💬 " + anns[k].text, () => annPush(anns[k].text))));
     const rows = $("msgRows"); rows.textContent = "";
     if(!annIds().length) rows.appendChild(el("p", "empty", "Aucun message enregistré."));
