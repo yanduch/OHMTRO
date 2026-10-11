@@ -1339,6 +1339,119 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 </dialog>
 
 <script>
+// --- Listes déroulantes maison : remplacent la fenêtre native du téléphone pour toutes les <select> ---
+(function(){
+  const css = document.createElement("style");
+  css.textContent =
+    ".dd-menu{position:fixed;margin:0;inset:auto;z-index:2147483000;min-width:9rem;max-width:calc(100vw - 16px);max-height:min(55vh,22rem);overflow-y:auto;overscroll-behavior:contain;" +
+    "padding:.3rem;border:1px solid var(--line,#C8D5DF);border-radius:12px;background:var(--surface,#FFF);color:var(--ink,#0F2236);" +
+    "box-shadow:0 12px 32px rgba(0,0,0,.28);font-family:inherit;-webkit-overflow-scrolling:touch}" +
+    ".dd-menu[hidden]{display:none}" +
+    ".dd-menu button{display:flex;align-items:center;gap:.5rem;width:100%;min-height:2.6rem;padding:.45rem .7rem;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:.95rem;font-weight:600;text-align:left;cursor:pointer}" +
+    ".dd-menu button+button{margin-top:1px}" +
+    ".dd-menu button:hover,.dd-menu button:focus-visible{background:var(--crease,var(--tint,#D9ECF7));outline:none}" +
+    ".dd-menu button.on{background:var(--blue,#1B4FA0);color:var(--on-team,var(--surface,#FFF))}" +
+    ".dd-menu button.on::after{content:'✓';margin-left:auto;font-weight:800}" +
+    ".dd-menu button:disabled{opacity:.45;cursor:default}" +
+    ".dd-menu .dd-sep{height:1px;margin:.25rem .3rem;background:var(--line,#C8D5DF)}";
+  document.head.appendChild(css);
+
+  const canPop = typeof HTMLElement !== "undefined" && HTMLElement.prototype.hasOwnProperty("popover");
+  let menu = null, cur = null, touch = null;
+
+  function close(){
+    if(!menu) return;
+    try{ if(canPop && menu.matches(":popover-open")) menu.hidePopover(); }catch(e){}
+    menu.remove(); menu = null;
+    const s = cur; cur = null;
+    if(s) try{ s.focus({ preventScroll: true }); }catch(e){}
+  }
+
+  function place(sel){
+    const r = sel.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+    menu.style.minWidth = Math.max(r.width, 144) + "px";
+    const mh = menu.offsetHeight, mw = menu.offsetWidth;
+    let left = Math.min(Math.max(8, r.left), vw - mw - 8);
+    let top = r.bottom + 4;
+    if(top + mh > vh - 8 && r.top - mh - 4 >= 8) top = r.top - mh - 4;     // pas de place dessous : on ouvre au-dessus
+    else if(top + mh > vh - 8) top = Math.max(8, vh - mh - 8);
+    menu.style.left = left + "px"; menu.style.top = top + "px";
+  }
+
+  function open(sel){
+    close();
+    if(sel.disabled || !sel.options.length) return;
+    cur = sel;
+    menu = document.createElement("div");
+    menu.className = "dd-menu"; menu.setAttribute("role", "listbox");
+    if(canPop) menu.setAttribute("popover", "manual");
+    let onBtn = null;
+    Array.prototype.forEach.call(sel.options, (o, i) => {
+      if(o.hidden) return;
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = o.textContent; b.disabled = o.disabled;
+      b.setAttribute("role", "option");
+      if(i === sel.selectedIndex){ b.className = "on"; onBtn = b; b.setAttribute("aria-selected", "true"); }
+      b.addEventListener("click", ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const changed = sel.selectedIndex !== i;
+        sel.selectedIndex = i; close();
+        if(changed){ sel.dispatchEvent(new Event("input", { bubbles: true })); sel.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
+      menu.appendChild(b);
+    });
+    // Dans une fenêtre (dialog), le menu doit être dans la même couche pour rester visible
+    const host = sel.closest("dialog[open]") || document.body;
+    host.appendChild(menu);
+    if(canPop) try{ menu.showPopover(); }catch(e){}
+    place(sel);
+    if(onBtn){ menu.scrollTop = onBtn.offsetTop - menu.clientHeight / 2 + onBtn.offsetHeight / 2; try{ onBtn.focus({ preventScroll: true }); }catch(e){} }
+  }
+
+  const target = e => { const s = e.target && e.target.closest ? e.target.closest("select") : null; return s && !s.multiple && !(s.size > 1) ? s : null; };
+
+  // Souris : on bloque l'ouverture de la liste native
+  document.addEventListener("mousedown", e => {
+    if(menu && !menu.contains(e.target) && !target(e)) close();
+    const s = target(e); if(!s || e.button !== 0) return;
+    e.preventDefault();
+    if(cur === s) close(); else open(s);
+  }, true);
+  // Toucher : on ouvre au relâchement si le doigt n'a pas glissé (le défilement reste possible)
+  document.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    touch = { s: target(e), x: t.clientX, y: t.clientY };
+    if(menu && !menu.contains(e.target) && !touch.s) close();
+  }, { capture: true, passive: true });
+  document.addEventListener("touchend", e => {
+    const s = target(e); if(!s || !touch || touch.s !== s) return;
+    const t = e.changedTouches[0];
+    e.preventDefault();                                            // empêche la fenêtre native et le clic simulé
+    if(Math.abs(t.clientX - touch.x) > 10 || Math.abs(t.clientY - touch.y) > 10) return;
+    if(cur === s) close(); else open(s);
+  }, { capture: true, passive: false });
+  // Clavier : Entrée / Espace / Alt+flèche ouvrent la liste ; les flèches seules changent la valeur comme avant
+  document.addEventListener("keydown", e => {
+    if(menu){
+      if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(); return; }
+      if(menu.contains(e.target) && (e.key === "ArrowDown" || e.key === "ArrowUp")){
+        e.preventDefault();
+        const bs = Array.prototype.filter.call(menu.querySelectorAll("button"), b => !b.disabled);
+        const i = bs.indexOf(document.activeElement), n = e.key === "ArrowDown" ? Math.min(bs.length - 1, i + 1) : Math.max(0, i - 1);
+        if(bs[n]) bs[n].focus();
+        return;
+      }
+      if(e.key === "Tab") close();
+    }
+    const s = target(e);
+    if(s && (e.key === "Enter" || e.key === " " || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4")){ e.preventDefault(); open(s); }
+  }, true);
+  window.addEventListener("resize", close);
+  window.addEventListener("scroll", e => { if(menu && !menu.contains(e.target)) close(); }, true);
+  document.addEventListener("close", close, true);                // une fenêtre qui se ferme ferme aussi le menu
+})();
+</script>
+<script>
 document.addEventListener("DOMContentLoaded", function(){
   "use strict";
 
