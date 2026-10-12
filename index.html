@@ -59,6 +59,16 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .tk-cd{font-variant-numeric:tabular-nums}
 .g-fix{margin-top:.5rem;width:100%;font-size:.78rem;font-weight:700;padding:.4rem .3rem;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
 body.role-viewer .g-fix{display:none !important}
+.ph-seg{display:flex;gap:.25rem;margin:0 0 .6rem;padding:.2rem;background:var(--ice);border:1px solid var(--line);border-radius:10px}
+.ph-seg button{flex:1;padding:.4rem .2rem;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:700;font-size:.85rem;cursor:pointer}
+.ph-seg button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.ph-choice{display:flex;gap:.4rem;margin-top:.3rem}
+.ph-choice label{flex:1;position:relative;cursor:pointer}
+.ph-choice input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0}
+.ph-choice span{display:block;text-align:center;padding:.5rem;border:1px solid var(--line);border-radius:8px;font-weight:700;font-size:.88rem}
+.ph-choice input:checked+span{background:var(--blue);border-color:var(--blue);color:var(--on-team,#FFF)}
+.ph-tag{display:inline-block;margin-left:.4rem;padding:.05rem .4rem;border-radius:4px;font-size:.68rem;font-weight:700;vertical-align:middle;background:var(--ice);color:var(--muted);border:1px solid var(--line)}
+.ph-tag.reg{background:var(--crease);color:var(--blue)}
 .stop-goal{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
 .stop-goal label{flex:1;display:flex;align-items:center;gap:.35rem;padding:.45rem .5rem;border:1px solid var(--line);border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .stop-goal input{width:1.1rem;height:1.1rem;margin:0}
@@ -704,6 +714,9 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
   <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
   <div class="toggle-block hidden" id="statsBlock">
+    <div class="ph-seg" id="phaseSeg" role="group" aria-label="Parties comptées">
+      <button type="button" data-ph="pre">Pré-saison</button><button type="button" data-ph="reg">Saison</button><button type="button" data-ph="all">Tout</button>
+    </div>
     <section class="stats-card">
       <div class="stats-card-header">
         <h3>Statistiques d'équipe</h3>
@@ -914,6 +927,15 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <input type="number" id="customPeriodMinInput" min="1" max="99" placeholder="Durée en minutes" style="display:none;width:100%;margin-top:.4rem;padding:.5rem;border:1px solid var(--line);border-radius:6px;background:#FFF;color:#0F2236;">
     </div>
 
+    <div class="field-group admin-only" style="margin-top:1.2rem;">
+      <label>Type de parties par défaut (<span id="defPhaseCat"></span>) :</label>
+      <div class="ph-choice">
+        <label><input type="radio" name="defPhase" value="pre"><span>Pré-saison</span></label>
+        <label><input type="radio" name="defPhase" value="reg"><span>Saison</span></label>
+      </div>
+      <small style="display:block;margin-top:.3rem;color:var(--muted);font-size:.78rem;">Les nouvelles parties sont classées ainsi. On peut changer une partie dans « Gestion de l'historique ».</small>
+    </div>
+
     <button type="button" class="act-2 admin-only" id="btnOpenPasswords" style="width:100%;min-height:2.8rem;margin-top:1.2rem;font-weight:600;">🔑 Gestion des mots de passe</button>
 
     <div class="actions" style="margin-top:1.2rem;">
@@ -1059,6 +1081,8 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
         <div><label for="calScoreB">Visiteur :</label><input type="number" id="calScoreB" class="full-input" min="0" max="99" inputmode="numeric" placeholder="—"></div>
         <div><label for="calScoreA">Local :</label><input type="number" id="calScoreA" class="full-input" min="0" max="99" inputmode="numeric" placeholder="—"></div>
       </div>
+      <label for="calPhase" style="margin-top:.5rem;">Type de partie :</label>
+      <select id="calPhase" class="full-input"><option value="pre">Pré-saison</option><option value="reg">Saison</option></select>
       <label for="calEnd" style="margin-top:.5rem;">Fin de la partie :</label>
       <select id="calEnd" class="full-input">
         <option value="">Temps réglementaire</option>
@@ -1254,6 +1278,14 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <dialog id="newGameWizard">
   <div class="sheet-in">
     <h2>Nouvelle Partie</h2>
+    <div class="preset-box">
+      <label>Type de partie :</label>
+      <div class="ph-choice">
+        <label><input type="radio" name="wizPhase" value="pre"><span>Pré-saison</span></label>
+        <label><input type="radio" name="wizPhase" value="reg"><span>Saison</span></label>
+      </div>
+    </div>
+
     <div class="preset-box" id="wizCalBox" style="display:none;">
       <label for="wizCalSelect">Partie du calendrier :</label>
       <select id="wizCalSelect"></select>
@@ -1694,11 +1726,19 @@ document.addEventListener("DOMContentLoaded", function(){
   let subs = [];                       // écouteurs liés à l'organisation / catégorie courante
   let myPresenceRef = null, onlineCount = 1, connected = false, serverOffset = 0;
   let defaultPeriodSec = 1200;
+  let cfgPhases = {};                  // type de parties par défaut, par catégorie : "pre" (pré-saison) ou "reg" (saison)
+  const PHASE_LABEL = { pre: "Pré-saison", reg: "Saison" };
+  const phaseOfM = m => (m && m.phase === "reg") ? "reg" : "pre";       // une partie sans type (anciennes parties) = pré-saison
+  const defPhase = cat => cfgPhases[cat || currentCat] === "reg" ? "reg" : "pre";
+  let phaseView = null;                // filtre des statistiques : "pre", "reg" ou "all" (null = type par défaut de la catégorie)
+  const curView = () => phaseView || defPhase();
+  const stPhase = () => ({ phase: state.phase || defPhase() });
+  const phaseOk = m => curView() === "all" || phaseOfM(m) === curView();
 
   let state = blank();
   let presets = {}, presetByName = {}, presetsRev = 0;
   let calendarList = [];               // parties du calendrier de la catégorie (pour les fiches d'équipe)
-  let historyList = [], historyOn = false, historyLoaded = false, historyWaiters = [];
+  let historyAll = [], historyList = [], historyOn = false, historyLoaded = false, historyWaiters = [];
   let lastLocal = 0;                   // horodatage de notre dernière écriture (évite un double rendu)
   let archiveKey = null, liveState = null;
 
@@ -1758,6 +1798,7 @@ document.addEventListener("DOMContentLoaded", function(){
       periodSec: 0,                      // durée d'une période pour cette partie (0 = durée par défaut de l'organisation)
       stopOnGoal: [false, false, false], // arrêt du chronomètre sur but, par période
       playedAt: 0,
+      phase: "",                         // "pre" = pré-saison, "reg" = saison
       calId: "",                         // partie du calendrier jouée sur ce tableau                       // date de la partie dans l'historique (ne change pas quand on la corrige)
       updatedAt: 0
     };
@@ -1787,6 +1828,7 @@ document.addEventListener("DOMContentLoaded", function(){
     s.id = typeof d.id === "string" ? d.id : "";
     s.playedAt = Number(d.playedAt) || 0;
     s.calId = typeof d.calId === "string" ? d.calId : "";
+    s.phase = d.phase === "reg" ? "reg" : (d.phase === "pre" ? "pre" : "");
     s.periodSec = int(d.periodSec, 0, 5940);
     s.stopOnGoal = [0, 1, 2].map(i => !!(Array.isArray(d.stopOnGoal) ? d.stopOnGoal[i] : (d.stopOnGoal && d.stopOnGoal[i])));
     const last = s.events[s.events.length - 1];
@@ -1866,7 +1908,7 @@ document.addEventListener("DOMContentLoaded", function(){
         add(h.s, ms, h.gl[ms] || (h.gl[ms] = goalieLines(h.s, ms)), true);
       });
     }
-    if(side && (scope === "match" || isStarted(state))) add(state, side, goalieLines(state, side), state.finished);
+    if(side && (scope === "match" || (isStarted(state) && phaseOk(stPhase())))) add(state, side, goalieLines(state, side), state.finished);
     return st;
   }
   const svPct = (sa, ga) => sa > 0 ? pct(Math.max(0, sa - ga), sa) : "–";
@@ -1988,7 +2030,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function switchOrganization(orgKey, catKey, nav, teamKey){
     subs.forEach(s => s[0].off("value", s[1])); subs = [];
     setTimeout(() => { if(typeof watchAnns === "function") watchAnns(); }, 0);
-    historyOn = false; historyLoaded = false; historyList = []; historyWaiters = []; calendarList = [];
+    historyOn = false; historyLoaded = false; historyList = []; historyAll = []; phaseView = null; xHist = {}; historyWaiters = []; calendarList = [];
 
     orgKey = cleanKey(orgKey) || "ohmtro";
     catKey = cleanKey(catKey) || currentCat || "m15";
@@ -2139,6 +2181,7 @@ document.addEventListener("DOMContentLoaded", function(){
     sub(dbConfig, snap => {
       const cfg = snap.val() || {};
       adminPerms = normPerms(cfg.adminPerms); updatePermUI();
+      cfgPhases = (cfg.phases && typeof cfg.phases === "object") ? cfg.phases : {}; if(historyLoaded) applyPhaseView(); else renderPhaseUI();
       const min = int(cfg.defaultPeriodMin || 20, 1, 99), mVal = String(min);
       defaultPeriodSec = min * 60;
       if(["10","12","15","18","20"].indexOf(mVal) !== -1){
@@ -3145,7 +3188,7 @@ document.addEventListener("DOMContentLoaded", function(){
       const played = isNum(c.scoreA) && isNum(c.scoreB);
       return { id: id, date: String(c.date), time: c.time || "", a: String(c.a || "Local"), b: String(c.b || "Visiteur"),
                aKey: c.aKey || "", bKey: c.bKey || "", place: String(c.place || ""), arena: c.arena || "", scoreA: played ? c.scoreA : null, scoreB: played ? c.scoreB : null,
-               end: c.end || "", histKey: c.histKey || "", started: Number(c.started) || 0, played: played, at: at };
+               end: c.end || "", histKey: c.histKey || "", started: Number(c.started) || 0, played: played, at: at, phase: c.phase === "reg" ? "reg" : (c.phase === "pre" ? "pre" : "") };
     }).filter(Boolean);
   }
   function calWhen(c){
@@ -3287,6 +3330,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("calNewArenaName").value = (aid === "__new" && c) ? c.place : ""; $("calNewArenaCity").value = ""; $("calNewArenaAddr").value = "";
     $("calScoreB").value = c && c.played ? c.scoreB : ""; $("calScoreA").value = c && c.played ? c.scoreA : "";
     $("calEnd").value = c ? c.end : "";
+    $("calPhase").value = (c && c.phase) || (calOrg === currentOrg ? defPhase(calCat) : "pre");
     $("calDelete").hidden = !c;
     $("calLinkedNote").hidden = !(c && c.histKey);
     swapDlg("calendarSheet", "calEditSheet");
@@ -3307,7 +3351,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if((sA === "") !== (sB === "")){ notify("Inscrivez le pointage des deux équipes, ou laissez les deux cases vides si la partie n'est pas jouée.", "info"); return; }
     const old = calEditId ? calMgr.filter(c => c.id === calEditId)[0] : null;
     const entry = { date: date, time: /^\d\d:\d\d$/.test(time) ? time : "", a: A.name, b: B.name, aKey: A.key, bKey: B.key,
-                    place: "", arena: "", end: sA === "" ? "" : $("calEnd").value, histKey: old ? old.histKey : "" };
+                    place: "", arena: "", end: sA === "" ? "" : $("calEnd").value, histKey: old ? old.histKey : "", phase: $("calPhase").value === "reg" ? "reg" : "pre" };
     const aid = $("calArena").value;
     if(aid === "__new"){
       // Nouvelle aréna : ajoutée à la liste commune pour les prochaines parties
@@ -3458,7 +3502,8 @@ document.addEventListener("DOMContentLoaded", function(){
       let aid = icsArena(g);
       if(!aid && g.arenaName) aid = addArena(g.arenaName, g.city, g.address);
       const entry = { date: g.date, time: g.time, a: A.name, b: B.name, aKey: A.key, bKey: B.key,
-                      place: aid ? arenas[aid].name : "", arena: aid || "", end: old ? old.end : "", histKey: old ? old.histKey : "", ics: g.uid };
+                      place: aid ? arenas[aid].name : "", arena: aid || "", end: old ? old.end : "", histKey: old ? old.histKey : "", ics: g.uid,
+                      phase: (old && old.phase) || (calOrg === currentOrg ? defPhase(calCat) : "pre") };
       if(old && old.played){ entry.scoreA = old.scoreA; entry.scoreB = old.scoreB; }
       if(old && old.started) entry.started = old.started;
       if(A.name === B.name) return;
@@ -3488,8 +3533,10 @@ document.addEventListener("DOMContentLoaded", function(){
       $("wizCalBox").style.display = "";
     });
   }
+  function setWizPhase(ph){ document.querySelectorAll("input[name=wizPhase]").forEach(r => { r.checked = r.value === ph; }); }
   on("wizCalSelect", "change", () => {
-    const c = wizCal.filter(x => x.id === $("wizCalSelect").value)[0]; if(!c) return;
+    const c = wizCal.filter(x => x.id === $("wizCalSelect").value)[0]; if(!c){ setWizPhase(defPhase()); return; }
+    if(c.phase) setWizPhase(c.phase);
     // Préremplit les équipes de la partie prévue (si elles sont enregistrées)
     [["a", c.aKey, c.a], ["b", c.bKey, c.b]].forEach(t => {
       const sel = $(t[0] === "a" ? "wizTeamA" : "wizTeamB");
@@ -3586,7 +3633,8 @@ document.addEventListener("DOMContentLoaded", function(){
     historyOn = true;
     sub(dbHistory, snap => {
       const val = snap.val() || {};
-      historyList = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
+      historyAll = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
+      historyList = historyAll.filter(h => phaseOk(h.m));
       historyLoaded = true;
       renderHistory(); renderStats(); renderGoalies();
       if(rosterScope === "all" && isOpen("rosterBlock")) renderRosters();
@@ -3608,6 +3656,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function historyRow(h, buttons){
     const li = el("li", "history-item"), box = el("div"), ctrls = el("div", "history-ctrls");
     box.appendChild(el("strong", null, h.a + " " + h.gA + " - " + h.gB + " " + h.b));
+    box.appendChild(el("span", "ph-tag " + phaseOfM(h.m), PHASE_LABEL[phaseOfM(h.m)]));
     box.appendChild(el("br"));
     const sm = el("small", null, dateOf(h.at) || "—"); sm.style.color = "var(--muted)"; box.appendChild(sm);
     buttons.forEach(b => ctrls.appendChild(b));
@@ -3618,10 +3667,10 @@ document.addEventListener("DOMContentLoaded", function(){
   function renderHistory(){
     const list = $("historyList"); list.textContent = "";
     if(!historyLoaded){ list.appendChild(el("li", "empty", "Chargement…")); return; }
-    if(!historyList.length){ list.appendChild(el("li", "empty", "Aucun match enregistré.")); return; }
+    if(!historyAll.length){ list.appendChild(el("li", "empty", "Aucun match enregistré.")); return; }
     const frag = document.createDocumentFragment();
-    for(let i = historyList.length - 1; i >= 0; i--){
-      const h = historyList[i];
+    for(let i = historyAll.length - 1; i >= 0; i--){
+      const h = historyAll[i];
       frag.appendChild(historyRow(h, [btn("btn-edit", "Consulter", () => consultMatch(h))]));
     }
     list.appendChild(frag);
@@ -3717,6 +3766,14 @@ document.addEventListener("DOMContentLoaded", function(){
     if(!rows.length){ list.appendChild(el("li", "empty", "Aucune partie enregistrée.")); return; }
     const frag = document.createDocumentFragment();
     rows.forEach(h => frag.appendChild(historyRow(h, [
+      btn("btn-edit", "🏷 " + (phaseOfM(h.m) === "reg" ? "→ Pré-saison" : "→ Saison"), () => {
+        if(currentRole === "viewer") return;
+        const np = phaseOfM(h.m) === "reg" ? "pre" : "reg";
+        ref(hmOrg + "/" + hmCat + "/history/" + h.key + "/phase").set(np);
+        h.m.phase = np; hmRender();
+        if(hmOrg === currentOrg && hmCat === currentCat && state.histKey === h.key){ state.phase = np; commit(); }
+        notify("Partie classée en " + PHASE_LABEL[np].toLowerCase() + ".", "ok");
+      }),
       btn("btn-edit", "✏️ Modifier", () => hmEdit(h)),
       btn("btn-hist-del", "🗑 Supprimer", () => {
         if(currentRole === "viewer") return;
@@ -3813,7 +3870,8 @@ document.addEventListener("DOMContentLoaded", function(){
     let pj = 0, v = 0, d = 0, ega = 0, bp = 0, bc = 0, shotsAgainst = 0, gaShots = 0; const res = [];
     // Parties marquées sur le tableau (historique) + résultats inscrits au calendrier, sans compter deux fois la même partie
     const keys = {}; historyList.forEach(h => { keys[h.key] = true; });
-    const games = historyList.concat(calendarList.filter(c => c.played && !(c.histKey && keys[c.histKey]))
+    historyAll.forEach(h => { keys[h.key] = true; });
+    const games = historyList.concat(calendarList.filter(c => c.played && !(c.histKey && keys[c.histKey]) && phaseOk(c))
                                                  .map(c => ({ a: c.a, b: c.b, gA: c.scoreA, gB: c.scoreB, sA: null, sB: null, at: c.at })))
                              .sort((x, y) => x.at - y.at);
     games.forEach(h => {
@@ -3833,6 +3891,24 @@ document.addEventListener("DOMContentLoaded", function(){
     setText("stGAA", pj > 0 ? (bc / pj).toFixed(2) : "0.00");
     setText("stSV", shotsAgainst > 0 ? Math.round(saves / shotsAgainst * 100) + "%" : "0%");
   }
+  // Pré-saison / Saison / Tout : filtre des statistiques (résumé, alignements, gardiens)
+  function renderPhaseUI(){
+    document.querySelectorAll("#phaseSeg button").forEach(b => b.classList.toggle("active", b.dataset.ph === curView()));
+    const d = defPhase(); document.querySelectorAll("input[name=defPhase]").forEach(r => { r.checked = r.value === d; });
+    setText("defPhaseCat", String(currentCat).toUpperCase());
+  }
+  function applyPhaseView(){
+    historyList = historyAll.filter(h => phaseOk(h.m));
+    renderPhaseUI(); renderStats(); renderGoalies();
+    if(isOpen("rosterBlock")) renderRosters();
+  }
+  document.querySelectorAll("#phaseSeg button").forEach(b => b.addEventListener("click", () => { phaseView = b.dataset.ph; applyPhaseView(); }));
+  document.querySelectorAll("input[name=defPhase]").forEach(r => r.addEventListener("change", () => {
+    if(!isAdmin() || !r.checked) return;
+    ref(currentOrg + "/config/phases/" + currentCat).set(r.value);
+    cfgPhases[currentCat] = r.value; phaseView = null; if(historyLoaded) applyPhaseView(); else renderPhaseUI();
+    notify("Type de parties par défaut pour " + currentCat.toUpperCase() + " : " + PHASE_LABEL[r.value].toLowerCase() + ".", "ok");
+  }));
   on("statsTeamSelect", "change", () => {
     $("statsTeamSelect").dataset.userTouched = "1"; renderStats();
     if(!hasGame(state)){ openCardId = null; if(isOpen("rosterBlock")) renderRosters(); }   // tableau vide : l'alignement suit l'équipe choisie
@@ -4137,13 +4213,13 @@ document.addEventListener("DOMContentLoaded", function(){
   function histOf(cat){
     if(cat === currentCat) return historyLoaded ? historyList : null;
     const c = xHist[cat];
-    if(c) return c.list;
+    if(c) return c.all ? c.all.filter(h => phaseOk(h.m)) : null;
     xHist[cat] = { list: null };
     ref(currentOrg + "/" + cat + "/history").once("value").then(s => {
       const v = s.val() || {};
-      xHist[cat] = { list: Object.keys(v).map(k => indexMatch(k, v[k])).filter(Boolean) };
+      xHist[cat] = { all: Object.keys(v).map(k => indexMatch(k, v[k])).filter(Boolean) };
       if(isOpen("rosterBlock")) renderRosters();
-    }, () => { xHist[cat] = { list: [] }; });
+    }, () => { xHist[cat] = { all: [] }; });
     return null;
   }
   function statsIn(list, teamName, pId, isG){
@@ -4270,7 +4346,7 @@ document.addEventListener("DOMContentLoaded", function(){
         if(ms){ pj++; scan(h.events, ms); }
       });
     }
-    if(side && (scope === "match" || isStarted(state))){ pj++; scan(state.events, side); }
+    if(side && (scope === "match" || (isStarted(state) && phaseOk(stPhase())))){ pj++; scan(state.events, side); }
     return { pj: pj, b: b, a: a, pun: pun };
   }
 
@@ -4380,6 +4456,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     renderPresenceList("a", $("wizTeamA").value); renderPresenceList("b", $("wizTeamB").value);
     $("wizPeriodMin").value = Math.round(defaultPeriodSec / 60);
+    setWizPhase(defPhase());
     const sg = String(store.get(localStorage, "ohmtro_stopgoal") || "");     // dernier choix retenu sur cet appareil
     [0, 1, 2].forEach(i => { $("wizStop" + i).checked = sg.charAt(i) === "1"; });
     wizFillCalendar();
@@ -4421,6 +4498,7 @@ document.addEventListener("DOMContentLoaded", function(){
     state = blank(); state.id = uid(); delete $("statsTeamSelect").dataset.userTouched; openCardId = null;
     state.periodSec = int($("wizPeriodMin").value || Math.round(defaultPeriodSec / 60), 1, 99) * 60;   // durée choisie pour cette partie
     state.calId = $("wizCalSelect").value || "";
+    const wp = document.querySelector("input[name=wizPhase]:checked"); state.phase = wp ? wp.value : defPhase();
     state.timer.sec = state.periodSec;
     state.stopOnGoal = [0, 1, 2].map(i => $("wizStop" + i).checked);
     store.set(localStorage, "ohmtro_stopgoal", state.stopOnGoal.map(x => x ? "1" : "0").join(""));
