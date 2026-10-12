@@ -108,16 +108,29 @@ async function download(page, dest) {
 }
 
 const { start, end } = season();
-const browser = await chromium.launch();
+// Vrai Chrome, fenêtre visible (écran virtuel) : la page Spordle est protégée par une vérification anti-robot (Vercel)
+const browser = await chromium.launch({
+  channel: process.env.CHROME_CHANNEL || undefined,
+  headless: process.env.HEADLESS === "1",
+  args: ["--disable-blink-features=AutomationControlled", "--lang=fr-CA"],
+});
 let okCount = 0;
 for (const src of SOURCES) {
   console.log("\n=== " + src.nom + " ===");
-  const ctx = await browser.newContext({ ...devices["Pixel 7"], locale: "fr-CA", timezoneId: "America/Toronto", acceptDownloads: true });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "fr-CA", timezoneId: "America/Toronto", acceptDownloads: true });
+  await ctx.addInitScript(() => { try { Object.defineProperty(navigator, "webdriver", { get: () => undefined }); } catch (e) {} });
   const page = await ctx.newPage();
   const tag = slug(src.nom);
   try {
     await page.goto(src.url, { waitUntil: "domcontentloaded", timeout: 60000 });
     await settle(page, 3000);
+    // Vérification anti-robot : on lui laisse le temps de se faire, elle recharge la page d'elle-même
+    for (let i = 0; i < 12 && /Security Checkpoint|V[ée]rification/i.test(await page.title().catch(() => "")); i++) {
+      if (i === 0) log("vérification anti-robot en cours…");
+      await page.waitForTimeout(2500);
+    }
+    await settle(page, 2000);
+    log("page : " + (await page.title().catch(() => "?")));
     await tryClick(page.getByRole("button", { name: /Accepter|Tout accepter|Accept/i }), "témoins (cookies)", 2000);
     await shot(page, "01-page");
     await chooseSchedule(page, src.horaire);

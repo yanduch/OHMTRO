@@ -27,10 +27,13 @@ jobs:
       - name: Installer le navigateur du robot
         run: |
           npm install --no-save --no-package-lock playwright@1.47.2
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chrome || npx playwright install --with-deps chromium
+          sudo apt-get install -y xvfb >/dev/null
 
       - name: Aller chercher les horaires sur Spordle
-        run: node scripts/spordle-sync.mjs
+        env:
+          CHROME_CHANNEL: chrome
+        run: xvfb-run -a node scripts/spordle-sync.mjs
 
       - name: Garder les captures d'écran (pour vérifier)
         if: always()
