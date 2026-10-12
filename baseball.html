@@ -207,7 +207,7 @@ select{color:var(--ink)}
 
   <!-- Une partie -->
   <section id="viewGame" class="hidden">
-    <div class="toprow"><button type="button" class="back" id="btnBack">← Toutes les parties</button><button type="button" class="talkdot admin hidden" id="btnTalk2" aria-label="Maintenir pour annoncer" title="Maintenir pour annoncer">🎙️</button><span class="live hidden" id="liveBadge">En direct</span></div>
+    <div class="toprow"><button type="button" class="back" id="btnBack">← Toutes les parties</button><button type="button" class="talkdot hidden" id="btnTalk2" aria-label="Maintenir pour annoncer" title="Maintenir pour annoncer">🎙️</button><span class="live hidden" id="liveBadge">En direct</span></div>
     <div class="card">
       <div class="score-head">
         <div class="t"><div class="name" id="nameA"></div><div class="runs" id="runsA">0</div></div>
@@ -254,9 +254,7 @@ select{color:var(--ink)}
     </div>
     <div class="card stats"><h2 id="statsTitleA"></h2><div id="statsA"></div></div>
     <div class="card stats"><h2 id="statsTitleB"></h2><div id="statsB"></div></div>
-  </section>
-
-  <div class="card admin hidden console" id="consoleBox" style="margin-top:1rem;">
+  <div class="card hidden console" id="consoleBox" style="margin-top:1rem;">
     <h2>🎛️ Console d'ambiance</h2>
     <button type="button" class="btn full talk" id="btnTalk"><span id="talkLabel">🎙️ Maintenir pour annoncer</span><small id="talkHint">10 secondes maximum · relâchez pour envoyer</small></button>
     <div class="grid">
@@ -279,6 +277,8 @@ select{color:var(--ink)}
     <div class="msgs" id="annList"></div>
     <button type="button" class="btn full" id="annManage" style="margin-top:.5rem;">✏️ Gérer les messages enregistrés</button>
   </div>
+  </section>
+
   <div class="card admin hidden" id="adminBox" style="margin-top:1rem;">
     <h2>Administration</h2>
     <button type="button" class="btn full" id="btnTitle" style="margin-bottom:.5rem;">✏️ Titre de la page</button>
@@ -409,6 +409,125 @@ select{color:var(--ink)}
 <div id="halfMsg" class="hidden" role="status" aria-live="polite"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script>
+// --- Listes déroulantes maison : remplacent la fenêtre native du téléphone pour toutes les <select> ---
+(function(){
+  const css = document.createElement("style");
+  css.textContent =
+    ".dd-menu{position:fixed;margin:0;inset:auto;z-index:2147483000;min-width:9rem;max-width:calc(100vw - 16px);max-height:min(55vh,22rem);overflow-y:auto;overscroll-behavior:contain;" +
+    "padding:.3rem;border:1px solid var(--line,#C8D5DF);border-radius:12px;background:var(--surface,#FFF);color:var(--ink,#0F2236);" +
+    "box-shadow:0 12px 32px rgba(0,0,0,.28);font-family:inherit;-webkit-overflow-scrolling:touch}" +
+    ".dd-menu[hidden]{display:none}" +
+    ".dd-menu button{display:flex;align-items:center;gap:.5rem;width:100%;min-height:2.6rem;padding:.45rem .7rem;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:.95rem;font-weight:600;text-align:left;cursor:pointer}" +
+    ".dd-menu button+button{margin-top:1px}" +
+    ".dd-menu button:hover,.dd-menu button:focus-visible{background:var(--crease,var(--tint,#D9ECF7));outline:none}" +
+    ".dd-menu button.on{background:var(--blue,#1B4FA0);color:var(--on-team,var(--surface,#FFF))}" +
+    ".dd-menu button.on::after{content:'✓';margin-left:auto;font-weight:800}" +
+    ".dd-menu button:disabled{opacity:.45;cursor:default}" +
+    ".dd-menu .dd-sep{height:1px;margin:.25rem .3rem;background:var(--line,#C8D5DF)}";
+  document.head.appendChild(css);
+
+  const canPop = typeof HTMLElement !== "undefined" && HTMLElement.prototype.hasOwnProperty("popover");
+  let menu = null, cur = null, touch = null, lastTouch = false;
+
+  function close(){
+    if(!menu) return;
+    try{ if(canPop && menu.matches(":popover-open")) menu.hidePopover(); }catch(e){}
+    menu.remove(); menu = null;
+    const s = cur; cur = null;
+    // Au toucher, on ne redonne pas le focus à la liste : sur iPad, une liste active rouvre la fenêtre du système
+    if(s){ try{ if(lastTouch) s.blur(); else s.focus({ preventScroll: true }); }catch(e){} }
+  }
+
+  function place(sel){
+    const r = sel.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+    menu.style.minWidth = Math.max(r.width, 144) + "px";
+    const mh = menu.offsetHeight, mw = menu.offsetWidth;
+    let left = Math.min(Math.max(8, r.left), vw - mw - 8);
+    let top = r.bottom + 4;
+    if(top + mh > vh - 8 && r.top - mh - 4 >= 8) top = r.top - mh - 4;     // pas de place dessous : on ouvre au-dessus
+    else if(top + mh > vh - 8) top = Math.max(8, vh - mh - 8);
+    menu.style.left = left + "px"; menu.style.top = top + "px";
+  }
+
+  function open(sel){
+    close();
+    if(sel.disabled || !sel.options.length) return;
+    cur = sel;
+    menu = document.createElement("div");
+    menu.className = "dd-menu"; menu.setAttribute("role", "listbox");
+    if(canPop) menu.setAttribute("popover", "manual");
+    let onBtn = null;
+    Array.prototype.forEach.call(sel.options, (o, i) => {
+      if(o.hidden) return;
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = o.textContent; b.disabled = o.disabled;
+      b.setAttribute("role", "option");
+      if(i === sel.selectedIndex){ b.className = "on"; onBtn = b; b.setAttribute("aria-selected", "true"); }
+      b.addEventListener("click", ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const changed = sel.selectedIndex !== i;
+        sel.selectedIndex = i; close();
+        if(changed){ sel.dispatchEvent(new Event("input", { bubbles: true })); sel.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
+      menu.appendChild(b);
+    });
+    // Dans une fenêtre (dialog), le menu doit être dans la même couche pour rester visible
+    const host = sel.closest("dialog[open]") || document.body;
+    host.appendChild(menu);
+    if(canPop) try{ menu.showPopover(); }catch(e){}
+    place(sel);
+    if(onBtn){ menu.scrollTop = onBtn.offsetTop - menu.clientHeight / 2 + onBtn.offsetHeight / 2; try{ onBtn.focus({ preventScroll: true }); }catch(e){} }
+  }
+
+  const target = e => { const s = e.target && e.target.closest ? e.target.closest("select") : null; return s && !s.multiple && !(s.size > 1) ? s : null; };
+
+  // Souris : on bloque l'ouverture de la liste native
+  document.addEventListener("mousedown", e => {
+    if(menu && !menu.contains(e.target) && !target(e)) close();
+    const s = target(e); if(!s || e.button !== 0) return;
+    e.preventDefault();
+    if(e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;   // souris simulée après un toucher
+    lastTouch = false;
+    if(cur === s) close(); else open(s);
+  }, true);
+  // Toucher : on ouvre au relâchement si le doigt n'a pas glissé (le défilement reste possible)
+  document.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    touch = { s: target(e), x: t.clientX, y: t.clientY };
+    if(touch.s) e.preventDefault();               // iPad/iPhone : empêche la liste du système, même une 2e fois
+    if(menu && !menu.contains(e.target) && !touch.s) close();
+  }, { capture: true, passive: false });
+  document.addEventListener("touchend", e => {
+    lastTouch = true;
+    const s = target(e); if(!s || !touch || touch.s !== s) return;
+    const t = e.changedTouches[0];
+    e.preventDefault();                                            // empêche la fenêtre native et le clic simulé
+    if(Math.abs(t.clientX - touch.x) > 10 || Math.abs(t.clientY - touch.y) > 10) return;
+    if(cur === s) close(); else open(s);
+  }, { capture: true, passive: false });
+  // Clavier : Entrée / Espace / Alt+flèche ouvrent la liste ; les flèches seules changent la valeur comme avant
+  document.addEventListener("keydown", e => {
+    if(menu){
+      if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(); return; }
+      if(menu.contains(e.target) && (e.key === "ArrowDown" || e.key === "ArrowUp")){
+        e.preventDefault();
+        const bs = Array.prototype.filter.call(menu.querySelectorAll("button"), b => !b.disabled);
+        const i = bs.indexOf(document.activeElement), n = e.key === "ArrowDown" ? Math.min(bs.length - 1, i + 1) : Math.max(0, i - 1);
+        if(bs[n]) bs[n].focus();
+        return;
+      }
+      if(e.key === "Tab") close();
+    }
+    const s = target(e);
+    if(s && (e.key === "Enter" || e.key === " " || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4")){ e.preventDefault(); open(s); }
+  }, true);
+  document.addEventListener("focusin", e => { const s = target(e); if(s && lastTouch && cur !== s) try{ s.blur(); }catch(x){} }, true);
+  window.addEventListener("resize", close);
+  window.addEventListener("scroll", e => { if(menu && !menu.contains(e.target)) close(); }, true);
+  document.addEventListener("close", close, true);                // une fenêtre qui se ferme ferme aussi le menu
+})();
+</script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
@@ -728,6 +847,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function showList(){
     if(curRef){ curRef.off(); curRef = null; }
+    liveStop(); stopAll();
     keepAwake(false); $("halfMsg").classList.add("hidden");
     curId = ""; cur = null;
     $("viewGame").classList.add("hidden"); $("viewList").classList.remove("hidden");
@@ -746,6 +866,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const n = JSON.stringify([cur.events, cur.a, cur.b, cur.rules, cur.status]);
       if(n === sig) renderCheers(); else { sig = n; render(); }      // un nouveau message seul ne redessine pas le terrain
     });
+    liveStart();
     if(cur) render();
     window.scrollTo(0, 0);
   }
@@ -1021,7 +1142,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function talkStart(ev){
     if(ev) ev.preventDefault();
-    if(role !== "admin" || rec) return;
+    if(!consoleOn() || rec) return;
     unlock();
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ notify("Le micro n'est pas disponible sur cet appareil."); return; }
     rec = { chunks: [], len: 0, held: true, stream: null, t0: 0 };
@@ -1066,10 +1187,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const bytes = new Uint8Array(pcm.buffer); let bin = "";
     for(let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
     myVoiceId = evKey();
-    ref("voice").set({ id: myVoiceId, rate: VOICE_RATE, data: btoa(bin), at: Date.now() }).then(() => {
+    const vp = liveP("voice");
+    ref(vp).set({ id: myVoiceId, rate: VOICE_RATE, data: btoa(bin), at: Date.now() }).then(() => {
       talkUI(); notify("Annonce envoyée.");
       const id = myVoiceId;
-      setTimeout(() => ref("voice").once("value").then(s => { const v = s.val(); if(v && v.id === id) ref("voice").remove(); }), 90000);   // rien ne s'accumule
+      setTimeout(() => ref(vp).once("value").then(s => { const v = s.val(); if(v && v.id === id) ref(vp).remove(); }), 90000);   // rien ne s'accumule
     }, () => { talkUI(); notify("Envoi impossible. Vérifiez la connexion."); });
   }
   [$("btnTalk"), $("btnTalk2")].forEach(tb => {
@@ -1077,8 +1199,16 @@ document.addEventListener("DOMContentLoaded", () => {
     ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => tb.addEventListener(t, () => talkStop()));
     tb.addEventListener("contextmenu", e => e.preventDefault());
   });
-  // Réception : chaque appareil joue l'annonce (sauf celui qui l'a enregistrée)
-  ref("voice").on("value", snap => {
+  // Réception : chaque appareil joue l'annonce (sauf celui qui l'a enregistrée) — seulement pour la partie ouverte
+  const liveP = k => "live/" + curId + "/" + k;
+  let liveRefs = [];
+  function liveStop(){ liveRefs.forEach(r => r.off()); liveRefs = []; }
+  function liveStart(){
+    liveStop(); fxSeen = null; voiceSeen = null;
+    const rv = ref(liveP("voice")), rf = ref(liveP("fx"));
+    rv.on("value", onVoice); rf.on("value", onFx); liveRefs = [rv, rf];
+  }
+  function onVoice(snap){
     const v = snap.val();
     if(voiceSeen === null){ voiceSeen = v && v.id || ""; return; }
     if(!v || !v.id || v.id === voiceSeen) return;
@@ -1096,19 +1226,20 @@ document.addEventListener("DOMContentLoaded", () => {
       src.onended = () => $("voiceTag").classList.add("hidden");
       setTimeout(() => $("voiceTag").classList.add("hidden"), buf.duration * 1000 + 800);
     } catch(e){}
-  });
+  }
 
   // Diffusion : l'administrateur déclenche, tous les appareils ouverts jouent en même temps
   let fxSeen = null;
-  ref("fx").on("value", snap => {
+  function onFx(snap){
     const v = snap.val();
     if(fxSeen === null){ fxSeen = v && v.id || ""; return; }        // au chargement : on ne rejoue pas l'ancien
     if(!v || !v.id || v.id === fxSeen) return;
     fxSeen = v.id;
     if(Date.now() - (v.at || 0) > 20000) return;
     if(v.t === "msg") showAnn(v.text); else playFx(v.t);
-  });
-  const sendFx = (t, text) => { if(role !== "admin") return; unlock(); ref("fx").set({ id: evKey(), t: t, text: text || "", at: Date.now() }); };
+  }
+  const consoleOn = () => role === "admin" && cur && curId && !isFinal(cur);
+  const sendFx = (t, text) => { if(!consoleOn()) return; unlock(); ref(liveP("fx")).set({ id: evKey(), t: t, text: text || "", at: Date.now() }); };
   document.querySelectorAll("[data-fx]").forEach(b => b.addEventListener("click", () => sendFx(b.dataset.fx)));
   let annT = null;
   function showAnn(text){
@@ -1269,6 +1400,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!cur) return;
     const g = cur, st = compute(g), fin = isFinal(g, st), nA = (g.a && g.a.name) || "Visiteur", nB = (g.b && g.b.name) || "Local";
     $("liveBadge").classList.toggle("hidden", fin);
+    $("consoleBox").classList.toggle("hidden", !(role === "admin" && !fin));
+    $("btnTalk2").classList.toggle("hidden", !(role === "admin" && !fin));
     $("nameA").textContent = nA; $("nameB").textContent = nB;
     $("nameA").style.setProperty("--tc", colOf(g, "a")); $("nameB").style.setProperty("--tc", colOf(g, "b"));
     $("runsA").textContent = st.total.a; $("runsB").textContent = st.total.b;

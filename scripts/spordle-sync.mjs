@@ -16,7 +16,9 @@ function season() {
   return { start: `${y}-08-01`, end: `${y + 1}-05-31` };
 }
 const slug = s => String(s).toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "_");
-const log = (...a) => console.log("•", ...a);
+// Chaque étape est aussi écrite comme « annotation » GitHub : visible sur la page de l'essai, sans ouvrir le journal
+const ghEsc = t => String(t).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+const log = (...a) => { const t = a.join(" "); console.log("• " + t); if (process.env.GITHUB_ACTIONS) console.log("::notice title=Robot::" + ghEsc(t)); };
 
 async function shot(page, name) {
   try { await page.screenshot({ path: path.join(DEBUG, name + ".png"), fullPage: false }); } catch (e) {}
@@ -125,7 +127,17 @@ for (const src of SOURCES) {
     okCount++;
   } catch (e) {
     console.error("ÉCHEC pour " + src.nom + " :", e.message);
+    if (process.env.GITHUB_ACTIONS) console.log("::error title=" + ghEsc(src.nom) + "::" + ghEsc(e.message));
     await shot(page, "99-erreur-" + tag);
+    // Ce que le robot voit : les boutons et les textes de la page (pour ajuster le robot)
+    try {
+      const btns = await page.locator("button, [role=button], [role=combobox], select, a").evaluateAll(els =>
+        els.filter(e => e.offsetParent !== null).map(e => (e.innerText || e.value || e.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 60));
+      log("Boutons visibles : " + btns.join(" | "));
+      log("Adresse : " + page.url() + " · Titre : " + (await page.title()));
+      const txt = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 900);
+      log("Texte de la page : " + txt);
+    } catch (x) {}
   }
   for (const f of fs.readdirSync(DEBUG)) if (/^0\d-/.test(f)) fs.renameSync(path.join(DEBUG, f), path.join(DEBUG, tag + "-" + f));
   await ctx.close();
