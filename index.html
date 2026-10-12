@@ -59,6 +59,10 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .tk-cd{font-variant-numeric:tabular-nums}
 .g-fix{margin-top:.5rem;width:100%;font-size:.78rem;font-weight:700;padding:.4rem .3rem;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
 body.role-viewer .g-fix{display:none !important}
+.ics-sync{margin:-.3rem 0 .8rem;padding:.6rem;border:1px dashed var(--line);border-radius:8px}
+.ics-sync label{display:block;font-size:.85rem;font-weight:700;margin-bottom:.3rem}
+.ics-sync small{display:block;margin-top:.35rem;font-size:.75rem;color:var(--muted)}
+.ics-sync .amb-row{margin-top:0}
 .stop-goal{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
 .stop-goal label{flex:1;display:flex;align-items:center;gap:.35rem;padding:.45rem .5rem;border:1px solid var(--line);border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .stop-goal input{width:1.1rem;height:1.1rem;margin:0}
@@ -452,6 +456,15 @@ body:not(.role-viewer) .g-who{display:none}
 .g .g-who{font-weight:600;color:var(--ink)}
 .g .g-season{margin-top:.35rem;padding-top:.35rem;border-top:1px dashed var(--line);font-size:.8rem}
 .g .g-season:empty{display:none}
+.player-card-inline .p-team{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:.15rem 0 .2rem}
+.player-card-inline .p-linked{margin-top:.5rem;border-top:1px dashed var(--line);padding-top:.35rem}
+.p-ltable{width:100%;border-collapse:collapse;font-size:.78rem}
+.p-ltable th{font-size:.6rem;color:var(--muted);font-weight:700;text-align:center;padding:.1rem}
+.p-ltable th:first-child,.p-ltable td:first-child{text-align:left}
+.p-ltable td{text-align:center;padding:.18rem .1rem;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.p-ltable tr.tot td{font-weight:800;border-top:2px solid var(--ink)}
+.player-card-inline .p-note{font-size:.72rem;color:var(--muted);margin:.35rem 0 0}
+.player-card-inline .p-link{margin-top:.45rem;width:100%;font-size:.75rem;font-weight:700;padding:.35rem;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
 .player-card-inline .p-grid.g-grid{grid-template-columns:repeat(4,1fr);row-gap:.35rem}
 .player-card-inline .p-grid.g-grid .p-stat .p-val{font-size:.95rem;white-space:nowrap}
 
@@ -814,6 +827,20 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 <div id="voiceTag" hidden>🎙️ Annonce en cours…</div>
 <div id="annMsg" hidden role="status" aria-live="assertive"></div>
 
+<dialog id="linkSheet">
+  <div class="sheet-in">
+    <h2>Lier des fiches</h2>
+    <p class="ctx" id="linkWho"></p>
+    <p style="font-size:.85rem;color:var(--muted);margin:0 0 .6rem;">Pour un joueur qui joue aussi avec une autre équipe : chaque fiche garde ses statistiques, et la fiche montre aussi le total de toutes ses équipes.</p>
+    <div id="linkCur"></div>
+    <label for="linkTeam" style="display:block;font-size:.85rem;font-weight:600;margin:.6rem 0 .3rem;">Autre équipe</label>
+    <select id="linkTeam" class="full-input"></select>
+    <label for="linkPlayer" style="display:block;font-size:.85rem;font-weight:600;margin:.8rem 0 .3rem;">Le même joueur dans cette équipe</label>
+    <select id="linkPlayer" class="full-input"></select>
+    <div class="actions" style="margin-top:1rem;"><button type="button" class="act-2" id="linkClose">Fermer</button><button type="button" class="act-1" id="linkSave">🔗 Lier</button></div>
+  </div>
+</dialog>
+
 <dialog id="gFixSheet">
   <div class="sheet-in">
     <h2>Corriger le gardien</h2>
@@ -977,6 +1004,11 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <button type="button" class="act-1" id="calAdd" style="width:100%;min-height:2.6rem;margin-bottom:.5rem;font-size:.9rem;">➕ Ajouter une partie</button>
     <button type="button" class="act-2 super-only" id="calImport" style="width:100%;min-height:2.4rem;margin-bottom:.8rem;font-size:.88rem;">📥 Importer un horaire (.ics)</button>
     <input type="file" id="calIcsFile" accept=".ics,text/calendar" hidden>
+    <div class="super-only ics-sync">
+      <label for="icsSyncPath">🔄 Synchronisation automatique (robot Spordle)</label>
+      <div class="amb-row"><input type="text" id="icsSyncPath" class="full-input" placeholder="horaires/aigles_m15c.ics" autocomplete="off" autocapitalize="none"><button type="button" class="act-1" id="icsSyncNow" style="flex:none;width:auto;padding:0 .8rem;">Synchroniser</button></div>
+      <small id="icsSyncInfo"></small>
+    </div>
     <ul class="cal-list" id="calList"></ul>
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="calBack">Retour</button>
@@ -1680,6 +1712,7 @@ document.addEventListener("DOMContentLoaded", function(){
   let archiveKey = null, liveState = null;
 
   let openCardId = null, rosterScope = "match";
+  let plinks = {}, xHist = {};          // fiches de joueurs liées (même joueur dans plusieurs équipes) ; historiques des autres catégories
 
   /* Rôles : super administrateur (toutes les organisations), administrateur d'une organisation, marqueur, spectateur.
      « isAdminGlobal » = super administrateur ; un administrateur d'organisation a le rôle "admin" avec « assignedOrg ». */
@@ -1904,6 +1937,7 @@ document.addEventListener("DOMContentLoaded", function(){
     document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "");
     $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + roleLabel() + ")" : "🔒 Connexion";
     updateStatusDisplay(); applyInv(); updatePermUI();
+    setTimeout(() => { try{ icsAutoSync(); }catch(e){} }, 1500);
   }
 
   function demoteToViewer(){
@@ -2127,10 +2161,16 @@ document.addEventListener("DOMContentLoaded", function(){
       render();
     });
 
+    plinks = {}; xHist = {};
+    sub(ref(currentOrg + "/playerLinks"), snap => {
+      const v = snap.val(); plinks = (v && typeof v === "object") ? v : {};
+      if(isOpen("rosterBlock")) renderRosters();
+      if($("linkSheet").open) renderLinkSheet();
+    });
     sub(dbPresets, snap => {
       const v = snap.val();
       presets = (v && typeof v === "object") ? v : {};
-      presetsRev++; indexPresets();
+      presetsRev++; indexPresets(); setTimeout(() => { try{ icsAutoSync(); }catch(e){} }, 1500);
       if(resolveBoard()) return;         // changement de tableau : l'affichage est refait par attachBoard
       syncStateWithPresets(); render();
     });
@@ -3143,6 +3183,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function calWatch(cat){
     calStop(); calCat = cat; calMgr = []; calRender(true);
     calRef = ref(calOrg + "/" + cat + "/calendar"); calRef.on("value", onCal);
+    if(isSuper()) icsSyncShow();
   }
   // Équipes enregistrées d'une catégorie (celles de l'organisation d'abord)
   function calTeams(cat){
@@ -3361,20 +3402,46 @@ document.addEventListener("DOMContentLoaded", function(){
   on("calIcsFile", "change", () => {
     const f = $("calIcsFile").files[0]; $("calIcsFile").value = ""; if(!f || !isSuper()) return;
     const rd = new FileReader();
-    rd.onload = () => {
-      icsGames = icsParse(rd.result);
-      if(!icsGames.length){ notify("Aucune partie trouvée dans ce fichier.\nVérifiez qu'il s'agit bien d'un horaire au format .ics.", "info"); return; }
-      ref(calOrg + "/" + calCat + "/icsTeams").once("value").then(snap => {
-        icsSaved = obj(snap.val()); icsMap = {};
-        const names = {}; icsGames.forEach(g => { names[g.b] = true; names[g.a] = true; });
-        icsNames = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true }));
-        icsNames.forEach(n => { const v = icsGuessTeam(n, icsSaved), s = icsSaved[normKey(n)];
-          icsMap[n] = { key: v, other: (typeof s === "string" && s.charAt(0) === "=" && s.length > 1) ? s.slice(1) : niceName(n) }; });
-        icsOpen();
-      }, () => notify("Impossible de lire les associations d'équipes.", "error"));
-    };
+    rd.onload = () => icsStart(rd.result, null);
     rd.onerror = () => notify("Impossible de lire ce fichier.", "error");
     rd.readAsText(f);
+  });
+  let icsSyncPending = null;          // importation venue du fichier synchronisé : on retient sa version
+  function icsStart(text, sync){
+    icsGames = icsParse(text); icsSyncPending = sync;
+    if(!icsGames.length){ notify("Aucune partie trouvée dans ce fichier.\nVérifiez qu'il s'agit bien d'un horaire au format .ics.", "info"); return; }
+    ref(calOrg + "/" + calCat + "/icsTeams").once("value").then(snap => {
+      icsSaved = obj(snap.val()); icsMap = {};
+      const names = {}; icsGames.forEach(g => { names[g.b] = true; names[g.a] = true; });
+      icsNames = Object.keys(names).sort((x, y) => x.localeCompare(y, "fr", { numeric: true }));
+      icsNames.forEach(n => { const v = icsGuessTeam(n, icsSaved), s = icsSaved[normKey(n)];
+        icsMap[n] = { key: v, other: (typeof s === "string" && s.charAt(0) === "=" && s.length > 1) ? s.slice(1) : niceName(n) }; });
+      icsOpen();
+    }, () => notify("Impossible de lire les associations d'équipes.", "error"));
+  }
+  // Version d'un fichier (sans DTSTAMP, qui change à chaque téléchargement)
+  const icsHash = t => { t = String(t).replace(/\r?\nDTSTAMP:[^\r\n]*/g, ""); let h = 5381; for(let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + "_" + t.length; };
+  const icsFetch = p => fetch(String(p).trim() + (String(p).indexOf("?") === -1 ? "?" : "&") + "v=" + Date.now(), { cache: "no-store" })
+                         .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); });
+  // Fiche de synchronisation de la catégorie affichée dans la fenêtre du calendrier
+  function icsSyncShow(){
+    if(!calCat) return;
+    const org = calOrg, cat = calCat;
+    ref(org + "/" + cat + "/icsSync").once("value").then(s => {
+      if(org !== calOrg || cat !== calCat) return;
+      const v = obj(s.val());
+      $("icsSyncPath").value = v.path || "";
+      $("icsSyncInfo").textContent = v.path ? (v.at ? "Dernière mise à jour : " + new Date(v.at).toLocaleString("fr-CA", { dateStyle: "medium", timeStyle: "short" }) + (v.n != null ? " · " + v.n + " partie" + (v.n > 1 ? "s" : "") : "") : "Pas encore synchronisé.")
+                                         : "Fichier déposé par le robot dans le site (ex. horaires/aigles_m15c.ics). Les nouvelles versions sont importées toutes seules.";
+    });
+  }
+  on("icsSyncNow", "click", () => {
+    if(!isSuper() || !calCat) return;
+    const path = $("icsSyncPath").value.trim(), base = calOrg + "/" + calCat + "/icsSync";
+    if(!path){ ref(base).remove(); icsSyncShow(); notify("Synchronisation retirée pour " + calCat.toUpperCase() + ".", "ok"); return; }
+    ref(base + "/path").set(path);
+    icsFetch(path).then(text => icsStart(text, { base: base, hash: icsHash(text) }),
+                        e => notify("Impossible de lire « " + path + " ».\nLe robot l'a-t-il déjà déposé dans le site ? (" + (e.message || e) + ")", "error"));
   });
   const icsTeamOf = n => { const m = icsMap[n]; return m.key !== "__other" && calPresets[m.key] ? { key: m.key, name: calPresets[m.key].name } : { key: "", name: (String(m.other || "").trim() || niceName(n)).slice(0, 30) }; };
   const icsId = g => g.uid ? "ics" + cleanKey(g.uid).slice(0, 40) : "";
@@ -3413,7 +3480,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("icsCount").textContent = icsGames.length + " partie" + (icsGames.length > 1 ? "s" : "") + " : " + nNew + " nouvelle" + (nNew > 1 ? "s" : "") + ", " + nUpd + " mise" + (nUpd > 1 ? "s" : "") + " à jour";
   }
   const pwdOrgLabelOf = k => { const o = organizationsList.find(x => x.id === k); return o ? o.name : String(k).toUpperCase(); };
-  on("icsCancel", "click", () => swapDlg("calImportSheet", "calendarSheet"));
+  on("icsCancel", "click", () => { icsSyncPending = null; swapDlg("calImportSheet", "calendarSheet"); });
   on("icsSave", "click", () => {
     if(!isSuper()) return;
     for(let i = 0; i < icsNames.length; i++){
@@ -3437,9 +3504,58 @@ document.addEventListener("DOMContentLoaded", function(){
     const map = Object.assign({}, icsSaved);
     icsNames.forEach(n => { const m = icsMap[n]; map[normKey(n)] = m.key === "__other" ? "=" + icsTeamOf(n).name : m.key; });
     ref(base + "/icsTeams").set(map);
+    if(icsSyncPending){ ref(icsSyncPending.base).update ? null : null; ref(icsSyncPending.base + "/hash").set(icsSyncPending.hash); ref(icsSyncPending.base + "/at").set(Date.now()); ref(icsSyncPending.base + "/n").set(icsGames.length); icsSyncPending = null; setTimeout(icsSyncShow, 300); }
     swapDlg("calImportSheet", "calendarSheet");
     notify("Horaire importé dans " + calCat.toUpperCase() + " : " + added + " partie" + (added > 1 ? "s" : "") + " ajoutée" + (added > 1 ? "s" : "") + ", " + updated + " mise" + (updated > 1 ? "s" : "") + " à jour.");
   });
+
+  /* --- Synchronisation automatique : quand un marqueur, un administrateur ou le super administrateur ouvre la page,
+         la dernière version du fichier déposé par le robot est importée (associations d'équipes déjà retenues) --- */
+  const icsAutoLast = {};
+  function icsAutoSync(){
+    if(currentRole === "viewer" || !presetsLoaded || editEntry || archiveKey) return;
+    const org = currentOrg, cat = currentCat, k = org + "/" + cat;
+    if(icsAutoLast[k] && Date.now() - icsAutoLast[k] < 10 * 60000) return;
+    icsAutoLast[k] = Date.now();
+    ref(k + "/icsSync").once("value").then(s => {
+      const cfg = obj(s.val()); if(!cfg.path) return;
+      return icsFetch(cfg.path).then(text => {
+        const h = icsHash(text); if(h === cfg.hash) return;
+        const games = icsParse(text); if(!games.length) return;
+        return Promise.all([ref(k + "/icsTeams").once("value"), ref(k + "/calendar").once("value")]).then(r => {
+          if(org !== currentOrg || cat !== currentCat) return;
+          const saved = obj(r[0].val()), cal = obj(r[1].val()), map = Object.assign({}, saved);
+          const teams = Object.keys(presets).filter(t => presets[t] && presets[t].name && (!presets[t].category || presets[t].category === cat));
+          const teamOf = n => {
+            const s0 = saved[normKey(n)];
+            if(typeof s0 === "string" && s0.charAt(0) === "=" && s0.length > 1) return { key: "", name: s0.slice(1) };
+            if(typeof s0 === "string" && presets[s0]) return { key: s0, name: presets[s0].name };
+            const nk = normKey(n), hit = teams.filter(t => normKey(presets[t].name) === nk)[0];
+            if(hit){ map[nk] = hit; return { key: hit, name: presets[hit].name }; }
+            const nm = niceName(n); map[nk] = "=" + nm; return { key: "", name: nm };
+          };
+          let added = 0, updated = 0;
+          games.forEach(g => {
+            const A = teamOf(g.a), B = teamOf(g.b), id = icsId(g) || uid(), old = cal[id] && typeof cal[id] === "object" ? cal[id] : null;
+            if(A.name === B.name) return;
+            let aid = icsArena(g);
+            if(!aid && g.arenaName) aid = addArena(g.arenaName, g.city, g.address);
+            const entry = { date: g.date, time: g.time, a: A.name, b: B.name, aKey: A.key, bKey: B.key,
+                            place: aid ? arenas[aid].name : "", arena: aid || "", end: old && old.end || "", histKey: old && old.histKey || "", ics: g.uid };
+            if(old && old.scoreA != null){ entry.scoreA = old.scoreA; entry.scoreB = old.scoreB; }
+            if(old && old.started) entry.started = old.started;
+            if(old && old.date === entry.date && old.time === entry.time && old.a === entry.a && old.b === entry.b && old.place === entry.place) return;   // inchangée
+            ref(k + "/calendar/" + id).set(entry);
+            if(old) updated++; else added++;
+          });
+          ref(k + "/icsTeams").set(map);
+          ref(k + "/icsSync/hash").set(h); ref(k + "/icsSync/at").set(Date.now()); ref(k + "/icsSync/n").set(games.length);
+          if((added || updated) && isSuper()) notify("Horaire Spordle synchronisé (" + cat.toUpperCase() + ") : " + added + " ajoutée" + (added > 1 ? "s" : "") + ", " + updated + " mise" + (updated > 1 ? "s" : "") + " à jour.", "ok");
+        });
+      });
+    }).catch(() => {});
+  }
+  setInterval(icsAutoSync, 10 * 60000 + 5000);
 
   /* --- Nouvelle partie : partir d'une partie prévue au calendrier --- */
   let wizCal = [];
@@ -4073,10 +4189,154 @@ document.addEventListener("DOMContentLoaded", function(){
         cells.forEach(c => {
           const cell = el("div", "p-stat"); cell.appendChild(el("span", "p-lbl", c[0])); cell.appendChild(el("span", "p-val", c[1])); grid.appendChild(cell);
         });
-        card.appendChild(h4); card.appendChild(grid); frag.appendChild(card);
+        card.appendChild(h4);
+        const tKey = teamKeyOf(ctx.name), lk = tKey ? linkOf(tKey, pId) : null;
+        if(lk) card.appendChild(el("div", "p-team", (scope === "match" ? "Ce match" : "Avec " + ctx.name)));
+        card.appendChild(grid);
+        if(lk && scope !== "match") card.appendChild(linkedStats(lk, tKey, pId, isG, scope === "match" ? null : (isG ? goalieStats(ctx, pId, scope) : playerStats(ctx, pId, scope))));
+        else if(lk) card.appendChild(el("p", "p-note", "🔗 Fiche liée : " + lk.others.map(m => m.teamName).join(", ") + ". Touchez « Tout (Saison) » pour le total."));
+        if(isAdmin() && tKey && !archiveKey){
+          card.appendChild(btn("p-link", lk ? "🔗 Gérer les fiches liées" : "🔗 Lier à une fiche d'une autre équipe", ev => { ev.stopPropagation(); openLinkSheet(tKey, pId, (p.no ? "#" + p.no + " " : "") + p.name, ctx.name); }));
+        }
+        frag.appendChild(card);
       }
     });
     ul.appendChild(frag);
+  }
+
+  /* ---- Fiches liées : un joueur qui joue aussi pour une autre équipe (même catégorie ou non) ---- */
+  function teamKeyOf(name){ const p = presetByName[name]; return p ? Object.keys(presets).filter(k => presets[k] === p)[0] || "" : ""; }
+  const memId = (team, pid) => team + "__" + pid;
+  function linkOf(team, pid){
+    const id = memId(team, pid);
+    for(const lid of Object.keys(plinks)){
+      const L = plinks[lid], m = L && L.m; if(!m || !m[cleanKey(id)]) continue;
+      const others = Object.keys(m).map(k => m[k]).filter(x => x && memId(x.team, x.pid) !== id)
+                       .map(x => ({ team: x.team, pid: String(x.pid), cat: (presets[x.team] && presets[x.team].category) || x.cat || currentCat,
+                                    teamName: (presets[x.team] && presets[x.team].name) || x.teamName || "?", label: x.label || "" }));
+      if(others.length) return { id: lid, others: others };
+    }
+    return null;
+  }
+  // Historique d'une autre catégorie (chargé une fois, à la demande)
+  function histOf(cat){
+    if(cat === currentCat) return historyLoaded ? historyList : null;
+    const c = xHist[cat];
+    if(c) return c.list;
+    xHist[cat] = { list: null };
+    ref(currentOrg + "/" + cat + "/history").once("value").then(s => {
+      const v = s.val() || {};
+      xHist[cat] = { list: Object.keys(v).map(k => indexMatch(k, v[k])).filter(Boolean) };
+      if(isOpen("rosterBlock")) renderRosters();
+    }, () => { xHist[cat] = { list: [] }; });
+    return null;
+  }
+  function statsIn(list, teamName, pId, isG){
+    if(isG){
+      const st = { pj: 0, v: 0, d: 0, n: 0, sa: 0, ga: 0, bl: 0 };
+      list.forEach(h => {
+        if(h.key === state.histKey && h.m && h.m.id === state.id) return;
+        const ms = h.a === teamName ? "a" : (h.b === teamName ? "b" : null); if(!ms) return;
+        const lines = h.gl[ms] || (h.gl[ms] = goalieLines(h.s, ms)), l = lines[pId], inNet = goalieOf(h.s, ms) === pId;
+        if(!l && !inNet) return;
+        st.pj++; if(l){ st.sa += l.sa; st.ga += l.ga; }
+        if(inNet){ const opp = ms === "a" ? "b" : "a", gf = goalsOf(ms, null, h.events), ga = goalsOf(opp, null, h.events);
+                   if(gf > ga) st.v++; else if(gf < ga) st.d++; else st.n++; if(ga === 0 && Object.keys(lines).length <= 1) st.bl++; }
+      });
+      return st;
+    }
+    let b = 0, a = 0, pun = 0, pj = 0;
+    list.forEach(h => {
+      const ms = h.a === teamName ? "a" : (h.b === teamName ? "b" : null); if(!ms) return;
+      pj++;
+      h.events.forEach(e => {
+        if(e.team !== ms) return;
+        if(e.type === "goal"){ if(e.scorer === pId) b++; if(e.a1 === pId || e.a2 === pId) a++; }
+        else if(e.type === "pen" && e.player === pId) pun += Number(e.min || 2);
+      });
+    });
+    return { pj: pj, b: b, a: a, pun: pun };
+  }
+  function linkedStats(lk, tKey, pId, isG, mine){
+    const box = el("div", "p-linked"), rows = [{ name: (presets[tKey] && presets[tKey].name) || "", st: mine }];
+    let waiting = false;
+    lk.others.forEach(m => {
+      const list = histOf(m.cat);
+      if(!list){ waiting = true; return; }
+      rows.push({ name: m.teamName + (m.cat !== currentCat ? " (" + String(m.cat).toUpperCase() + ")" : ""), st: statsIn(list, m.teamName, m.pid, isG) });
+    });
+    const tot = rows.reduce((t, r) => { Object.keys(r.st).forEach(k => { t[k] = (t[k] || 0) + (Number(r.st[k]) || 0); }); return t; }, {});
+    const tbl = el("table", "p-ltable"), head = el("tr");
+    const cols = isG ? [["PJ", s => s.pj], ["V-D-N", s => s.v + "-" + s.d + "-" + s.n], ["BC", s => s.ga], ["% ARR", s => svPct(s.sa, s.ga)]]
+                     : [["PJ", s => s.pj], ["B", s => s.b], ["A", s => s.a], ["PTS", s => s.b + s.a], ["PUN", s => s.pun + "m"]];
+    head.appendChild(el("th", null, "Équipe")); cols.forEach(c => head.appendChild(el("th", null, c[0]))); tbl.appendChild(head);
+    rows.concat([{ name: "Total", st: tot, total: true }]).forEach(r => {
+      const tr = el("tr", r.total ? "tot" : ""); tr.appendChild(el("td", null, r.name)); cols.forEach(c => tr.appendChild(el("td", null, String(c[1](r.st))))); tbl.appendChild(tr);
+    });
+    box.appendChild(el("div", "p-team", "🔗 Toutes ses équipes"));
+    box.appendChild(tbl);
+    if(waiting) box.appendChild(el("p", "p-note", "Chargement des autres équipes…"));
+    return box;
+  }
+  // Fenêtre de liaison
+  let linkCtx = null;
+  function openLinkSheet(team, pid, label, teamName){ linkCtx = { team: team, pid: pid, label: label, teamName: teamName }; renderLinkSheet(); openDlg("linkSheet"); }
+  function renderLinkSheet(){
+    if(!linkCtx) return;
+    $("linkWho").textContent = linkCtx.label + " — " + linkCtx.teamName;
+    const lk = linkOf(linkCtx.team, linkCtx.pid), cur = $("linkCur"); cur.textContent = "";
+    if(lk){
+      cur.appendChild(el("p", "p-note", "Déjà liée à :"));
+      lk.others.forEach(m => {
+        const r = el("div", "msg-row");
+        r.appendChild(el("span", null, (m.label || m.pid) + " — " + m.teamName + " (" + String(m.cat).toUpperCase() + ")"));
+        r.appendChild(btn("row-del", "✕", () => unlinkMember(lk.id, m.team, m.pid)));
+        cur.appendChild(r);
+      });
+    }
+    const teams = Object.keys(presets).filter(k => k !== linkCtx.team && presets[k] && presets[k].name)
+      .sort((x, y) => String(presets[x].name).localeCompare(String(presets[y].name), "fr"))
+      .map(k => ({ value: k, label: presets[k].name + " (" + String(presets[k].category || currentCat).toUpperCase() + ")" }));
+    const ts = $("linkTeam"), keep = ts.value;
+    fillSelect(ts, teams, keep || null, "Choisir l'équipe…");
+    renderLinkPlayers();
+  }
+  function renderLinkPlayers(){
+    const k = $("linkTeam").value, r = k && presets[k] ? toArr(presets[k].roster).map(normPlayer) : [];
+    // le même numéro ou le même nom est proposé en premier
+    const me = String(linkCtx.label).replace(/^#\S+\s/, "").toLowerCase();
+    const items = r.map((p, i) => ({ value: pidOf(p, i), label: (p.no ? "#" + p.no + " " : "") + p.name + (p.pos === "G" ? " (G)" : ""), top: p.name.toLowerCase() === me }))
+                   .sort((x, y) => (y.top ? 1 : 0) - (x.top ? 1 : 0));
+    fillSelect($("linkPlayer"), items, null, k ? (items.length ? "Choisir le joueur…" : "Aucun joueur dans cette équipe") : "—");
+  }
+  on("linkTeam", "change", renderLinkPlayers);
+  on("linkClose", "click", () => closeDlg("linkSheet"));
+  on("linkSave", "click", () => {
+    if(!isAdmin() || !linkCtx) return;
+    const t2 = $("linkTeam").value, p2 = $("linkPlayer").value;
+    if(!t2 || !p2){ notify("Choisissez l'équipe et le joueur.", "info"); return; }
+    const opt = $("linkPlayer").selectedOptions[0], lab2 = opt ? opt.textContent.replace(/ \(G\)$/, "") : p2;
+    const mine = { team: linkCtx.team, pid: linkCtx.pid, cat: (presets[linkCtx.team] && presets[linkCtx.team].category) || currentCat, teamName: linkCtx.teamName, label: linkCtx.label };
+    const other = { team: t2, pid: p2, cat: presets[t2].category || currentCat, teamName: presets[t2].name, label: lab2 };
+    // Si l'une des deux fiches fait déjà partie d'un groupe, on regroupe tout
+    const l1 = linkOf(mine.team, mine.pid), l2 = linkOf(other.team, other.pid);
+    const lid = (l1 && l1.id) || (l2 && l2.id) || uid(), upd = {};
+    upd[lid + "/m/" + cleanKey(memId(mine.team, mine.pid))] = mine;
+    upd[lid + "/m/" + cleanKey(memId(other.team, other.pid))] = other;
+    if(l1 && l2 && l1.id !== l2.id){
+      const m2 = plinks[l2.id].m; Object.keys(m2).forEach(k => { upd[lid + "/m/" + k] = m2[k]; });
+      upd[l2.id] = null;
+    }
+    const base = currentOrg + "/playerLinks/";
+    Promise.all(Object.keys(upd).map(k => upd[k] === null ? ref(base + k).remove() : ref(base + k).set(upd[k])))
+      .then(() => notify("Fiches liées !", "ok"), err => notify("Échec : " + (err && err.message || err), "error"));
+  });
+  function unlinkMember(lid, team, pid){
+    if(!isAdmin()) return;
+    const L = plinks[lid]; if(!L || !L.m) return;
+    const left = Object.keys(L.m).filter(k => k !== cleanKey(memId(team, pid)));
+    if(left.length <= 1) ref(currentOrg + "/playerLinks/" + lid).remove();
+    else ref(currentOrg + "/playerLinks/" + lid + "/m/" + cleanKey(memId(team, pid))).remove();
   }
 
   function playerStats(ctx, pId, scope){
