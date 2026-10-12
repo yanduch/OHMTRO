@@ -59,10 +59,6 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .tk-cd{font-variant-numeric:tabular-nums}
 .g-fix{margin-top:.5rem;width:100%;font-size:.78rem;font-weight:700;padding:.4rem .3rem;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
 body.role-viewer .g-fix{display:none !important}
-.ics-sync{margin:-.3rem 0 .8rem;padding:.6rem;border:1px dashed var(--line);border-radius:8px}
-.ics-sync label{display:block;font-size:.85rem;font-weight:700;margin-bottom:.3rem}
-.ics-sync small{display:block;margin-top:.35rem;font-size:.75rem;color:var(--muted)}
-.ics-sync .amb-row{margin-top:0}
 .stop-goal{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem}
 .stop-goal label{flex:1;display:flex;align-items:center;gap:.35rem;padding:.45rem .5rem;border:1px solid var(--line);border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .stop-goal input{width:1.1rem;height:1.1rem;margin:0}
@@ -1004,11 +1000,6 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <button type="button" class="act-1" id="calAdd" style="width:100%;min-height:2.6rem;margin-bottom:.5rem;font-size:.9rem;">➕ Ajouter une partie</button>
     <button type="button" class="act-2 super-only" id="calImport" style="width:100%;min-height:2.4rem;margin-bottom:.8rem;font-size:.88rem;">📥 Importer un horaire (.ics)</button>
     <input type="file" id="calIcsFile" accept=".ics,text/calendar" hidden>
-    <div class="super-only ics-sync">
-      <label for="icsSyncPath">🔄 Synchronisation automatique (robot Spordle)</label>
-      <div class="amb-row"><input type="text" id="icsSyncPath" class="full-input" placeholder="horaires/aigles_m15c.ics" autocomplete="off" autocapitalize="none"><button type="button" class="act-1" id="icsSyncNow" style="flex:none;width:auto;padding:0 .8rem;">Synchroniser</button></div>
-      <small id="icsSyncInfo"></small>
-    </div>
     <ul class="cal-list" id="calList"></ul>
     <div class="actions" style="margin-top:1.2rem;">
       <button type="button" class="act-2" id="calBack">Retour</button>
@@ -1937,7 +1928,6 @@ document.addEventListener("DOMContentLoaded", function(){
     document.body.className = "role-" + currentRole + (isSuper() ? " is-super" : "");
     $("btnLogin").textContent = (currentRole !== "viewer") ? "🔓 Déconnexion (" + roleLabel() + ")" : "🔒 Connexion";
     updateStatusDisplay(); applyInv(); updatePermUI();
-    setTimeout(() => { try{ icsAutoSync(); }catch(e){} }, 1500);
   }
 
   function demoteToViewer(){
@@ -2170,7 +2160,7 @@ document.addEventListener("DOMContentLoaded", function(){
     sub(dbPresets, snap => {
       const v = snap.val();
       presets = (v && typeof v === "object") ? v : {};
-      presetsRev++; indexPresets(); setTimeout(() => { try{ icsAutoSync(); }catch(e){} }, 1500);
+      presetsRev++; indexPresets();
       if(resolveBoard()) return;         // changement de tableau : l'affichage est refait par attachBoard
       syncStateWithPresets(); render();
     });
@@ -3183,7 +3173,6 @@ document.addEventListener("DOMContentLoaded", function(){
   function calWatch(cat){
     calStop(); calCat = cat; calMgr = []; calRender(true);
     calRef = ref(calOrg + "/" + cat + "/calendar"); calRef.on("value", onCal);
-    if(isSuper()) icsSyncShow();
   }
   // Équipes enregistrées d'une catégorie (celles de l'organisation d'abord)
   function calTeams(cat){
@@ -3402,13 +3391,12 @@ document.addEventListener("DOMContentLoaded", function(){
   on("calIcsFile", "change", () => {
     const f = $("calIcsFile").files[0]; $("calIcsFile").value = ""; if(!f || !isSuper()) return;
     const rd = new FileReader();
-    rd.onload = () => icsStart(rd.result, null);
+    rd.onload = () => icsStart(rd.result);
     rd.onerror = () => notify("Impossible de lire ce fichier.", "error");
     rd.readAsText(f);
   });
-  let icsSyncPending = null;          // importation venue du fichier synchronisé : on retient sa version
-  function icsStart(text, sync){
-    icsGames = icsParse(text); icsSyncPending = sync;
+  function icsStart(text){
+    icsGames = icsParse(text);
     if(!icsGames.length){ notify("Aucune partie trouvée dans ce fichier.\nVérifiez qu'il s'agit bien d'un horaire au format .ics.", "info"); return; }
     ref(calOrg + "/" + calCat + "/icsTeams").once("value").then(snap => {
       icsSaved = obj(snap.val()); icsMap = {};
@@ -3419,30 +3407,6 @@ document.addEventListener("DOMContentLoaded", function(){
       icsOpen();
     }, () => notify("Impossible de lire les associations d'équipes.", "error"));
   }
-  // Version d'un fichier (sans DTSTAMP, qui change à chaque téléchargement)
-  const icsHash = t => { t = String(t).replace(/\r?\nDTSTAMP:[^\r\n]*/g, ""); let h = 5381; for(let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + "_" + t.length; };
-  const icsFetch = p => fetch(String(p).trim() + (String(p).indexOf("?") === -1 ? "?" : "&") + "v=" + Date.now(), { cache: "no-store" })
-                         .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); });
-  // Fiche de synchronisation de la catégorie affichée dans la fenêtre du calendrier
-  function icsSyncShow(){
-    if(!calCat) return;
-    const org = calOrg, cat = calCat;
-    ref(org + "/" + cat + "/icsSync").once("value").then(s => {
-      if(org !== calOrg || cat !== calCat) return;
-      const v = obj(s.val());
-      $("icsSyncPath").value = v.path || "";
-      $("icsSyncInfo").textContent = v.path ? (v.at ? "Dernière mise à jour : " + new Date(v.at).toLocaleString("fr-CA", { dateStyle: "medium", timeStyle: "short" }) + (v.n != null ? " · " + v.n + " partie" + (v.n > 1 ? "s" : "") : "") : "Pas encore synchronisé.")
-                                         : "Fichier déposé par le robot dans le site (ex. horaires/aigles_m15c.ics). Les nouvelles versions sont importées toutes seules.";
-    });
-  }
-  on("icsSyncNow", "click", () => {
-    if(!isSuper() || !calCat) return;
-    const path = $("icsSyncPath").value.trim(), base = calOrg + "/" + calCat + "/icsSync";
-    if(!path){ ref(base).remove(); icsSyncShow(); notify("Synchronisation retirée pour " + calCat.toUpperCase() + ".", "ok"); return; }
-    ref(base + "/path").set(path);
-    icsFetch(path).then(text => icsStart(text, { base: base, hash: icsHash(text) }),
-                        e => notify("Impossible de lire « " + path + " ».\nLe robot l'a-t-il déjà déposé dans le site ? (" + (e.message || e) + ")", "error"));
-  });
   const icsTeamOf = n => { const m = icsMap[n]; return m.key !== "__other" && calPresets[m.key] ? { key: m.key, name: calPresets[m.key].name } : { key: "", name: (String(m.other || "").trim() || niceName(n)).slice(0, 30) }; };
   const icsId = g => g.uid ? "ics" + cleanKey(g.uid).slice(0, 40) : "";
   function icsOpen(){
@@ -3480,7 +3444,7 @@ document.addEventListener("DOMContentLoaded", function(){
     $("icsCount").textContent = icsGames.length + " partie" + (icsGames.length > 1 ? "s" : "") + " : " + nNew + " nouvelle" + (nNew > 1 ? "s" : "") + ", " + nUpd + " mise" + (nUpd > 1 ? "s" : "") + " à jour";
   }
   const pwdOrgLabelOf = k => { const o = organizationsList.find(x => x.id === k); return o ? o.name : String(k).toUpperCase(); };
-  on("icsCancel", "click", () => { icsSyncPending = null; swapDlg("calImportSheet", "calendarSheet"); });
+  on("icsCancel", "click", () => swapDlg("calImportSheet", "calendarSheet"));
   on("icsSave", "click", () => {
     if(!isSuper()) return;
     for(let i = 0; i < icsNames.length; i++){
@@ -3504,58 +3468,9 @@ document.addEventListener("DOMContentLoaded", function(){
     const map = Object.assign({}, icsSaved);
     icsNames.forEach(n => { const m = icsMap[n]; map[normKey(n)] = m.key === "__other" ? "=" + icsTeamOf(n).name : m.key; });
     ref(base + "/icsTeams").set(map);
-    if(icsSyncPending){ ref(icsSyncPending.base).update ? null : null; ref(icsSyncPending.base + "/hash").set(icsSyncPending.hash); ref(icsSyncPending.base + "/at").set(Date.now()); ref(icsSyncPending.base + "/n").set(icsGames.length); icsSyncPending = null; setTimeout(icsSyncShow, 300); }
     swapDlg("calImportSheet", "calendarSheet");
     notify("Horaire importé dans " + calCat.toUpperCase() + " : " + added + " partie" + (added > 1 ? "s" : "") + " ajoutée" + (added > 1 ? "s" : "") + ", " + updated + " mise" + (updated > 1 ? "s" : "") + " à jour.");
   });
-
-  /* --- Synchronisation automatique : quand un marqueur, un administrateur ou le super administrateur ouvre la page,
-         la dernière version du fichier déposé par le robot est importée (associations d'équipes déjà retenues) --- */
-  const icsAutoLast = {};
-  function icsAutoSync(){
-    if(currentRole === "viewer" || !presetsLoaded || editEntry || archiveKey) return;
-    const org = currentOrg, cat = currentCat, k = org + "/" + cat;
-    if(icsAutoLast[k] && Date.now() - icsAutoLast[k] < 10 * 60000) return;
-    icsAutoLast[k] = Date.now();
-    ref(k + "/icsSync").once("value").then(s => {
-      const cfg = obj(s.val()); if(!cfg.path) return;
-      return icsFetch(cfg.path).then(text => {
-        const h = icsHash(text); if(h === cfg.hash) return;
-        const games = icsParse(text); if(!games.length) return;
-        return Promise.all([ref(k + "/icsTeams").once("value"), ref(k + "/calendar").once("value")]).then(r => {
-          if(org !== currentOrg || cat !== currentCat) return;
-          const saved = obj(r[0].val()), cal = obj(r[1].val()), map = Object.assign({}, saved);
-          const teams = Object.keys(presets).filter(t => presets[t] && presets[t].name && (!presets[t].category || presets[t].category === cat));
-          const teamOf = n => {
-            const s0 = saved[normKey(n)];
-            if(typeof s0 === "string" && s0.charAt(0) === "=" && s0.length > 1) return { key: "", name: s0.slice(1) };
-            if(typeof s0 === "string" && presets[s0]) return { key: s0, name: presets[s0].name };
-            const nk = normKey(n), hit = teams.filter(t => normKey(presets[t].name) === nk)[0];
-            if(hit){ map[nk] = hit; return { key: hit, name: presets[hit].name }; }
-            const nm = niceName(n); map[nk] = "=" + nm; return { key: "", name: nm };
-          };
-          let added = 0, updated = 0;
-          games.forEach(g => {
-            const A = teamOf(g.a), B = teamOf(g.b), id = icsId(g) || uid(), old = cal[id] && typeof cal[id] === "object" ? cal[id] : null;
-            if(A.name === B.name) return;
-            let aid = icsArena(g);
-            if(!aid && g.arenaName) aid = addArena(g.arenaName, g.city, g.address);
-            const entry = { date: g.date, time: g.time, a: A.name, b: B.name, aKey: A.key, bKey: B.key,
-                            place: aid ? arenas[aid].name : "", arena: aid || "", end: old && old.end || "", histKey: old && old.histKey || "", ics: g.uid };
-            if(old && old.scoreA != null){ entry.scoreA = old.scoreA; entry.scoreB = old.scoreB; }
-            if(old && old.started) entry.started = old.started;
-            if(old && old.date === entry.date && old.time === entry.time && old.a === entry.a && old.b === entry.b && old.place === entry.place) return;   // inchangée
-            ref(k + "/calendar/" + id).set(entry);
-            if(old) updated++; else added++;
-          });
-          ref(k + "/icsTeams").set(map);
-          ref(k + "/icsSync/hash").set(h); ref(k + "/icsSync/at").set(Date.now()); ref(k + "/icsSync/n").set(games.length);
-          if((added || updated) && isSuper()) notify("Horaire Spordle synchronisé (" + cat.toUpperCase() + ") : " + added + " ajoutée" + (added > 1 ? "s" : "") + ", " + updated + " mise" + (updated > 1 ? "s" : "") + " à jour.", "ok");
-        });
-      });
-    }).catch(() => {});
-  }
-  setInterval(icsAutoSync, 10 * 60000 + 5000);
 
   /* --- Nouvelle partie : partir d'une partie prévue au calendrier --- */
   let wizCal = [];
