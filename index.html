@@ -61,6 +61,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .tk-cd{font-variant-numeric:tabular-nums}
 .g-fix{margin-top:.5rem;width:100%;font-size:.78rem;font-weight:700;padding:.4rem .3rem;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
 body.role-viewer .g-fix{display:none !important}
+.ph-sel{width:100%;margin:0 0 .6rem;padding:.5rem .6rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-weight:700}
 .ph-seg{display:flex;gap:.25rem;margin:0 0 .6rem;padding:.2rem;background:var(--ice);border:1px solid var(--line);border-radius:10px}
 .ph-seg button{flex:1;padding:.4rem .2rem;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:700;font-size:.85rem;cursor:pointer}
 .ph-seg button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
@@ -519,6 +520,8 @@ body:not(.role-viewer) .g-who{display:none}
 #historyManageSheet select{background:#FFFFFF;color:#0F2236}
 .history-ctrls{flex:none}
 html.no-game #pad button[data-act], html.no-game #playMode [data-pm]{opacity:.4;filter:grayscale(.6)}
+/* Aucune partie lancée ou en attente : le tableau de pointage, les périodes, les boutons et les lancers par période sont retirés */
+html.no-game .board, html.no-game .periods, html.no-game #pad, html.no-game .game-only{display:none !important}
 .stand-sub{margin:0 0 .4rem;font-size:.78rem;color:var(--muted)}
 .stand-wrap{overflow-x:auto}
 .stand{width:100%;border-collapse:collapse;font-size:.85rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -529,6 +532,10 @@ html.no-game #pad button[data-act], html.no-game #playMode [data-pm]{opacity:.4;
 .stand tr.me td{background:var(--crease);font-weight:700}
 .stand .rk{color:var(--muted);width:1.4rem}
 .h-box{flex:1;min-width:0;margin-right:.5rem}
+#hmList .history-item{flex-direction:column;align-items:stretch}
+#hmList .h-box{margin:0 0 .45rem}
+#hmList .history-ctrls{flex-wrap:wrap;gap:.35rem}
+#hmList .history-ctrls button{flex:1 1 auto}
 .h-line{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-sub{display:block;color:var(--muted)}
 .history-ctrls button{white-space:nowrap}
@@ -704,8 +711,8 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     </div>
   </section>
 
-  <h2>Lancers par période</h2>
-  <div class="scroll">
+  <h2 class="game-only">Lancers par période</h2>
+  <div class="scroll game-only">
     <table>
       <thead><tr><th></th><th data-c="0">1</th><th data-c="1">2</th><th data-c="2">3</th><th data-c="3">Prol.</th><th>Total</th></tr></thead>
       <tbody id="perBody"></tbody>
@@ -730,9 +737,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
 
   <h2 class="toggle-title collapsed" id="toggleStatsBtn">Résumé Statistiques</h2>
   <div class="toggle-block hidden" id="statsBlock">
-    <div class="ph-seg" id="phaseSeg" role="group" aria-label="Parties comptées">
-      <button type="button" data-ph="pre">Pré-saison</button><button type="button" data-ph="reg">Saison</button><button type="button" data-ph="all">Tout</button>
-    </div>
+    <select id="phaseSel" class="ph-sel" aria-label="Parties comptées"></select>
     <section class="stats-card">
       <div class="stats-card-header">
         <h3>Statistiques d'équipe</h3>
@@ -764,8 +769,9 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
     <div class="roster-controls">
       <div class="roster-scope-btn-group">
         <button type="button" id="btnScopeMatch" class="active">Ce match</button>
-        <button type="button" id="btnScopeAll">Tout (Saison)</button>
+        <button type="button" id="btnScopeAll">Cumulatif</button>
       </div>
+      <select id="phaseSel2" class="ph-sel" aria-label="Parties comptées" style="margin-top:.4rem;"></select>
       <p class="ctx" id="rosterHint" style="margin:.2rem 0 0;"></p>
     </div>
 
@@ -1750,10 +1756,14 @@ document.addEventListener("DOMContentLoaded", function(){
   const PHASE_LABEL = { pre: "Pré-saison", reg: "Saison" };
   const phaseOfM = m => (m && m.phase === "reg") ? "reg" : "pre";       // une partie sans type (anciennes parties) = pré-saison
   const defPhase = cat => cfgPhases[cat || currentCat] === "reg" ? "reg" : "pre";
-  let phaseView = null;                // filtre des statistiques : "pre", "reg" ou "all" (null = type par défaut de la catégorie)
-  const curView = () => phaseView || defPhase();
+  let phaseView = null;                // filtre des statistiques : "<année>|pre", "<année>|reg" ou "<année>|all" (null = saison en cours, type par défaut)
+  const seasonOf = at => { const d = new Date(at || Date.now()); return d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1; };   // saison de juillet à juin
+  const seasonLabel = y => String(y % 100).padStart(2, "0") + "-" + String((y + 1) % 100).padStart(2, "0");
+  const viewKey = () => phaseView || (seasonOf(Date.now()) + "|" + defPhase());
+  const curView = () => viewKey().split("|")[1];
+  const curYear = () => Number(viewKey().split("|")[0]);
   const stPhase = () => ({ phase: state.phase || defPhase() });
-  const phaseOk = m => curView() === "all" || phaseOfM(m) === curView();
+  const phaseOk = (m, at) => (curView() === "all" || phaseOfM(m) === curView()) && seasonOf(at) === curYear();
 
   let state = blank();
   let presets = {}, presetByName = {}, presetsRev = 0;
@@ -1928,7 +1938,7 @@ document.addEventListener("DOMContentLoaded", function(){
         add(h.s, ms, h.gl[ms] || (h.gl[ms] = goalieLines(h.s, ms)), true);
       });
     }
-    if(side && (scope === "match" || (isStarted(state) && phaseOk(stPhase())))) add(state, side, goalieLines(state, side), state.finished);
+    if(side && (scope === "match" || (isStarted(state) && phaseOk(stPhase(), Date.now())))) add(state, side, goalieLines(state, side), state.finished);
     return st;
   }
   const svPct = (sa, ga) => sa > 0 ? pct(Math.max(0, sa - ga), sa) : "–";
@@ -2281,6 +2291,15 @@ document.addEventListener("DOMContentLoaded", function(){
     const org = organizationsList.find(o => o.id === currentOrg);
     const messages = [];
     let bt = "", gl = ""; try{ bt = bannerText(); gl = gameLine(); }catch(e){}
+    let skipNext = null;
+    if(!hasGame(state) && !archiveKey && !editEntry){
+      // Aucun match : on invite au prochain (ce message remplace l'annonce « prochaine partie » de cette équipe)
+      const k = boardTeam || boardTeams(currentCat)[0], tp = k && presets[k], g = nextGameOf(tp || null);
+      skipNext = tp || "cat";
+      const who = tp ? tp.name : String(currentCat).toUpperCase();
+      const vs = g ? (tp ? " contre " + (g.a === tp.name ? g.b : g.a) : " — " + calTitle(g)) : "";
+      messages.push("🏒 Aucun match présentement pour " + who + (g ? ", soyez là le " + calWhen(g) + vs + (g.place ? " · " + g.place + arenaAddr(g) : "") + " !" : "."));
+    }
     if(gl) messages.push(gl);                // pendant le match : « Bon match ! » puis le dernier but
     if(bt) messages.push("📣 " + bt);
     // D'abord l'annonce des autres parties en cours dans l'organisation, puis les messages habituels
@@ -2300,7 +2319,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(!p || shown.indexOf(p) !== -1) return;
       shown.push(p);
       // Message automatique : la prochaine partie de l'équipe inscrite au calendrier (équipes de l'organisation)
-      if(p.own || !anyOwn){ const g = nextGameOf(p); if(g) messages.push(nextGameText(g, p.name)); }
+      if((p.own || !anyOwn) && p !== skipNext){ const g = nextGameOf(p); if(g) messages.push(nextGameText(g, p.name)); }
       msgsOf(p).forEach(m => messages.push(p.name + " : " + m));
     };
     const pa = presetFor("a"), pb = presetFor("b");
@@ -2309,7 +2328,7 @@ document.addEventListener("DOMContentLoaded", function(){
     // Aucune équipe reconnue à l'écran (tableau vierge) : on affiche les messages des équipes de l'organisation dans cette catégorie
     if(!shown.length) boardTeams(currentCat).forEach(k => addTeam(presets[k]));
     // Toujours rien (aucune équipe de l'organisation désignée) : la prochaine partie de la catégorie
-    if(!shown.length){ const g = nextGameOf(null); if(g) messages.push(nextGameText(g, null)); }
+    if(!shown.length && skipNext !== "cat"){ const g = nextGameOf(null); if(g) messages.push(nextGameText(g, null)); }
     const full = messages.join("\u0001");
     if(full === tickerSig) return;       // texte inchangé : on ne redémarre pas l'animation
     tickerSig = full; tickerMsg = messages;
@@ -3654,9 +3673,9 @@ document.addEventListener("DOMContentLoaded", function(){
     sub(dbHistory, snap => {
       const val = snap.val() || {};
       historyAll = Object.keys(val).map(k => indexMatch(k, val[k])).filter(Boolean).sort((x,y) => x.at - y.at);
-      historyList = historyAll.filter(h => phaseOk(h.m));
+      historyList = historyAll.filter(h => phaseOk(h.m, h.at));
       historyLoaded = true;
-      renderHistory(); renderStats(); renderGoalies(); renderStandings();
+      renderHistory(); renderStats(); renderGoalies(); renderStandings(); renderPhaseUI();
       if(rosterScope === "all" && isOpen("rosterBlock")) renderRosters();
       const w = historyWaiters; historyWaiters = []; w.forEach(fn => fn());
     });
@@ -3687,11 +3706,12 @@ document.addEventListener("DOMContentLoaded", function(){
   function renderStandings(){
     if(!isOpen("standBlock")) return;
     const tbl = $("standTable"); tbl.textContent = "";
-    setText("standSub", "Saison · " + String(currentCat).toUpperCase() + " · victoire 2 pts, défaite en prolongation 1 pt, nulle 1 pt");
+    setText("standSub", "Saison " + seasonLabel(seasonOf(Date.now())) + " · " + String(currentCat).toUpperCase() + " · victoire 2 pts, défaite en prolongation 1 pt, nulle 1 pt");
     if(!historyLoaded){ tbl.appendChild(el("tr", null, "Chargement…")); return; }
     const keys = {}, games = [];
-    historyAll.forEach(h => { keys[h.key] = true; if(phaseOfM(h.m) === "reg") games.push({ a: h.a, b: h.b, gA: h.gA, gB: h.gB, ot: h.s.period === 3 }); });
-    calendarList.forEach(c => { if(c.played && c.phase === "reg" && !(c.histKey && keys[c.histKey])) games.push({ a: c.a, b: c.b, gA: Number(c.scoreA), gB: Number(c.scoreB), ot: !!c.end }); });
+    const sy = seasonOf(Date.now());
+    historyAll.forEach(h => { keys[h.key] = true; if(phaseOfM(h.m) === "reg" && seasonOf(h.at) === sy) games.push({ a: h.a, b: h.b, gA: h.gA, gB: h.gB, ot: h.s.period === 3 }); });
+    calendarList.forEach(c => { if(c.played && c.phase === "reg" && seasonOf(c.at) === sy && !(c.histKey && keys[c.histKey])) games.push({ a: c.a, b: c.b, gA: Number(c.scoreA), gB: Number(c.scoreB), ot: !!c.end }); });
     const T = {}, row = n => T[n] || (T[n] = { n: n, pj: 0, v: 0, d: 0, dp: 0, nu: 0, bp: 0, bc: 0 });
     games.forEach(g => {
       const A = row(g.a), B = row(g.b);
@@ -3921,7 +3941,7 @@ document.addEventListener("DOMContentLoaded", function(){
     // Parties marquées sur le tableau (historique) + résultats inscrits au calendrier, sans compter deux fois la même partie
     const keys = {}; historyList.forEach(h => { keys[h.key] = true; });
     historyAll.forEach(h => { keys[h.key] = true; });
-    const games = historyList.concat(calendarList.filter(c => c.played && !(c.histKey && keys[c.histKey]) && phaseOk(c))
+    const games = historyList.concat(calendarList.filter(c => c.played && !(c.histKey && keys[c.histKey]) && phaseOk(c, c.at))
                                                  .map(c => ({ a: c.a, b: c.b, gA: c.scoreA, gB: c.scoreB, sA: null, sB: null, at: c.at })))
                              .sort((x, y) => x.at - y.at);
     games.forEach(h => {
@@ -3943,16 +3963,20 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   // Pré-saison / Saison / Tout : filtre des statistiques (résumé, alignements, gardiens)
   function renderPhaseUI(){
-    document.querySelectorAll("#phaseSeg button").forEach(b => b.classList.toggle("active", b.dataset.ph === curView()));
+    const years = {}; years[seasonOf(Date.now())] = 1; historyAll.forEach(h => { years[seasonOf(h.at)] = 1; }); years[curYear()] = 1;
+    const items = []; Object.keys(years).map(Number).sort((a, b) => b - a).forEach(y => {
+      items.push({ value: y + "|pre", label: seasonLabel(y) + " Pré-saison" }, { value: y + "|reg", label: seasonLabel(y) + " Saison" }, { value: y + "|all", label: seasonLabel(y) + " Tout" });
+    });
+    ["phaseSel", "phaseSel2"].forEach(id => { const s = $(id); fillSelect(s, items, viewKey()); });
     const d = defPhase(); document.querySelectorAll("input[name=defPhase]").forEach(r => { r.checked = r.value === d; });
     setText("defPhaseCat", String(currentCat).toUpperCase());
   }
   function applyPhaseView(){
-    historyList = historyAll.filter(h => phaseOk(h.m));
+    historyList = historyAll.filter(h => phaseOk(h.m, h.at));
     renderPhaseUI(); renderStats(); renderGoalies();
     if(isOpen("rosterBlock")) renderRosters();
   }
-  document.querySelectorAll("#phaseSeg button").forEach(b => b.addEventListener("click", () => { phaseView = b.dataset.ph; applyPhaseView(); }));
+  ["phaseSel", "phaseSel2"].forEach(id => on(id, "change", () => { phaseView = $(id).value; applyPhaseView(); }));
   document.querySelectorAll("input[name=defPhase]").forEach(r => r.addEventListener("change", () => {
     if(!isAdmin() || !r.checked) return;
     ref(currentOrg + "/config/phases/" + currentCat).set(r.value);
@@ -4217,7 +4241,7 @@ document.addEventListener("DOMContentLoaded", function(){
       if(isCardOpen){
         const isG = p.pos === "G", card = el("div", "player-card-inline"), h4 = el("h4"), grid = el("div", "p-grid" + (isG ? " g-grid" : ""));
         h4.appendChild(el("span", null, (isG ? "🥅 " : "👤 ") + (p.no ? "#" + p.no + " " : "") + p.name));
-        h4.appendChild(el("small", null, "(" + (scope === "match" ? "Ce match" : "Saison") + ")"));
+        h4.appendChild(el("small", null, "(" + (scope === "match" ? "Ce match" : seasonLabel(curYear()) + " " + (curView() === "all" ? "Tout" : PHASE_LABEL[curView()])) + ")"));
         let cells;
         if(isG){
           // Gardien : fiche, blanchissages, moyenne de buts accordés par match, lancers reçus, buts contre, arrêts, % d'arrêts
@@ -4264,7 +4288,7 @@ document.addEventListener("DOMContentLoaded", function(){
   function histOf(cat){
     if(cat === currentCat) return historyLoaded ? historyList : null;
     const c = xHist[cat];
-    if(c) return c.all ? c.all.filter(h => phaseOk(h.m)) : null;
+    if(c) return c.all ? c.all.filter(h => phaseOk(h.m, h.at)) : null;
     xHist[cat] = { list: null };
     ref(currentOrg + "/" + cat + "/history").once("value").then(s => {
       const v = s.val() || {};
@@ -4397,7 +4421,7 @@ document.addEventListener("DOMContentLoaded", function(){
         if(ms){ pj++; scan(h.events, ms); }
       });
     }
-    if(side && (scope === "match" || (isStarted(state) && phaseOk(stPhase())))){ pj++; scan(state.events, side); }
+    if(side && (scope === "match" || (isStarted(state) && phaseOk(stPhase(), Date.now())))){ pj++; scan(state.events, side); }
     return { pj: pj, b: b, a: a, pun: pun };
   }
 
