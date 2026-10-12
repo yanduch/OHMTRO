@@ -13,6 +13,7 @@
 <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+<script>try{var t=localStorage.getItem("ohmtro_theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <style>
 :root{
   --ice:#EDF3F7; --surface:#FFFFFF; --ink:#0F2236; --muted:#586A7B; --line:#C8D5DF;
@@ -48,6 +49,7 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .brand img{height:1.8rem;width:auto;object-fit:contain;flex-shrink:0;}
 .select-top{font-size:clamp(0.75rem, 2.6vw, 0.85rem);font-weight:700;padding:.2rem .3rem;border-radius:6px;border:1px solid var(--line);background:#FFFFFF !important;color:#0F2236 !important;-webkit-text-fill-color:#0F2236 !important;flex-shrink:0;}
 #orgSelectTop{flex-shrink:1;min-width:0;}
+.theme-btn{flex:none;width:2rem;height:2rem;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:.95rem;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
 .status{font-size:clamp(0.65rem, 2.2vw, 0.75rem);color:var(--muted);display:flex;align-items:center;gap:.25rem;text-align:right;white-space:nowrap;flex-shrink:0;margin-left:auto;}
 .status::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--muted);flex:none}
 .status[data-s="live"]::before{background:var(--ok)}
@@ -623,6 +625,7 @@ body:not(.role-marqueur) .marqueur-only{display:none !important}
       <select id="catSelectTop" class="select-top" aria-label="Catégorie"></select>
       <select id="teamSelectTop" class="select-top" aria-label="Équipe" style="display:none"></select>
     </div>
+    <button type="button" class="theme-btn" id="btnTheme" aria-label="Mode sombre ou clair" title="Mode sombre ou clair">🌙</button>
     <div class="status" id="status" data-s="offline" role="status">Hors ligne</div>
   </header>
 
@@ -1789,7 +1792,7 @@ document.addEventListener("DOMContentLoaded", function(){
   let inverted = store.get(sessionStorage, "ohmtro_inv") === "1";
   const invOn = () => inverted && currentRole !== "viewer" && !archiveKey;
   const sides = () => invOn() ? ["a","b"] : ["b","a"];       // de gauche à droite : visiteur puis local, sauf inversion
-  const roleLabel = () => isSuper() ? "SUPER ADMIN" : currentRole.toUpperCase();
+  const roleLabel = () => isSuper() ? "SA" : currentRole.toUpperCase();
   const canEdit = () => currentRole !== "viewer" && !archiveKey;
   let editEntry = null;                // partie de l'historique en cours de modification : { key, m, at }
   const now = () => Date.now() + serverOffset;      // heure du serveur : même chrono sur tous les appareils
@@ -2220,7 +2223,7 @@ document.addEventListener("DOMContentLoaded", function(){
     sub(dbPresets, snap => {
       const v = snap.val();
       presets = (v && typeof v === "object") ? v : {};
-      presetsRev++; indexPresets();
+      presetsRev++; indexPresets(); try{ renderStandings(); }catch(e){}
       if(resolveBoard()) return;         // changement de tableau : l'affichage est refait par attachBoard
       syncStateWithPresets(); render();
     });
@@ -3696,9 +3699,12 @@ document.addEventListener("DOMContentLoaded", function(){
       if(g.gA === g.gB){ A.nu++; B.nu++; }
       else { const W = g.gA > g.gB ? A : B, L = W === A ? B : A; W.v++; if(g.ot) L.dp++; else L.d++; }
     });
+    // Toutes les équipes de la catégorie paraissent, même sans partie jouée (ordre alphabétique avant le début de la saison)
+    Object.keys(presets).forEach(k => { const p = presets[k]; if(p && p.name && p.category === currentCat) row(p.name); });
     const rows = Object.keys(T).map(k => T[k]); rows.forEach(r => { r.pts = r.v * 2 + r.dp + r.nu; r.dif = r.bp - r.bc; });
-    rows.sort((x, y) => y.pts - x.pts || y.v - x.v || y.dif - x.dif || x.pj - y.pj || x.n.localeCompare(y.n, "fr"));
-    if(!rows.length){ const tr = el("tr"), td = el("td", null, "Aucune partie de saison enregistrée pour l'instant."); td.colSpan = 9; td.style.textAlign = "center"; tr.appendChild(td); tbl.appendChild(tr); return; }
+    rows.sort((x, y) => y.pts - x.pts || y.v - x.v || y.dif - x.dif || x.pj - y.pj || x.n.localeCompare(y.n, "fr", { numeric: true }));
+    if(!games.length) setText("standSub", "La saison n'est pas encore commencée · " + String(currentCat).toUpperCase() + " · équipes en ordre alphabétique");
+    if(!rows.length){ const tr = el("tr"), td = el("td", null, "Aucune équipe dans cette catégorie."); td.colSpan = 9; td.style.textAlign = "center"; tr.appendChild(td); tbl.appendChild(tr); return; }
     const head = el("tr"); ["#", "Équipe", "PJ", "V", "D", "DP", "N", "PTS", "DIF"].forEach(h => head.appendChild(el("th", null, h))); tbl.appendChild(head);
     const mine = boardTeam && presets[boardTeam] ? presets[boardTeam].name : "";
     rows.forEach((r, i) => {
@@ -5211,6 +5217,16 @@ document.addEventListener("DOMContentLoaded", function(){
     if(real) real.click();
     setTimeout(pmSync, 50);
   }));
+
+  /* ============ Mode sombre / clair (choix de chaque appareil) ============ */
+  const isDark = () => { const t = document.documentElement.getAttribute("data-theme"); return t ? t === "dark" : !!(window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches); };
+  const themeIcon = () => { $("btnTheme").textContent = isDark() ? "☀️" : "🌙"; $("btnTheme").setAttribute("aria-label", isDark() ? "Passer en mode clair" : "Passer en mode sombre"); };
+  on("btnTheme", "click", () => {
+    const t = isDark() ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t); store.set(localStorage, "ohmtro_theme", t); themeIcon();
+  });
+  themeIcon();
+  try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeIcon); }catch(e){}
 
   /* ============ Démarrage ============ */
   ref(".info/serverTimeOffset").on("value", s => { serverOffset = Number(s.val()) || 0; });
